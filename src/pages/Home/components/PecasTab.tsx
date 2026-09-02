@@ -1,15 +1,15 @@
 /**
  * ============================================================================
- * MÓDULO: Aba Peças (Catálogo & Filtros com Multi-Select de Etapas e Tipos)
+ * MÓDULO: Aba Peças (Catálogo & Filtros com Multi-Select de Etapas, Tipos e Estações)
  * ARQUIVO: src/pages/Home/components/PecasTab.tsx
  * PROJETO: ModaFlow PLM — AKR BRANDS
  * DESCRIÇÃO: Renderiza a listagem de peças com os dropdowns multi-seleção de
- *            Etapas (24 etapas do fluxo) e Tipos de Peças (Acessórios, Blazer,
- *            Calça, Camisa, Jaqueta, etc.) fiéis às telas enviadas.
+ *            Etapas (24 etapas), Tipos de Peças (incluindo Regata, Short, Sunga, Tricot),
+ *            Status da Coleção, Coleções e Estações (Alto Inverno, Alto Verão, etc.).
  * ----------------------------------------------------------------------------
  * PADRÃO DE INTEGRABILIDADE COM O BACKEND JAVA SPRING BOOT:
- * - A lista de etapas e tipos selecionados é mantida em arrays React State e
- *   pode ser enviada como array de IDs para o backend em Java (`GET /api/v1/pecas?etapas=1,3,5`).
+ * - A lista de etapas, tipos e estações selecionadas é mantida em arrays de estado
+ *   prontos para consulta parametrizada via API REST.
  * ============================================================================
  */
 
@@ -44,7 +44,7 @@ const ETAPAS_OPTIONS = [
   'Revisar ficha técnica (liberar mostruário)'
 ];
 
-/** Lista Completa de Tipos de Peças extraída dos Prints Oficiais do PLM */
+/** Lista Completa de Tipos de Peças (Incluindo Regata, Short, Sunga e Tricot) */
 const TIPOS_PECAS_OPTIONS = [
   'Acessórios',
   'Bata',
@@ -63,7 +63,39 @@ const TIPOS_PECAS_OPTIONS = [
   'Meia',
   'Moletom',
   'Overshirt',
-  'Polo'
+  'Polo',
+  'Regata',
+  'Short',
+  'Sunga',
+  'Tricot'
+];
+
+/** Lista Completa de Estações extraída dos Prints Oficiais */
+const ESTACOES_OPTIONS = [
+  'Alto Inverno',
+  'Alto Verão',
+  'Atemporal',
+  'Inverno',
+  'Outono',
+  'Outono/Inverno',
+  'Permanente',
+  'Preview Inverno',
+  'Preview Outono',
+  'Preview Primavera',
+  'Preview Verão',
+  'Primavera',
+  'Primavera/Verão',
+  'Verão'
+];
+
+/** Lista de Coleções de Exemplo */
+const COLECOES_OPTIONS = [
+  'TESTES VERÃO 28 - K&J BLACK',
+  'TESTES VERÃO 28 - KING&JOE',
+  'TESTES VERÃO 28 - KING&JOE PLAY',
+  'INVERNO 26 - KING&JOE PLAY COLLECTION',
+  'INVERNO 26 - KING&JOE PLAY PERENES',
+  'VERÃO 26 - King&Joe Play Collection'
 ];
 
 /** Mock Data de Peças inspiradas no sistema Coleção Moda */
@@ -174,7 +206,6 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fecha o dropdown ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -203,7 +234,6 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
     }
   };
 
-  // Texto exibido no campo
   const displayText = selectedValues.length === 0 
     ? placeholder 
     : selectedValues.length === 1 
@@ -214,7 +244,6 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
     <div className="relative" ref={dropdownRef}>
       <label className="block text-xs font-bold text-slate-700 mb-1">{label}</label>
       
-      {/* CAMPO DE SELEÇÃO */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -226,11 +255,9 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
         <ChevronDown className="w-4 h-4 text-slate-500 shrink-0 ml-1" />
       </button>
 
-      {/* DROPDOWN FLUTUANTE (IGUAL AO PRINT DO PLM) */}
       {isOpen && (
         <div className="absolute top-full left-0 mt-1 w-full bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 py-2 max-h-72 overflow-y-auto text-xs animate-fade-in">
           
-          {/* Opção Selecionar Todos */}
           <div
             onClick={toggleSelectAll}
             className="px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5 cursor-pointer font-bold border-b border-slate-100 text-slate-800"
@@ -243,7 +270,6 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
             <span>Selecionar todos</span>
           </div>
 
-          {/* Lista de Opções */}
           {options.map((opt) => {
             const checked = selectedValues.includes(opt);
             return (
@@ -254,7 +280,6 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
                   checked ? 'bg-slate-50/80 font-bold text-slate-950' : ''
                 }`}
               >
-                {/* Circulo de Check (✓) Fiel aos Prints */}
                 <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition ${
                   checked ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300 bg-white'
                 }`}>
@@ -272,11 +297,14 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
 };
 
 export const PecasTab: React.FC = () => {
-  // ESTADOS DOS FILTROS (MULTI-SELECT E SIMPLES)
+  // ESTADOS DOS FILTROS
   const [filterMarca, setFilterMarca] = useState('');
   const [selectedEtapas, setSelectedEtapas] = useState<string[]>([]);
   const [selectedTipos, setSelectedTipos] = useState<string[]>([]);
-  const [filterStatus, setFilterStatus] = useState('');
+  const [filterStatusPeca, setFilterStatusPeca] = useState('');
+  const [filterStatusColecao, setFilterStatusColecao] = useState('');
+  const [selectedColecoes, setSelectedColecoes] = useState<string[]>([]);
+  const [selectedEstacoes, setSelectedEstacoes] = useState<string[]>([]);
   const [filterTecido, setFilterTecido] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -289,25 +317,27 @@ export const PecasTab: React.FC = () => {
       
       const matchMarca = filterMarca === '' || peca.marcaNome === filterMarca;
       
-      // Validação Multi-Select de Etapas
       const matchEtapa = selectedEtapas.length === 0 || 
         selectedEtapas.some(e => e.toLowerCase() === peca.etapaAtual.toLowerCase());
 
-      // Validação Multi-Select de Tipos de Peças
       const matchTipo = selectedTipos.length === 0 || 
         selectedTipos.some(t => t.toLowerCase() === peca.tipo.toLowerCase());
 
-      const matchStatus = filterStatus === '' || peca.status === filterStatus;
+      const matchStatusPeca = filterStatusPeca === '' || peca.status === filterStatusPeca;
+      
+      const matchColecao = selectedColecoes.length === 0 || 
+        selectedColecoes.includes(peca.colecaoNome);
+
       const matchTecido = filterTecido === '' || peca.tecidos.some(t => t.toLowerCase().includes(filterTecido.toLowerCase()));
 
-      return matchSearch && matchMarca && matchEtapa && matchTipo && matchStatus && matchTecido;
+      return matchSearch && matchMarca && matchEtapa && matchTipo && matchStatusPeca && matchColecao && matchTecido;
     });
-  }, [searchTerm, filterMarca, selectedEtapas, selectedTipos, filterStatus, filterTecido]);
+  }, [searchTerm, filterMarca, selectedEtapas, selectedTipos, filterStatusPeca, selectedColecoes, filterTecido]);
 
   return (
     <div className="space-y-6">
       
-      {/* 1. PAINEL DE FILTROS AVANÇADOS COM MULTI-SELECT DE ETAPAS E TIPOS */}
+      {/* 1. PAINEL DE FILTROS AVANÇADOS (DISPOSTO EXATAMENTE IGUAL AO PRINT DA TELA) */}
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
         
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -319,7 +349,7 @@ export const PecasTab: React.FC = () => {
           </span>
         </div>
 
-        {/* LINHA 1 DE FILTROS: Marcas, Etapas (Multi-select), Tipos de Peças (Multi-select), Status da Peça */}
+        {/* LINHA 1 DE FILTROS: Marcas, Etapas, Tipos de Peças, Status da Peça */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">Marcas</label>
@@ -335,7 +365,7 @@ export const PecasTab: React.FC = () => {
             </select>
           </div>
 
-          {/* DROPDOWN MULTI-SELECT DE ETAPAS (24 ETAPAS DO PLM FIÉIS AOS PRINTS!) */}
+          {/* ETAPAS MULTI-SELECT */}
           <MultiSelectDropdown
             label="Etapas"
             placeholder="Selecionar etapas"
@@ -344,7 +374,7 @@ export const PecasTab: React.FC = () => {
             onChange={setSelectedEtapas}
           />
 
-          {/* DROPDOWN MULTI-SELECT DE TIPOS DE PEÇAS (Acessórios, Blazer, Calça, Camisa, etc.) */}
+          {/* TIPOS DE PEÇAS MULTI-SELECT (INCLUINDO REGATA, SHORT, SUNGA, TRICOT) */}
           <MultiSelectDropdown
             label="Tipos de Peças"
             placeholder="Selecionar tipos"
@@ -356,8 +386,8 @@ export const PecasTab: React.FC = () => {
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">Status da Peça</label>
             <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
+              value={filterStatusPeca}
+              onChange={(e) => setFilterStatusPeca(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:border-blue-600 focus:outline-none"
             >
               <option value="">Selecionar status</option>
@@ -368,8 +398,43 @@ export const PecasTab: React.FC = () => {
           </div>
         </div>
 
-        {/* LINHA 2 DE FILTROS: Tecido, Aviamento, Terceiro, Busca por Produto */}
+        {/* LINHA 2 DE FILTROS: Status da Coleção, Coleções, Estações */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">Status da Coleção</label>
+            <select
+              value={filterStatusColecao}
+              onChange={(e) => setFilterStatusColecao(e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:border-blue-600 focus:outline-none"
+            >
+              <option value="">Selecione as coleções</option>
+              <option value="Em andamento">Em andamento</option>
+              <option value="Completas">Completas</option>
+              <option value="Arquivadas">Arquivadas</option>
+            </select>
+          </div>
+
+          {/* COLEÇÕES MULTI-SELECT */}
+          <MultiSelectDropdown
+            label="Coleções"
+            placeholder="Selecione as coleções"
+            options={COLECOES_OPTIONS}
+            selectedValues={selectedColecoes}
+            onChange={setSelectedColecoes}
+          />
+
+          {/* ESTAÇÕES MULTI-SELECT (ALTO INVERNO, ALTO VERÃO, ATEMPORAL, ETC.) */}
+          <MultiSelectDropdown
+            label="Estações"
+            placeholder="Selecionar estações"
+            options={ESTACOES_OPTIONS}
+            selectedValues={selectedEstacoes}
+            onChange={setSelectedEstacoes}
+          />
+        </div>
+
+        {/* LINHA 3 DE FILTROS: Tecido, Aviamento, Terceiro */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">Tecido</label>
             <input
@@ -398,19 +463,20 @@ export const PecasTab: React.FC = () => {
               className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:border-blue-600 focus:outline-none"
             />
           </div>
+        </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Buscar Peças</label>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Buscar produto ou código..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:border-blue-600 focus:outline-none"
-              />
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-            </div>
+        {/* LINHA 4 DE FILTROS: Buscar Peças */}
+        <div className="max-w-xs pt-1">
+          <label className="block text-xs font-bold text-slate-700 mb-1">Buscar Peças</label>
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Buscar produto"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:border-blue-600 focus:outline-none"
+            />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
           </div>
         </div>
 
