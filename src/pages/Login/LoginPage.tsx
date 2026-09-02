@@ -60,24 +60,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           : 'bg-white text-slate-900 border-slate-200/90 shadow-xl'
       } p-8 sm:p-10 rounded-3xl border relative z-10 transition-colors duration-300`}>
         
-        {/* TOPO: LOGO AKR BRANDS + BADGE + SUBTÍTULO */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <div className="inline-flex items-center gap-2.5">
-              <span className={`text-3xl font-black tracking-wider ${isDarkMode ? 'text-white' : 'text-slate-950'}`}>AKR</span>
-              <span className="text-2xl font-light text-slate-400">|</span>
-              <span className={`text-xs font-bold tracking-[0.3em] uppercase ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>BRANDS</span>
-            </div>
-            <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${
-              isDarkMode ? 'bg-blue-950/60 text-blue-400 border-blue-800' : 'bg-blue-50 text-blue-700 border-blue-200'
-            }`}>
-              SISTEMA INTERNO
-            </span>
+        {/* TOPO: LOGO AKR BRANDS */}
+        <div className="mb-8 text-center sm:text-left">
+          <div className="inline-flex items-center gap-3">
+            <span className={`text-3xl font-black tracking-wider ${isDarkMode ? 'text-white' : 'text-slate-950'}`}>AKR</span>
+            <span className="text-2xl font-light text-slate-400">|</span>
+            <span className={`text-xs font-bold tracking-[0.3em] uppercase ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>BRANDS</span>
           </div>
-
-          <p className={`text-xs font-medium leading-relaxed ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-            Entre com seu e-mail e senha. <strong className={isDarkMode ? 'text-blue-400' : 'text-blue-700'}>Apenas funcionários</strong>
-          </p>
         </div>
 
         {/* MENSAGEM DE ERRO */}
@@ -200,7 +189,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
       </div>
 
-      {/* BOTÃO FLUTUANTE DE TEMA NO CANTO INFERIOR DIREITO (MIDNIGHT OLED #000000 TOGGLE) */}
+      {/* BOTÃO FLUTUANTE DE TEMA NO CANTO INFERIOR DIREITO */}
       <button
         type="button"
         onClick={() => setIsDarkMode(!isDarkMode)}
