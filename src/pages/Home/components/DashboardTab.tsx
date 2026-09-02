@@ -1,15 +1,17 @@
 /**
  * ============================================================================
- * MÓDULO: Aba Dashboard (Visão Geral de Permanência por Etapa & Gráficos com Alto Contraste)
+ * MÓDULO: Aba Dashboard (Visão Geral & Gráficos Estilo Plataforma Flutuante)
  * ARQUIVO: src/pages/Home/components/DashboardTab.tsx
  * PROJETO: ModaFlow PLM — AKR BRANDS
- * DESCRIÇÃO: Exibe estatísticas de tempo de permanência por etapa do processo produtivo.
- *            Gráficos redesenhados com barras em Preto Absoluto (#000000), bordas
- *            pretas nítidas de alto contraste e componentes clicáveis.
+ * DESCRIÇÃO: Exibe as estatísticas de tempo de permanência por etapa.
+ *            Restaura as barras em Azul Vibrante, donuts coloridos e aplica o
+ *            design de "Plataforma Flutuante" (cards brancos elevados com sombra
+ *            suave e bordas finas elegantes).
  * ----------------------------------------------------------------------------
  * PADRÃO DE DESIGN:
- * - Barras de etapas utilizam cor preta sólida (`bg-black` / `bg-slate-950`).
- * - Containers de gráficos utilizam bordas escuras nítidas (`border-2 border-slate-950`).
+ * - As barras dos gráficos utilizam Azul Vibrante (`bg-blue-600` / `bg-blue-500`).
+ * - Os cartões utilizam o efeito de plataforma flutuante:
+ *   `bg-white border border-slate-200/80 shadow-xl shadow-slate-200/50 rounded-3xl`.
  * ============================================================================
  */
 
@@ -61,18 +63,18 @@ export const DashboardTab: React.FC = () => {
   const [selectedFornecedores, setSelectedFornecedores] = useState<string[]>([]);
   const [responsaveisBusca, setResponsaveisBusca] = useState('');
 
-  // DADOS DE ETAPAS E BARRAS (BARRAS PRETAS)
+  // DADOS DE ETAPAS E BARRAS (VOLTANDO AO AZUL VIBRANTE)
   const etapasBarrasData = [
-    { etapa: '03 modelagem', preto: 12, laranja: 0 },
-    { etapa: '02 engenharia recebimento', preto: 7, laranja: 3 },
-    { etapa: 'acertando tecido fornecedor', preto: 8, laranja: 1 },
-    { etapa: '07 estoque de tecidos matriz', preto: 6, laranja: 0 },
-    { etapa: '10 corte', preto: 5, laranja: 0 },
-    { etapa: '01 geração de ficha', preto: 3, laranja: 2 },
-    { etapa: '14 pilotagem/costura', preto: 4, laranja: 0 },
-    { etapa: '11 estamparia', preto: 3, laranja: 1 },
-    { etapa: '16 lavanderia', preto: 2, laranja: 0 },
-    { etapa: 'Integração linx', preto: 4, laranja: 0 },
+    { etapa: '03 modelagem', azul: 12, laranja: 0 },
+    { etapa: '02 engenharia recebimento', azul: 7, laranja: 3 },
+    { etapa: 'acertando tecido fornecedor', azul: 8, laranja: 1 },
+    { etapa: '07 estoque de tecidos matriz', azul: 6, laranja: 0 },
+    { etapa: '10 corte', azul: 5, laranja: 0 },
+    { etapa: '01 geração de ficha', azul: 3, laranja: 2 },
+    { etapa: '14 pilotagem/costura', azul: 4, laranja: 0 },
+    { etapa: '11 estamparia', azul: 3, laranja: 1 },
+    { etapa: '16 lavanderia', azul: 2, laranja: 0 },
+    { etapa: 'Integração linx', azul: 4, laranja: 0 },
   ];
 
   // MÉTRICA ATIVA DA ETAPA FOCADA
@@ -90,24 +92,26 @@ export const DashboardTab: React.FC = () => {
   return (
     <div className="space-y-6 font-sans">
       
-      {/* 1. PAINEL DE FILTROS DO DASHBOARD COM BORDA PRETA DE ALTO CONTRASTE */}
-      <div className="bg-white p-6 rounded-3xl border-2 border-slate-950 shadow-lg space-y-3">
-        <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-          <h4 className="text-xs font-black text-slate-950 uppercase tracking-wider flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-950" /> Filtros do Dashboard
+      {/* 1. PAINEL DE FILTROS DO DASHBOARD ESTILO PLATAFORMA FLUTUANTE */}
+      <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+            <Filter className="w-4 h-4 text-blue-600" /> Filtros do Dashboard
           </h4>
-          <span className="text-[11px] font-extrabold text-slate-900">Visão Geral Operacional</span>
+          <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+            Visão Geral Operacional
+          </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           
           {/* SELETOR DE ETAPA */}
           <div>
-            <label className="block text-xs font-bold text-slate-900 mb-1">Etapa</label>
+            <label className="block text-xs font-bold text-slate-700 mb-1">Etapa</label>
             <select
               value={selectedEtapa}
               onChange={(e) => setSelectedEtapa(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-900 rounded-xl text-xs font-bold text-slate-950 focus:outline-none"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:border-blue-600 focus:outline-none transition shadow-xs"
             >
               {ETAPAS_OPTIONS.map((et) => (
                 <option key={et} value={et}>{et.toUpperCase()}</option>
@@ -117,11 +121,11 @@ export const DashboardTab: React.FC = () => {
 
           {/* SELETOR DE MARCAS */}
           <div>
-            <label className="block text-xs font-bold text-slate-900 mb-1">Marcas</label>
+            <label className="block text-xs font-bold text-slate-700 mb-1">Marcas</label>
             <select
               value={selectedMarca}
               onChange={(e) => setSelectedMarca(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-900 rounded-xl text-xs font-bold text-slate-950 focus:outline-none"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:border-blue-600 focus:outline-none transition shadow-xs"
             >
               <option value="">Todas as marcas</option>
               <option value="King & Joe">King & Joe</option>
@@ -141,13 +145,13 @@ export const DashboardTab: React.FC = () => {
 
           {/* RESPONSÁVEIS */}
           <div>
-            <label className="block text-xs font-bold text-slate-900 mb-1">Responsáveis</label>
+            <label className="block text-xs font-bold text-slate-700 mb-1">Responsáveis</label>
             <input
               type="text"
               placeholder="Buscar responsável..."
               value={responsaveisBusca}
               onChange={(e) => setResponsaveisBusca(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-900 rounded-xl text-xs font-bold text-slate-950 focus:outline-none"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:border-blue-600 focus:outline-none transition shadow-xs"
             />
           </div>
 
@@ -163,58 +167,60 @@ export const DashboardTab: React.FC = () => {
         </div>
 
         <div className="pt-1">
-          <span className="inline-block text-[11px] font-black text-white bg-slate-950 px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+          <span className="inline-block text-[11px] font-bold text-blue-700 bg-blue-50 px-3.5 py-1 rounded-full border border-blue-200 uppercase tracking-wider">
             Etapa Ativa: {selectedEtapa}
           </span>
         </div>
       </div>
 
-      {/* 2. SEÇÃO VISÃO GERAL COM BORDAS PRETAS DE ALTO CONTRASTE */}
+      {/* 2. SEÇÃO VISÃO GERAL COM CARD FLUTUANTE ELEGANTE */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-black text-slate-950 uppercase tracking-tight">Visão geral</h3>
-          <span className="text-xs text-slate-950 flex items-center gap-1.5 font-bold bg-slate-100 px-3 py-1 rounded-full border border-slate-300">
-            <MousePointerClick className="w-4 h-4 text-slate-950" /> Clique em qualquer barra para alterar a etapa
+          <h3 className="text-base font-bold text-slate-900 tracking-tight">Visão geral</h3>
+          <span className="text-xs text-slate-600 flex items-center gap-1.5 font-medium bg-white px-3 py-1 rounded-full border border-slate-200 shadow-xs">
+            <MousePointerClick className="w-4 h-4 text-blue-600" /> Clique em qualquer barra para alterar a etapa
           </span>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* CARD ESQUERDO: MÉDIAS DE TEMPO (BORDA PRETA REFORÇADA) */}
-          <div className="bg-white p-6 rounded-3xl border-2 border-slate-950 shadow-xl space-y-6 flex flex-col justify-between">
+          {/* CARD ESQUERDO: MÉDIAS DE TEMPO (ESTILO PLATAFORMA FLUTUANTE) */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 space-y-6 flex flex-col justify-between">
             <div>
-              <h4 className="text-sm font-black text-slate-950 uppercase border-b-2 border-slate-950 pb-2 mb-4 tracking-tight">
-                {selectedEtapa}
+              <h4 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">
+                {selectedEtapa.toLowerCase()}
               </h4>
 
               <div className="space-y-3.5 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-700 font-medium">Média mês atual</span>
-                  <strong className="text-slate-950 font-black text-xs">{currentMetric.mediaMes}</strong>
+                  <span className="text-slate-600">Média mês atual</span>
+                  <strong className="text-slate-900 font-bold text-xs">{currentMetric.mediaMes}</strong>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-700 font-medium">Média semana atual</span>
-                  <strong className="text-slate-950 font-black text-xs">{currentMetric.mediaSemana}</strong>
+                  <span className="text-slate-600">Média semana atual</span>
+                  <strong className="text-slate-900 font-bold text-xs">{currentMetric.mediaSemana}</strong>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-700 font-medium">Entradas na semana</span>
-                  <strong className="text-slate-950 font-black text-xs">{currentMetric.entradas}</strong>
+                  <span className="text-slate-600">Entradas na semana</span>
+                  <strong className="text-slate-900 font-bold text-xs">{currentMetric.entradas}</strong>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-700 font-medium">Saídas na semana</span>
-                  <strong className="text-slate-950 font-black text-xs">{currentMetric.saidas}</strong>
+                  <span className="text-slate-600">Saídas na semana</span>
+                  <strong className="text-slate-900 font-bold text-xs">{currentMetric.saidas}</strong>
                 </div>
               </div>
             </div>
 
             {/* AVATARES DOS RESPONSÁVEIS */}
-            <div className="border-t border-slate-200 pt-3">
-              <span className="block text-[11px] font-extrabold text-slate-900 uppercase tracking-wider mb-2">Responsáveis</span>
+            <div className="border-t border-slate-100 pt-3">
+              <span className="block text-[11px] font-bold text-slate-700 mb-2">Responsáveis</span>
               <div className="flex items-center gap-2">
                 {currentMetric.responsaveis.map((resp, i) => (
                   <div 
                     key={i} 
-                    className="w-8 h-8 rounded-full font-black text-xs flex items-center justify-center shadow-md text-white bg-slate-950 border border-white"
+                    className={`w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center shadow-xs text-white ${
+                      i % 2 === 0 ? 'bg-purple-600' : 'bg-pink-600'
+                    }`}
                   >
                     {resp}
                   </div>
@@ -223,36 +229,36 @@ export const DashboardTab: React.FC = () => {
             </div>
           </div>
 
-          {/* CARD DIREITO: GRÁFICOS DONUT DE SLA (BORDA PRETA REFORÇADA) */}
-          <div className="lg:col-span-2 bg-white p-6 rounded-3xl border-2 border-slate-950 shadow-xl flex items-center justify-around flex-wrap gap-6">
+          {/* CARD DIREITO: GRÁFICOS DONUT COLORIDOS (ESTILO PLATAFORMA FLUTUANTE) */}
+          <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 flex items-center justify-around flex-wrap gap-6">
             
-            {/* DONUT 1: EM DIA (AZUL/CIANO COM BORDA PRETA INTERNA) */}
+            {/* DONUT 1: EM DIA (AZUL/CIANO VIBRANTE) */}
             <div className="flex flex-col items-center text-center">
               <div className="relative w-32 h-32 flex items-center justify-center">
-                <div className="w-full h-full rounded-full border-[10px] border-cyan-400 border-t-slate-950 shadow-md" />
-                <span className="absolute text-3xl font-black text-slate-950">{currentMetric.emDia}</span>
+                <div className="w-full h-full rounded-full border-[10px] border-cyan-400 border-t-cyan-200 animate-spin-slow" />
+                <span className="absolute text-3xl font-black text-slate-900">{currentMetric.emDia}</span>
               </div>
-              <span className="text-xs font-black text-slate-900 uppercase tracking-wider mt-2">Em dia</span>
+              <span className="text-xs font-bold text-slate-600 mt-2">Em dia</span>
             </div>
 
-            {/* DONUT 2: ENTREGA HOJE (LARANJA COM BORDA PRETA INTERNA) */}
+            {/* DONUT 2: ENTREGA HOJE (LARANJA VIBRANTE) */}
             <div className="flex flex-col items-center text-center">
               <div className="relative w-32 h-32 flex items-center justify-center">
-                <div className="w-full h-full rounded-full border-[10px] border-orange-400 border-t-slate-950 shadow-md" />
-                <span className="absolute text-3xl font-black text-slate-950">{currentMetric.entregaHoje}</span>
+                <div className="w-full h-full rounded-full border-[10px] border-orange-400 border-t-orange-200" />
+                <span className="absolute text-3xl font-black text-slate-900">{currentMetric.entregaHoje}</span>
               </div>
-              <span className="text-xs font-black text-slate-900 uppercase tracking-wider mt-2">Entrega Hoje</span>
+              <span className="text-xs font-bold text-slate-600 mt-2">Entrega Hoje</span>
             </div>
 
-            {/* DONUT 3: ATRASADAS (ROSA/VERMELHO COM BORDA PRETA INTERNA) */}
+            {/* DONUT 3: ATRASADAS (ROSA/VERMELHO VIBRANTE) */}
             <div className="flex flex-col items-center text-center">
               <div className="relative w-32 h-32 flex items-center justify-center">
-                <div className="w-full h-full rounded-full border-[10px] border-rose-500 border-t-slate-950 shadow-md" />
-                <span className="absolute text-2xl font-black text-slate-950">
+                <div className="w-full h-full rounded-full border-[10px] border-rose-500 border-t-rose-200" />
+                <span className="absolute text-2xl font-bold text-slate-400">
                   {currentMetric.atrasadas > 0 ? currentMetric.atrasadas : '--'}
                 </span>
               </div>
-              <span className="text-xs font-black text-slate-900 uppercase tracking-wider mt-2">Atrasadas</span>
+              <span className="text-xs font-bold text-slate-600 mt-2">Atrasadas</span>
             </div>
 
           </div>
@@ -260,20 +266,20 @@ export const DashboardTab: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. GRÁFICO DE BARRAS PRETAS COM BORDAS PRETAS DE ALTO CONTRASTE */}
-      <div className="bg-white p-6 rounded-3xl border-2 border-slate-950 shadow-xl space-y-4">
-        <div className="flex items-center justify-between border-b-2 border-slate-950 pb-3">
-          <h4 className="text-sm font-black text-slate-950 uppercase tracking-tight flex items-center gap-2">
-            <BarChart2 className="w-5 h-5 text-slate-950" /> Quantidade de Peças por Etapa de Produção
+      {/* 3. GRÁFICO DE BARRAS AZUIS VIBRANTES (ESTILO PLATAFORMA FLUTUANTE) */}
+      <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <BarChart2 className="w-4 h-4 text-blue-600" /> Quantidade de Peças por Etapa de Produção
           </h4>
-          <span className="text-xs font-extrabold text-slate-900">Barras em Preto Absoluto</span>
+          <span className="text-xs text-slate-500 font-medium">Clique em qualquer barra para detalhar</span>
         </div>
 
         <div className="space-y-3 pt-2">
           {etapasBarrasData.map((item, idx) => {
-            const total = item.preto + item.laranja;
+            const total = item.azul + item.laranja;
             const maxVal = 12;
-            const widthBlackPercent = (item.preto / maxVal) * 100;
+            const widthBluePercent = (item.azul / maxVal) * 100;
             const widthOrangePercent = (item.laranja / maxVal) * 100;
             const isSelected = selectedEtapa.toLowerCase() === item.etapa.toLowerCase();
 
@@ -281,42 +287,36 @@ export const DashboardTab: React.FC = () => {
               <div 
                 key={idx} 
                 onClick={() => setSelectedEtapa(item.etapa)}
-                className={`flex items-center text-xs p-2 rounded-2xl transition cursor-pointer border ${
+                className={`flex items-center text-xs p-2 rounded-2xl transition cursor-pointer ${
                   isSelected 
-                    ? 'bg-slate-950 text-white border-black shadow-lg scale-[1.01]' 
-                    : 'bg-white text-slate-900 border-slate-300 hover:border-black hover:bg-slate-50'
+                    ? 'bg-blue-50/90 border border-blue-300 shadow-md scale-[1.01]' 
+                    : 'hover:bg-slate-50'
                 }`}
               >
-                <span className={`w-48 font-black truncate pr-3 text-right uppercase tracking-wider ${
-                  isSelected ? 'text-white' : 'text-slate-900'
+                <span className={`w-48 font-bold truncate pr-3 text-right ${
+                  isSelected ? 'text-blue-700 font-extrabold' : 'text-slate-700'
                 }`}>
                   {item.etapa}
                 </span>
 
-                {/* CONTAINER DA BARRA DO GRÁFICO COM BORDA PRETA DESTACADA */}
-                <div className={`flex-1 h-7 rounded-xl overflow-hidden flex items-center p-0.5 relative border-2 ${
-                  isSelected ? 'border-white bg-slate-900' : 'border-slate-950 bg-slate-100'
-                }`}>
-                  {/* BARRA PRETA DE ALTO CONTRASTE */}
-                  {item.preto > 0 && (
+                {/* BARRA DO GRÁFICO AZUL VIBRANTE */}
+                <div className="flex-1 h-7 bg-slate-100 rounded-lg overflow-hidden flex items-center p-0.5 relative border border-slate-200/80">
+                  {/* BARRA AZUL */}
+                  {item.azul > 0 && (
                     <div 
-                      className={`h-full rounded-l-lg transition-all duration-500 shadow-sm ${
-                        isSelected ? 'bg-white' : 'bg-slate-950'
-                      }`} 
-                      style={{ width: `${widthBlackPercent}%` }}
+                      className="h-full bg-blue-600 rounded-l-md transition-all duration-500 shadow-xs" 
+                      style={{ width: `${widthBluePercent}%` }}
                     />
                   )}
                   {/* BARRA LARANJA */}
                   {item.laranja > 0 && (
                     <div 
-                      className="h-full bg-amber-500 rounded-r-lg transition-all duration-500 shadow-sm" 
+                      className="h-full bg-amber-500 rounded-r-md transition-all duration-500 shadow-xs" 
                       style={{ width: `${widthOrangePercent}%` }}
                     />
                   )}
 
-                  <span className={`ml-3 font-black text-xs ${
-                    isSelected ? 'text-white' : 'text-slate-950'
-                  }`}>
+                  <span className="ml-2 font-extrabold text-slate-900 text-xs">
                     {total}
                   </span>
                 </div>
