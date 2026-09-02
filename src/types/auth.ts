@@ -2,8 +2,12 @@ export interface MarcaSummary {
   id: string;
   nome: string;
   code: string;
-  logoUrl?: string;
+  initials: string;
   colecoesCount: number;
+  pecasCount: number;
+  heroImageUrl: string;
+  description: string;
+  badgeTag: string;
 }
 
 export interface User {

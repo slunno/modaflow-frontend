@@ -1,16 +1,46 @@
 import React, { createContext, useContext, useState } from 'react';
 import type { User, MarcaSummary, AuthContextType } from '../types/auth';
 
-const MOCK_MARCAS: MarcaSummary[] = [
-  { id: '1', nome: 'King & Joe', code: 'KJ', colecoesCount: 4 },
-  { id: '2', nome: 'K&J Black', code: 'KJB', colecoesCount: 2 },
-  { id: '3', nome: 'King & Joe Play', code: 'KJP', colecoesCount: 3 },
+export const MOCK_MARCAS: MarcaSummary[] = [
+  { 
+    id: '1', 
+    nome: 'King & Joe', 
+    code: 'KJ',
+    initials: 'KING&JOE', 
+    colecoesCount: 4,
+    pecasCount: 48,
+    heroImageUrl: 'https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?q=80&w=1600&auto=format&fit=crop',
+    description: 'Moda masculina contemporânea com foco em conforto, estilo casual sofisticado e alfaiataria desconstruída.',
+    badgeTag: 'Linha Principal'
+  },
+  { 
+    id: '2', 
+    nome: 'K&J Black', 
+    code: 'KJB',
+    initials: 'KB', 
+    colecoesCount: 2,
+    pecasCount: 24,
+    heroImageUrl: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=1600&auto=format&fit=crop',
+    description: 'Coleção premium e sartorial. Peças exclusivas em tecidos nobres, blazers estruturados e linhas noitivas.',
+    badgeTag: 'Linha Premium'
+  },
+  { 
+    id: '3', 
+    nome: 'King & Joe Play', 
+    code: 'KJP',
+    initials: 'K&', 
+    colecoesCount: 3,
+    pecasCount: 32,
+    heroImageUrl: 'https://images.unsplash.com/photo-1516257984-b1b4d707412e?q=80&w=1600&auto=format&fit=crop',
+    description: 'Estilo urbano, esportivo e jovem. Camisetas exclusivas, bermudas funcionais e moda casual dinâmica.',
+    badgeTag: 'Linha Sportwear'
+  },
 ];
 
 const MOCK_USER: User = {
   id: 'usr_1',
-  nome: 'Nathan Henrique',
-  email: 'nathan@akrbrands.com.br',
+  nome: 'Juliano',
+  email: 'juliano@akrbrands.com.br',
   empresa: 'AKR BRANDS',
   cargo: 'Estilista',
   marcas: MOCK_MARCAS,
