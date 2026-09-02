@@ -1,3 +1,19 @@
+/**
+ * ============================================================================
+ * MÓDULO: Página Inicial / Seleção de Marcas (Home)
+ * ARQUIVO: src/pages/Home/HomePage.tsx
+ * PROJETO: ModaFlow PLM — AKR BRANDS
+ * DESCRIÇÃO: Exibe o Menu Inicial com sub-abas (Marcas, Peças, Dashboard, Gráficos)
+ *            e o Carrossel Suspenso de Marcas da AKR BRANDS com setas de navegação
+ *            interativas (< e >) e transição dinâmica de imagem de fundo.
+ * ----------------------------------------------------------------------------
+ * PADRÃO DE ADIÇÃO/ALTERAÇÃO:
+ * - Para trocar as imagens de fundo das marcas no carrossel, altere o campo
+ *   `heroImageUrl` na constante `MOCK_MARCAS` em `src/contexts/AuthContext.tsx`.
+ * - Ao incluir novas sub-abas na Home, adicione o manipulador no estado `subTab`.
+ * ============================================================================
+ */
+
 import React, { useState } from 'react';
 import { useAuth, MOCK_MARCAS } from '../../contexts/AuthContext';
 import { 
@@ -9,11 +25,16 @@ import {
 } from 'lucide-react';
 import type { MarcaSummary } from '../../types/auth';
 
+/**
+ * Componente da Tela Inicial (Home) com Carrossel Suspenso de Marcas.
+ */
 export const HomePage: React.FC = () => {
   const { activeMarca, setActiveMarca } = useAuth();
+  
+  // Estado da Sub-aba ativa na Home
   const [subTab, setSubTab] = useState<'marcas' | 'pecas' | 'dashboard' | 'graficos'>('marcas');
   
-  // ÍNDICE DO CARROSSEL DE MARCAS
+  // Índice da Marca atualmente focada no Carrossel Suspenso
   const [currentIndex, setCurrentIndex] = useState(() => {
     const found = MOCK_MARCAS.findIndex(m => m.id === activeMarca?.id);
     return found !== -1 ? found : 0;
@@ -21,14 +42,17 @@ export const HomePage: React.FC = () => {
 
   const currentMarca: MarcaSummary = MOCK_MARCAS[currentIndex];
 
+  /** Avança para a próxima marca no carrossel */
   const handleNext = () => {
     setCurrentIndex((prev) => (prev + 1) % MOCK_MARCAS.length);
   };
 
+  /** Volta para a marca anterior no carrossel */
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev - 1 + MOCK_MARCAS.length) % MOCK_MARCAS.length);
   };
 
+  /** Seleciona uma marca diretamente ao clicar no seu card suspenso */
   const handleSelectMarca = (marca: MarcaSummary, index: number) => {
     setCurrentIndex(index);
     setActiveMarca(marca);
@@ -37,7 +61,7 @@ export const HomePage: React.FC = () => {
   return (
     <div className="w-full flex flex-col font-sans">
       
-      {/* 1. NAVEGAÇÃO DE SUB-ABAS (IGUAL AO PRINT: Marcas | Peças | Dashboard | Gráficos) */}
+      {/* 1. NAVEGAÇÃO DE SUB-ABAS (Marcas | Peças | Dashboard | Gráficos) */}
       <div className="border-b border-slate-200 bg-white px-4 sm:px-8 pt-4">
         <div className="max-w-7xl mx-auto flex items-center gap-8 text-sm font-semibold">
           <button
@@ -161,7 +185,7 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
 
-            {/* 4. CARDS SUSPENSOS DAS MARCAS (IGUAL AO FORMATO DO PRINT ENVIADO!) */}
+            {/* 4. CARDS SUSPENSOS DAS MARCAS (FORMATO KB, KING&JOE, K&) */}
             <div className="relative z-10 pt-6">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {MOCK_MARCAS.map((m, idx) => {
@@ -176,7 +200,7 @@ export const HomePage: React.FC = () => {
                           : 'bg-black/40 text-white border-white/20 hover:bg-black/60 hover:border-white/40'
                       }`}
                     >
-                      {/* INICIAIS DA MARCA (ESTILO KB, KING&JOE, K& DO PRINT!) */}
+                      {/* INICIAIS DA MARCA */}
                       <div className={`px-3 py-2.5 rounded-xl font-extrabold text-xs tracking-wider border shrink-0 ${
                         isSelected 
                           ? 'bg-blue-50 text-blue-700 border-blue-200' 
@@ -204,7 +228,7 @@ export const HomePage: React.FC = () => {
         </div>
       )}
 
-      {/* ABA DE PEÇAS / DASHBOARD SE SELECIONADA */}
+      {/* ABA DE PEÇAS / DASHBOARD / GRÁFICOS */}
       {subTab !== 'marcas' && (
         <div className="max-w-7xl mx-auto w-full p-8 text-center text-slate-500">
           <div className="p-12 rounded-3xl bg-white border border-slate-200 max-w-lg mx-auto">

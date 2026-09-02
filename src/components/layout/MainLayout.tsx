@@ -1,3 +1,18 @@
+/**
+ * ============================================================================
+ * MÓDULO: Layout Principal & Header Corporativo
+ * ARQUIVO: src/components/layout/MainLayout.tsx
+ * PROJETO: ModaFlow PLM — AKR BRANDS
+ * DESCRIÇÃO: Componente de Layout global exibido após a autenticação.
+ *            Possui o cabeçalho superior com as 4 áreas de navegação principal
+ *            (Início, Gestão, Relatórios, Kanban), notificações e perfil do usuário.
+ * ----------------------------------------------------------------------------
+ * PADRÃO DE ADIÇÃO/ALTERAÇÃO:
+ * - Para criar novas seções no sistema, adicione as opções no menu `<nav>` e
+ *   mapeie a renderização correspondente no bloco `<main>`.
+ * ============================================================================
+ */
+
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { HomePage } from '../../pages/Home/HomePage';
@@ -10,9 +25,16 @@ import {
   FolderKanban
 } from 'lucide-react';
 
+/**
+ * Componente de Layout Principal do ModaFlow PLM.
+ */
 export const MainLayout: React.FC = () => {
   const { user, logout } = useAuth();
+  
+  // Estado da Aba Principal de Navegação (Início, Gestão, Relatórios, Kanban)
   const [activeTab, setActiveTab] = useState<'inicio' | 'gestao' | 'relatorios' | 'kanban'>('inicio');
+  
+  // Estado do Dropdown de Perfil
   const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
 
   return (
@@ -23,10 +45,9 @@ export const MainLayout: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             
-            {/* Esquerda: Logo CM / AKR */}
+            {/* Esquerda: Logo CM (Coleção Moda) / AKR BRANDS */}
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
-                {/* Logo Estilo CM do Print */}
                 <div className="text-2xl font-black tracking-tight text-slate-950 font-serif">
                   C<span className="text-blue-600">.</span>M
                 </div>
@@ -84,14 +105,14 @@ export const MainLayout: React.FC = () => {
               </button>
             </nav>
 
-            {/* Direita: Perfil do Usuário Juliano (como no print!) e Notificação com Badge '2' */}
+            {/* Direita: Perfil do Usuário e Notificação com Badge '2' */}
             <div className="flex items-center gap-4">
               
-              {/* Notificação com Bolinha Vermelha '2' (Como no print!) */}
+              {/* Notificação com Badge '2' */}
               <button
                 type="button"
-                className="p-1.5 rounded-full text-slate-500 hover:text-slate-900 transition relative"
-                title="Notificações"
+                className="p-1.5 rounded-full text-slate-500 hover:text-slate-900 transition relative cursor-pointer"
+                title="Notificações Internas"
               >
                 <Bell className="w-5 h-5 text-slate-600" />
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
@@ -99,7 +120,7 @@ export const MainLayout: React.FC = () => {
                 </span>
               </button>
 
-              {/* Seletor de Perfil do Usuário (Juliano / Nathan) */}
+              {/* Seletor de Perfil do Usuário */}
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-purple-600 text-white font-bold text-xs flex items-center justify-center shadow-xs">
                   {user?.nome.charAt(0) || 'J'}
@@ -109,13 +130,13 @@ export const MainLayout: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setBrandDropdownOpen(!brandDropdownOpen)}
-                    className="flex items-center gap-1 text-xs font-semibold text-slate-700 hover:text-slate-950 transition"
+                    className="flex items-center gap-1 text-xs font-semibold text-slate-700 hover:text-slate-950 transition cursor-pointer"
                   >
                     <span>{user?.nome || 'Juliano'}</span>
                     <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
                   </button>
 
-                  {/* Dropdown de Opções / Logout */}
+                  {/* Dropdown de Opções do Perfil / Logout */}
                   {brandDropdownOpen && (
                     <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-2 text-xs">
                       <div className="px-3 py-1.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-100 mb-1">
@@ -126,7 +147,7 @@ export const MainLayout: React.FC = () => {
                       </div>
                       <button
                         onClick={logout}
-                        className="w-full text-left px-3 py-2 text-red-600 hover:bg-red-50 font-bold rounded-xl flex items-center gap-2 transition"
+                        className="w-full text-left px-3 py-2 text-red-600 hover:bg-red-50 font-bold rounded-xl flex items-center gap-2 transition cursor-pointer"
                       >
                         <LogOut className="w-4 h-4" />
                         <span>Sair do Sistema</span>
@@ -142,7 +163,7 @@ export const MainLayout: React.FC = () => {
         </div>
       </header>
 
-      {/* 2. CONTEÚDO PRINCIPAL (DASHBOARD OU CARROSSEL DE MARCAS DA HOME) */}
+      {/* 2. CONTEÚDO PRINCIPAL DE NAVEGAÇÃO DA APLICAÇÃO */}
       <main className="flex-1 w-full">
         {activeTab === 'inicio' && (
           <HomePage />

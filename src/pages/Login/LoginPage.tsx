@@ -1,3 +1,21 @@
+/**
+ * ============================================================================
+ * MÓDULO: Autenticação de Usuários
+ * ARQUIVO: src/pages/Login/LoginPage.tsx
+ * PROJETO: ModaFlow PLM — AKR BRANDS
+ * DESCRIÇÃO: Tela de Login centralizada do sistema corporativo AKR BRANDS.
+ *            Possui validação reCAPTCHA simulada, opção de mostrar/ocultar senha,
+ *            alternância de tema (Claro Vibrante vs. Midnight OLED #000000) e
+ *            design responsivo ajustado aos 100vh sem scroll.
+ * ----------------------------------------------------------------------------
+ * PADRÃO DE ALTERAÇÃO/ADIÇÃO:
+ * - Mantenha o container externo `h-screen overflow-hidden` para prevenir barras de
+ *   rolagem indesejadas no desktop.
+ * - Ao adicionar integração com SSO (Google/Microsoft OAuth) ou biometria, inclua
+ *   os botões dentro do bloco `<form>` de maneira modular.
+ * ============================================================================
+ */
+
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
@@ -10,19 +28,32 @@ import {
 } from 'lucide-react';
 
 interface LoginPageProps {
+  /** Callback opcional executado ao autenticar com sucesso */
   onLoginSuccess?: () => void;
 }
 
+/**
+ * Componente da Tela de Login Centralizada AKR BRANDS.
+ */
 export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const { login } = useAuth();
+  
+  // Estados do Formulário
   const [email, setEmail] = useState('nathanhlima10@gmail.com');
   const [password, setPassword] = useState('123456789');
   const [showPassword, setShowPassword] = useState(false);
   const [captchaChecked, setCaptchaChecked] = useState(true);
+  
+  // Estado do Tema (Light / Dark Midnight OLED)
   const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  // Estado do Carregamento / Feedback de Erro
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  /**
+   * Submete o formulário de login e valida credenciais.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
@@ -69,7 +100,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           </div>
         </div>
 
-        {/* MENSAGEM DE ERRO */}
+        {/* MENSAGEM DE ERRO (SE HOUVER) */}
         {error && (
           <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs font-semibold flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-red-500" />
@@ -80,7 +111,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         {/* FORMULÁRIO DE LOGIN */}
         <form onSubmit={handleSubmit} className="space-y-4">
           
-          {/* Campo Email */}
+          {/* Campo Email Corporativo */}
           <div>
             <label className={`block text-xs font-bold mb-1.5 uppercase tracking-wider ${
               isDarkMode ? 'text-slate-300' : 'text-slate-700'
@@ -101,7 +132,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             />
           </div>
 
-          {/* Campo Senha */}
+          {/* Campo Senha com Toggle de Visualização */}
           <div>
             <label className={`block text-xs font-bold mb-1.5 uppercase tracking-wider ${
               isDarkMode ? 'text-slate-300' : 'text-slate-700'
@@ -125,13 +156,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-200 transition"
+                title={showPassword ? 'Ocultar senha' : 'Exibir senha'}
               >
                 {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
               </button>
             </div>
           </div>
 
-          {/* RECAPTCHA CLEAN */}
+          {/* BOX RECAPTCHA SIMULADO */}
           <div className={`p-3 rounded-xl flex items-center justify-between shadow-xs border ${
             isDarkMode ? 'bg-slate-900/80 border-slate-800' : 'bg-slate-50 border-slate-200'
           }`}>
@@ -189,12 +221,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
       </div>
 
-      {/* BOTÃO FLUTUANTE DE TEMA NO CANTO INFERIOR DIREITO */}
+      {/* BOTÃO FLUTUANTE DE ALTERNÂNCIA DE TEMA (CANTO INFERIOR DIREITO) */}
       <button
         type="button"
         onClick={() => setIsDarkMode(!isDarkMode)}
         className="absolute bottom-6 right-6 w-11 h-11 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-600/30 flex items-center justify-center transition hover:scale-105 active:scale-95 cursor-pointer z-50"
-        title={isDarkMode ? "Alternar para Tema Claro Vibrante" : "Alternar para Tema Midnight OLED (Preto Absoluto #000000)"}
+        title={isDarkMode ? 'Alternar para Tema Claro Vibrante' : 'Alternar para Tema Midnight OLED (Preto Absoluto #000000)'}
       >
         {isDarkMode ? <Sun className="w-5 h-5 text-amber-300" /> : <Moon className="w-5 h-5 text-white" />}
       </button>
