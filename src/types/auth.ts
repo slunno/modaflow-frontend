@@ -10,6 +10,7 @@ export interface User {
   id: string;
   nome: string;
   email: string;
+  empresa: string;
   cargo: 'Estilista' | 'Modelista' | 'Gerente de Produção' | 'Administrador' | 'Engenharia';
   avatarUrl?: string;
   marcas: MarcaSummary[];

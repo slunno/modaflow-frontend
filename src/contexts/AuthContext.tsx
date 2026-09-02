@@ -10,7 +10,8 @@ const MOCK_MARCAS: MarcaSummary[] = [
 const MOCK_USER: User = {
   id: 'usr_1',
   nome: 'Nathan Henrique',
-  email: 'nathan@kingjoe.com.br',
+  email: 'nathan@akrbrands.com.br',
+  empresa: 'AKR BRANDS',
   cargo: 'Estilista',
   marcas: MOCK_MARCAS,
 };
@@ -29,8 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   const login = async (email: string): Promise<boolean> => {
-    // Simula autenticação com delay de rede
-    await new Promise((res) => setTimeout(res, 600));
+    await new Promise((res) => setTimeout(res, 500));
 
     const loggedUser: User = {
       ...MOCK_USER,
