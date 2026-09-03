@@ -80,24 +80,21 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className={`h-screen w-full flex items-center justify-center p-4 font-sans selection:bg-blue-600 selection:text-white overflow-hidden transition-colors duration-300 relative ${
-      isDarkMode ? 'bg-black text-white' : 'bg-slate-50 text-slate-900'
-    }`}>
+    <div className="h-screen w-full flex items-center justify-center p-4 font-sans selection:bg-amber-900 selection:text-white overflow-hidden relative bg-[#F5F3EF] text-[#181818]">
       
       {/* CARD CENTRALIZADO DE LOGIN AKR BRANDS */}
-      <div className={`w-full max-w-md ${
-        isDarkMode 
-          ? 'bg-[#090d16] text-white border-slate-800 shadow-2xl shadow-blue-950/20' 
-          : 'bg-white text-slate-900 border-slate-200/90 shadow-xl'
-      } p-8 sm:p-10 rounded-3xl border relative z-10 transition-colors duration-300`}>
+      <div className="w-full max-w-md bg-white text-[#181818] border border-neutral-200/90 shadow-xl p-8 sm:p-10 rounded-3xl relative z-10">
         
-        {/* TOPO: LOGO AKR BRANDS */}
-        <div className="mb-8 text-center sm:text-left">
-          <div className="inline-flex items-center gap-3">
-            <span className={`text-3xl font-black tracking-wider ${isDarkMode ? 'text-white' : 'text-slate-950'}`}>AKR</span>
-            <span className="text-2xl font-light text-slate-400">|</span>
-            <span className={`text-xs font-bold tracking-[0.3em] uppercase ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>BRANDS</span>
+        {/* TOPO: LOGO AKR BRANDS (BRANDING EDITORIAL - PASSO 5) */}
+        <div className="mb-8 text-center">
+          <div className="inline-flex items-center gap-3 font-editorial text-2xl font-bold tracking-[0.25em] text-neutral-900 uppercase">
+            <span>AKR</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-800"></span>
+            <span className="font-light tracking-[0.3em]">BRANDS</span>
           </div>
+          <p className="text-[11px] font-medium text-neutral-500 mt-2 uppercase tracking-wider">
+            ModaFlow PLM — Plataforma Corporativa
+          </p>
         </div>
 
         {/* MENSAGEM DE ERRO (SE HOUVER) */}
@@ -113,9 +110,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           
           {/* Campo Email Corporativo */}
           <div>
-            <label className={`block text-xs font-bold mb-1.5 uppercase tracking-wider ${
-              isDarkMode ? 'text-slate-300' : 'text-slate-700'
-            }`}>
+            <label className="block text-xs font-bold mb-1.5 uppercase tracking-wider text-neutral-700">
               Email Corporativo
             </label>
             <input
@@ -123,20 +118,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="nathanhlima10@gmail.com"
-              className={`w-full px-4 py-3 rounded-xl text-xs font-medium focus:outline-none transition shadow-xs ${
-                isDarkMode 
-                  ? 'bg-slate-900 border border-slate-800 text-white focus:border-blue-500' 
-                  : 'bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-blue-600'
-              }`}
+              className="w-full px-4 py-3 rounded-xl text-xs font-medium focus:outline-none transition shadow-2xs bg-neutral-50 border border-neutral-200 text-neutral-900 focus:bg-white focus:border-neutral-900"
               required
             />
           </div>
 
           {/* Campo Senha com Toggle de Visualização */}
           <div>
-            <label className={`block text-xs font-bold mb-1.5 uppercase tracking-wider ${
-              isDarkMode ? 'text-slate-300' : 'text-slate-700'
-            }`}>
+            <label className="block text-xs font-bold mb-1.5 uppercase tracking-wider text-neutral-700">
               Senha
             </label>
             <div className="relative">
@@ -144,30 +133,23 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••"
-                className={`w-full pl-4 pr-11 py-3 rounded-xl text-xs font-medium focus:outline-none transition shadow-xs ${
-                  isDarkMode 
-                    ? 'bg-slate-900 border border-slate-800 text-white focus:border-blue-500' 
-                    : 'bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-blue-600'
-                }`}
+                placeholder="••••••••"
+                className="w-full px-4 py-3 rounded-xl text-xs font-medium focus:outline-none transition shadow-2xs pr-10 bg-neutral-50 border border-neutral-200 text-neutral-900 focus:bg-white focus:border-neutral-900"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-200 transition"
-                title={showPassword ? 'Ocultar senha' : 'Exibir senha'}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 cursor-pointer"
               >
-                {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
 
-          {/* BOX RECAPTCHA SIMULADO */}
-          <div className={`p-3 rounded-xl flex items-center justify-between shadow-xs border ${
-            isDarkMode ? 'bg-slate-900/80 border-slate-800' : 'bg-slate-50 border-slate-200'
-          }`}>
-            <label className="flex items-center gap-2.5 cursor-pointer select-none">
+          {/* Validação reCAPTCHA simulada */}
+          <div className="pt-2">
+            <label className="flex items-center gap-3 p-3 bg-neutral-50 border border-neutral-200 rounded-xl cursor-pointer">
               <input
                 type="checkbox"
                 checked={captchaChecked}

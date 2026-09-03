@@ -46,16 +46,20 @@ export const GraficosTab: React.FC = () => {
     { rotulo: 'K&J Black', quantidade: 938 },
   ];
 
-  const dadosEstilistaOuCriador: GraficoDimensaoMetric[] = [
-    { rotulo: 'Mariana Barbosa', quantidade: 1704 },
-    { rotulo: 'Ivonete Barbosa', quantidade: 1208 },
+  const dadosCriador: GraficoDimensaoMetric[] = [
+    { rotulo: 'Mariana Barbosa', quantidade: 1127 },
+    { rotulo: 'Ivonete Barbosa', quantidade: 876 },
     { rotulo: 'Fabiano', quantidade: 750 },
-    { rotulo: 'Beatris Sgarioni', quantidade: 562 },
+    { rotulo: 'Beatris Sgarioni', quantidade: 507 },
     { rotulo: 'Suporte', quantidade: 427 },
     { rotulo: 'Milena', quantidade: 56 },
-    { rotulo: 'Jéssica', quantidade: 35 },
-    { rotulo: 'Elen', quantidade: 2 },
-    { rotulo: 'Fran', quantidade: 2 },
+  ];
+
+  const dadosEstilista: GraficoDimensaoMetric[] = [
+    { rotulo: 'Mariana Barbosa', quantidade: 1704 },
+    { rotulo: 'Ivonete Barbosa', quantidade: 1208 },
+    { rotulo: 'Beatris Sgarioni', quantidade: 564 },
+    { rotulo: 'Suporte', quantidade: 1 },
   ];
 
   const dadosFornecedor: GraficoDimensaoMetric[] = [
@@ -70,19 +74,33 @@ export const GraficosTab: React.FC = () => {
     { rotulo: 'Jaqueta', quantidade: 410 },
   ];
 
+  const dadosTag: GraficoDimensaoMetric[] = [
+    { rotulo: 'Camiseta', quantidade: 973 },
+    { rotulo: 'Calça', quantidade: 789 },
+    { rotulo: 'Camisa', quantidade: 483 },
+    { rotulo: 'Bermuda', quantidade: 321 },
+    { rotulo: 'Polo', quantidade: 257 },
+    { rotulo: 'Short', quantidade: 219 },
+    { rotulo: 'Conjunto', quantidade: 213 },
+  ];
+
   // SELEÇÃO DINÂMICA DO CONJUNTO DE DADOS PARA O GRÁFICO
   const currentData = useMemo(() => {
     switch (agrupamento) {
       case 'Marca':
         return dadosMarca;
-      case 'Estilista':
       case 'Criador':
+      case 'Campo':
+        return dadosCriador;
+      case 'Estilista':
       case 'Time':
-        return dadosEstilistaOuCriador;
+        return dadosEstilista;
       case 'Fornecedor':
         return dadosFornecedor;
       case 'Tipo':
         return dadosTipo;
+      case 'Tag':
+        return dadosTag;
       default:
         return dadosMarca;
     }
@@ -90,7 +108,7 @@ export const GraficosTab: React.FC = () => {
 
   // VALOR MÁXIMO PARA A RÉGUA DE ESCALA DO GRÁFICO
   const maxVal = Math.max(...currentData.map((d: GraficoDimensaoMetric) => d.quantidade), 10);
-  const maxScale = maxVal <= 10 ? 2.2 : maxVal <= 1200 ? 1200 : 1800;
+  const maxScale = maxVal <= 10 ? 2.2 : maxVal <= 1000 ? 1000 : maxVal <= 1200 ? 1200 : 1800;
 
   return (
     <div className="space-y-6 font-sans">
@@ -144,9 +162,38 @@ export const GraficosTab: React.FC = () => {
               </select>
             </div>
           )}
+
+          {/* Time específico se agrupamento === 'Time' */}
+          {agrupamento === 'Time' && (
+            <div className="pt-2 max-w-sm">
+              <label className="block text-xs font-bold text-slate-700 mb-1">Time</label>
+              <select
+                value={selectedTime}
+                onChange={(e) => setSelectedTime(e.target.value)}
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:border-blue-600 focus:outline-none shadow-xs"
+              >
+                <option value="">Selecione uma marca abaixo</option>
+              </select>
+            </div>
+          )}
+
+          {/* Tag específica se agrupamento === 'Tag' */}
+          {agrupamento === 'Tag' && (
+            <div className="pt-2 max-w-sm">
+              <label className="block text-xs font-bold text-slate-700 mb-1">Tag</label>
+              <select
+                value={selectedTag}
+                onChange={(e) => setSelectedTag(e.target.value)}
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:border-blue-600 focus:outline-none shadow-xs"
+              >
+                <option value="">Selecione uma marca abaixo</option>
+              </select>
+            </div>
+          )}
         </div>
 
-        {/* 1.2 CONTEXTO GERAL (Marcas, Coleções, Times ⓘ) */}
+        {/* 1.2 CONTEXTO GERAL (Marcas, Coleções, Times ⓘ) — oculto quando Marca */}
+        {agrupamento !== 'Marca' && (
         <div className="space-y-2 border-b border-slate-100 pb-4">
           <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
             Contexto Geral
@@ -180,26 +227,30 @@ export const GraficosTab: React.FC = () => {
               </select>
             </div>
 
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1 flex items-center gap-1">
-                <span>Times</span>
-                <Info className="w-3.5 h-3.5 text-slate-400" />
-              </label>
-              <select
-                value={selectedTime}
-                onChange={(e) => setSelectedTime(e.target.value)}
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:border-blue-600 focus:outline-none shadow-xs"
-              >
-                <option value="">Selecione marcas</option>
-                <option value="time_estilo">Time de Estilo</option>
-                <option value="time_modelagem">Time de Modelagem</option>
-                <option value="time_producao">Time de Produção</option>
-              </select>
-            </div>
+            {agrupamento !== 'Time' && (
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1 flex items-center gap-1">
+                  <span>Times</span>
+                  <Info className="w-3.5 h-3.5 text-slate-400" />
+                </label>
+                <select
+                  value={selectedTime}
+                  onChange={(e) => setSelectedTime(e.target.value)}
+                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:border-blue-600 focus:outline-none shadow-xs"
+                >
+                  <option value="">Selecione marcas</option>
+                  <option value="time_estilo">Time de Estilo</option>
+                  <option value="time_modelagem">Time de Modelagem</option>
+                  <option value="time_producao">Time de Produção</option>
+                </select>
+              </div>
+            )}
           </div>
         </div>
+        )}
 
-        {/* 1.3 CONTEXTO DE TAGS (Tags ⓘ, Item de Tag ⓘ) */}
+        {/* 1.3 CONTEXTO DE TAGS (Tags ⓘ, Item de Tag ⓘ) — oculto quando Marca ou Tag */}
+        {agrupamento !== 'Marca' && agrupamento !== 'Tag' && (
         <div className="space-y-2 border-b border-slate-100 pb-4">
           <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
             Contexto de Tags
@@ -236,6 +287,7 @@ export const GraficosTab: React.FC = () => {
             </div>
           </div>
         </div>
+        )}
 
         {/* 1.4 CONTEXTO DE CAMPOS (Campos Customizados, Valores) */}
         <div className="space-y-2 border-b border-slate-100 pb-4">
@@ -363,6 +415,20 @@ export const GraficosTab: React.FC = () => {
               <span>1.8</span>
               <span>2</span>
               <span>2.2</span>
+            </>
+          ) : maxScale === 1000 ? (
+            <>
+              <span>0</span>
+              <span>100</span>
+              <span>200</span>
+              <span>300</span>
+              <span>400</span>
+              <span>500</span>
+              <span>600</span>
+              <span>700</span>
+              <span>800</span>
+              <span>900</span>
+              <span>1000</span>
             </>
           ) : maxScale === 1200 ? (
             <>

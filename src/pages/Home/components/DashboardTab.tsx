@@ -211,15 +211,15 @@ export const DashboardTab: React.FC = () => {
               </div>
             </div>
 
-            {/* AVATARES DOS RESPONSÁVEIS */}
+            {/* AVATARES DOS RESPONSÁVEIS (CORES DA MARCA: PRETO-TINTA E CAMEL - PASSO 4) */}
             <div className="border-t border-slate-100 pt-3">
               <span className="block text-[11px] font-bold text-slate-700 mb-2">Responsáveis</span>
               <div className="flex items-center gap-2">
                 {currentMetric.responsaveis.map((resp, i) => (
                   <div 
                     key={i} 
-                    className={`w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center shadow-xs text-white ${
-                      i % 2 === 0 ? 'bg-purple-600' : 'bg-pink-600'
+                    className={`w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center shadow-2xs text-white ${
+                      i % 2 === 0 ? 'bg-[#181818]' : 'bg-[#A9764A]'
                     }`}
                   >
                     {resp}
@@ -229,31 +229,31 @@ export const DashboardTab: React.FC = () => {
             </div>
           </div>
 
-          {/* CARD DIREITO: GRÁFICOS DONUT COLORIDOS (ESTILO PLATAFORMA FLUTUANTE) */}
+          {/* CARD DIREITO: GRÁFICOS DONUT COM CORES DA MARCA (CAMEL, VERDE MILITAR, BORDÔ - PASSO 4) */}
           <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 flex items-center justify-around flex-wrap gap-6">
             
-            {/* DONUT 1: EM DIA (AZUL/CIANO VIBRANTE) */}
+            {/* DONUT 1: EM DIA (CAMEL #A9764A) */}
             <div className="flex flex-col items-center text-center">
               <div className="relative w-32 h-32 flex items-center justify-center">
-                <div className="w-full h-full rounded-full border-[10px] border-cyan-400 border-t-cyan-200 animate-spin-slow" />
+                <div className="w-full h-full rounded-full border-[10px] border-[#A9764A] border-t-amber-100" />
                 <span className="absolute text-3xl font-black text-slate-900">{currentMetric.emDia}</span>
               </div>
               <span className="text-xs font-bold text-slate-600 mt-2">Em dia</span>
             </div>
 
-            {/* DONUT 2: ENTREGA HOJE (LARANJA VIBRANTE) */}
+            {/* DONUT 2: ENTREGA HOJE (VERDE MILITAR #4B5320) */}
             <div className="flex flex-col items-center text-center">
               <div className="relative w-32 h-32 flex items-center justify-center">
-                <div className="w-full h-full rounded-full border-[10px] border-orange-400 border-t-orange-200" />
+                <div className="w-full h-full rounded-full border-[10px] border-[#4B5320] border-t-emerald-100" />
                 <span className="absolute text-3xl font-black text-slate-900">{currentMetric.entregaHoje}</span>
               </div>
               <span className="text-xs font-bold text-slate-600 mt-2">Entrega Hoje</span>
             </div>
 
-            {/* DONUT 3: ATRASADAS (ROSA/VERMELHO VIBRANTE) */}
+            {/* DONUT 3: ATRASADAS (BORDÔ #7A2E2E) */}
             <div className="flex flex-col items-center text-center">
               <div className="relative w-32 h-32 flex items-center justify-center">
-                <div className="w-full h-full rounded-full border-[10px] border-rose-500 border-t-rose-200" />
+                <div className="w-full h-full rounded-full border-[10px] border-[#7A2E2E] border-t-rose-100" />
                 <span className="absolute text-2xl font-bold text-slate-400">
                   {currentMetric.atrasadas > 0 ? currentMetric.atrasadas : '--'}
                 </span>
@@ -266,11 +266,11 @@ export const DashboardTab: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. GRÁFICO DE BARRAS AZUIS VIBRANTES (ESTILO PLATAFORMA FLUTUANTE) */}
+      {/* 3. GRÁFICO DE BARRAS (PRETO-TINTA + CAMEL - PASSO 4) */}
       <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 space-y-4">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <BarChart2 className="w-4 h-4 text-blue-600" /> Quantidade de Peças por Etapa de Produção
+            <BarChart2 className="w-4 h-4 text-[#A9764A]" /> Quantidade de Peças por Etapa de Produção
           </h4>
           <span className="text-xs text-slate-500 font-medium">Clique em qualquer barra para detalhar</span>
         </div>
@@ -289,29 +289,29 @@ export const DashboardTab: React.FC = () => {
                 onClick={() => setSelectedEtapa(item.etapa)}
                 className={`flex items-center text-xs p-2 rounded-2xl transition cursor-pointer ${
                   isSelected 
-                    ? 'bg-blue-50/90 border border-blue-300 shadow-md scale-[1.01]' 
+                    ? 'bg-amber-50/90 border border-amber-300 shadow-md scale-[1.01]' 
                     : 'hover:bg-slate-50'
                 }`}
               >
                 <span className={`w-48 font-bold truncate pr-3 text-right ${
-                  isSelected ? 'text-blue-700 font-extrabold' : 'text-slate-700'
+                  isSelected ? 'text-[#A9764A] font-extrabold' : 'text-slate-700'
                 }`}>
                   {item.etapa}
                 </span>
 
-                {/* BARRA DO GRÁFICO AZUL VIBRANTE */}
+                {/* BARRA DO GRÁFICO PRETO-TINTA + CAMEL (PASSO 4) */}
                 <div className="flex-1 h-7 bg-slate-100 rounded-lg overflow-hidden flex items-center p-0.5 relative border border-slate-200/80">
-                  {/* BARRA AZUL */}
+                  {/* BARRA PRETO-TINTA */}
                   {item.azul > 0 && (
                     <div 
-                      className="h-full bg-blue-600 rounded-l-md transition-all duration-500 shadow-xs" 
+                      className="h-full bg-[#181818] rounded-l-md transition-all duration-500 shadow-xs" 
                       style={{ width: `${widthBluePercent}%` }}
                     />
                   )}
-                  {/* BARRA LARANJA */}
+                  {/* BARRA CAMEL */}
                   {item.laranja > 0 && (
                     <div 
-                      className="h-full bg-amber-500 rounded-r-md transition-all duration-500 shadow-xs" 
+                      className="h-full bg-[#A9764A] rounded-r-md transition-all duration-500 shadow-xs" 
                       style={{ width: `${widthOrangePercent}%` }}
                     />
                   )}

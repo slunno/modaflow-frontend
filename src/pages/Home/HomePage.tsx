@@ -13,7 +13,7 @@
  * ============================================================================
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth, MOCK_MARCAS } from '../../contexts/AuthContext';
 import { 
   ChevronLeft, 
@@ -25,7 +25,7 @@ import type { MarcaSummary } from '../../types/auth';
 import { PecasTab } from './components/PecasTab';
 import { DashboardTab } from './components/DashboardTab';
 import { GraficosTab } from './components/GraficosTab';
-import { ColecoesTab } from './components/ColecoesTab';
+import { BrandCollectionsView } from './components/BrandCollectionsView';
 
 /**
  * Componente da Tela Inicial (Home) com Carrossel Suspenso de Marcas e Abas do PLM.
@@ -33,9 +33,53 @@ import { ColecoesTab } from './components/ColecoesTab';
 export const HomePage: React.FC = () => {
   const { activeMarca, setActiveMarca } = useAuth();
   
-  // Estado da Sub-aba ativa na Home (Marcas | Peças | Dashboard | Gráficos)
-  const [subTab, setSubTab] = useState<'marcas' | 'pecas' | 'dashboard' | 'graficos'>('marcas');
+  // Estado da Sub-aba ativa na Home com persistência no localStorage (Sobrevive ao F5 / Refresh)
+  const [subTab, setSubTab] = useState<'marcas' | 'pecas' | 'dashboard' | 'graficos'>(() => {
+    const saved = localStorage.getItem('modaflow_sub_tab');
+    if (saved === 'marcas' || saved === 'pecas' || saved === 'dashboard' || saved === 'graficos') {
+      return saved;
+    }
+    return 'marcas';
+  });
   
+  // Marca selecionada recuperada do localStorage (Sobrevive ao F5 / Refresh)
+  const [selectedMarcaForView, setSelectedMarcaForView] = useState<MarcaSummary | null>(() => {
+    const savedMarcaId = localStorage.getItem('modaflow_selected_marca_id');
+    if (savedMarcaId) {
+      return MOCK_MARCAS.find(m => m.id === savedMarcaId) || null;
+    }
+    return null;
+  });
+
+  // Salvar subTab no localStorage
+  useEffect(() => {
+    localStorage.setItem('modaflow_sub_tab', subTab);
+  }, [subTab]);
+
+  // Salvar selectedMarcaForView no localStorage
+  useEffect(() => {
+    if (selectedMarcaForView) {
+      localStorage.setItem('modaflow_selected_marca_id', selectedMarcaForView.id);
+    } else {
+      localStorage.removeItem('modaflow_selected_marca_id');
+      localStorage.removeItem('modaflow_selected_colecao_id');
+    }
+  }, [selectedMarcaForView]);
+
+  // Escutar evento de reset disparado ao clicar no logo "AKR BRANDS" no topo
+  useEffect(() => {
+    const handleReset = () => {
+      setSubTab('marcas');
+      setSelectedMarcaForView(null);
+      localStorage.removeItem('modaflow_sub_tab');
+      localStorage.removeItem('modaflow_selected_marca_id');
+      localStorage.removeItem('modaflow_selected_colecao_id');
+    };
+
+    window.addEventListener('modaflow_reset_to_home', handleReset);
+    return () => window.removeEventListener('modaflow_reset_to_home', handleReset);
+  }, []);
+
   // Índice da Marca atualmente focada no Carrossel Suspenso
   const [currentIndex, setCurrentIndex] = useState(() => {
     const found = MOCK_MARCAS.findIndex(m => m.id === activeMarca?.id);
@@ -60,6 +104,12 @@ export const HomePage: React.FC = () => {
     setActiveMarca(marca);
   };
 
+  /** Abre a visão dedicada de coleções da marca selecionada */
+  const handleOpenColecoes = (marca: MarcaSummary) => {
+    setActiveMarca(marca);
+    setSelectedMarcaForView(marca);
+  };
+
   return (
     <div className="w-full flex flex-col font-sans">
       
@@ -67,7 +117,10 @@ export const HomePage: React.FC = () => {
       <div className="border-b border-slate-200 bg-white px-4 sm:px-8 pt-4">
         <div className="max-w-7xl mx-auto flex items-center gap-8 text-sm font-semibold">
           <button
-            onClick={() => setSubTab('marcas')}
+            onClick={() => {
+              setSubTab('marcas');
+              setSelectedMarcaForView(null);
+            }}
             className={`pb-3 border-b-2 transition cursor-pointer ${
               subTab === 'marcas'
                 ? 'border-slate-900 text-slate-900 font-extrabold'
@@ -110,131 +163,131 @@ export const HomePage: React.FC = () => {
       </div>
 
       {/* 2. CONTEÚDO REATIVO POR ABA SELECIONADA */}
-      <div className="max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8">
+      <div className={`w-full ${subTab === 'marcas' && !selectedMarcaForView ? 'p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto' : 'max-w-7xl mx-auto p-4 sm:p-6 lg:p-8'}`}>
         
         {/* ABA 1: MARCAS (CARROSSEL SUSPENSO E DETALHAMENTO DE COLEÇÕES) */}
         {subTab === 'marcas' && (
-          <div className="space-y-8">
-            <div className="mb-2">
-              <h3 className="text-base font-bold text-slate-900 tracking-tight">
-                Marcas da organização
-              </h3>
-            </div>
-
-            {/* HERO CARROSSEL SUSPENSO DAS MARCAS AKR BRANDS */}
-            <div className="relative w-full rounded-3xl overflow-hidden shadow-2xl min-h-[440px] flex flex-col justify-between p-6 sm:p-10 text-white transition-all duration-500 bg-slate-900">
-              
-              {/* IMAGEM DE FUNDO DA MARCA ATIVA NO CARROSSEL */}
-              <div 
-                className="absolute inset-0 bg-cover bg-center transition-all duration-700 transform scale-105"
-                style={{ backgroundImage: `url(${currentMarca.heroImageUrl})` }}
-              />
-              
-              {/* OVERLAY DE DEGRADÊ PARA LEITURA PERFEITA */}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-950/30" />
-
-              {/* BARRA SUPERIOR SUSPENSA DO CARROSSEL */}
-              <div className="relative z-10 flex items-center justify-between">
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold">
-                  <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-                  <span>AKR BRANDS • {currentMarca.badgeTag}</span>
-                </div>
-
-                <div className="text-xs font-bold text-white/80 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
-                  {currentIndex + 1} de {MOCK_MARCAS.length}
-                </div>
+          selectedMarcaForView ? (
+            <BrandCollectionsView 
+              marca={selectedMarcaForView} 
+              onBack={() => setSelectedMarcaForView(null)} 
+              onSelectMarca={(m) => setSelectedMarcaForView(m)}
+            />
+          ) : (
+            <div className="space-y-6">
+              <div className="mb-2">
+                <h3 className="text-base font-bold text-slate-900 tracking-tight">
+                  Marcas da organização
+                </h3>
               </div>
 
-              {/* SETAS INTERATIVAS DE NAVEGAÇÃO (< E >) */}
-              <button
-                type="button"
-                onClick={handlePrev}
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/40 hover:bg-white text-white hover:text-slate-900 border border-white/20 backdrop-blur-md flex items-center justify-center transition shadow-lg hover:scale-110 active:scale-95 cursor-pointer"
-                title="Marca Anterior"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
+              {/* HERO CARROSSEL SUSPENSO DAS MARCAS AKR BRANDS (EXPANDIDO FULL-WIDTH) */}
+              <div className="relative w-full rounded-3xl overflow-hidden shadow-2xl min-h-[480px] sm:min-h-[520px] flex flex-col justify-between p-6 sm:p-10 text-white transition-all duration-500 bg-slate-900">
+                
+                {/* IMAGEM DE FUNDO DA MARCA ATIVA NO CARROSSEL */}
+                <div 
+                  className="absolute inset-0 bg-cover bg-center transition-all duration-700 transform scale-105"
+                  style={{ backgroundImage: `url(${currentMarca.heroImageUrl})` }}
+                />
+                
+                {/* OVERLAY DE DEGRADÊ PARA LEITURA PERFEITA */}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-950/30" />
 
-              <button
-                type="button"
-                onClick={handleNext}
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/40 hover:bg-white text-white hover:text-slate-900 border border-white/20 backdrop-blur-md flex items-center justify-center transition shadow-lg hover:scale-110 active:scale-95 cursor-pointer"
-                title="Próxima Marca"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
+                {/* BARRA SUPERIOR SUSPENSA DO CARROSSEL */}
+                <div className="relative z-10 flex items-center justify-between">
+                  <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold">
+                    <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+                    <span>AKR BRANDS • {currentMarca.badgeTag}</span>
+                  </div>
 
-              {/* MEIO: INFORMAÇÕES DA MARCA SELECIONADA */}
-              <div className="relative z-10 my-auto max-w-2xl">
-                <div className="inline-block px-3 py-1 rounded-md bg-blue-600 font-black text-xs uppercase tracking-widest text-white mb-2 shadow-md">
-                  {currentMarca.code}
+                  <div className="text-xs font-bold text-white/80 bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10">
+                    {currentIndex + 1} de {MOCK_MARCAS.length}
+                  </div>
                 </div>
-                <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tight mb-3">
-                  {currentMarca.nome}
-                </h2>
-                <p className="text-slate-200 text-sm sm:text-base leading-relaxed mb-6 font-medium max-w-xl backdrop-blur-xs">
-                  {currentMarca.description}
-                </p>
 
-                <div className="flex items-center gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setActiveMarca(currentMarca)}
-                    className="px-6 py-3 bg-white hover:bg-blue-50 text-slate-950 font-bold text-xs rounded-xl shadow-lg flex items-center gap-2 transition hover:scale-105 cursor-pointer"
-                  >
-                    <span>Abrir Coleções de {currentMarca.nome}</span>
-                    <ArrowRight className="w-4 h-4 text-blue-600" />
-                  </button>
+                {/* SETAS INTERATIVAS DE NAVEGAÇÃO (< E >) */}
+                <button
+                  type="button"
+                  onClick={handlePrev}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/40 hover:bg-white text-white hover:text-slate-900 border border-white/20 backdrop-blur-md flex items-center justify-center transition shadow-lg hover:scale-110 active:scale-95 cursor-pointer"
+                  title="Marca Anterior"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/40 hover:bg-white text-white hover:text-slate-900 border border-white/20 backdrop-blur-md flex items-center justify-center transition shadow-lg hover:scale-110 active:scale-95 cursor-pointer"
+                  title="Próxima Marca"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+
+                {/* MEIO: INFORMAÇÕES DA MARCA SELECIONADA */}
+                <div className="relative z-10 my-auto max-w-2xl">
+                  <div className="inline-block px-3 py-1 rounded-md bg-[#A9764A] font-extrabold text-xs uppercase tracking-widest text-white mb-2 shadow-md">
+                    {currentMarca.code}
+                  </div>
+                  <h2 className="text-4xl sm:text-5xl font-bold font-editorial text-white tracking-wide mb-3">
+                    {currentMarca.nome}
+                  </h2>
+                  <p className="text-neutral-200 text-sm sm:text-base leading-relaxed mb-6 font-medium max-w-xl backdrop-blur-xs">
+                    {currentMarca.description}
+                  </p>
+
+                  <div className="flex items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenColecoes(currentMarca)}
+                      className="px-6 py-3.5 bg-white hover:bg-blue-50 text-slate-950 font-bold text-xs rounded-xl shadow-xl flex items-center gap-2 transition hover:scale-105 cursor-pointer"
+                    >
+                      <span>Abrir Coleções de {currentMarca.nome}</span>
+                      <ArrowRight className="w-4 h-4 text-blue-600" />
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {/* CARDS SUSPENSOS DAS MARCAS (FORMATO KB, KING&JOE, K&) */}
-              <div className="relative z-10 pt-6">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {MOCK_MARCAS.map((m, idx) => {
-                    const isSelected = idx === currentIndex;
-                    return (
-                      <div
-                        key={m.id}
-                        onClick={() => handleSelectMarca(m, idx)}
-                        className={`p-4 rounded-2xl border transition-all duration-300 cursor-pointer backdrop-blur-md flex items-center gap-3 ${
-                          isSelected
-                            ? 'bg-white text-slate-950 border-white shadow-xl scale-[1.03]'
-                            : 'bg-black/40 text-white border-white/20 hover:bg-black/60 hover:border-white/40'
-                        }`}
-                      >
-                        <div className={`px-3 py-2.5 rounded-xl font-extrabold text-xs tracking-wider border shrink-0 ${
-                          isSelected 
-                            ? 'bg-blue-50 text-blue-700 border-blue-200' 
-                            : 'bg-white/10 text-white border-white/20'
-                        }`}>
-                          {m.initials}
+                {/* CARDS SUSPENSOS DAS MARCAS (FORMATO KB, KING&JOE, K&) */}
+                <div className="relative z-10 pt-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {MOCK_MARCAS.map((m, idx) => {
+                      const isSelected = idx === currentIndex;
+                      return (
+                        <div
+                          key={m.id}
+                          onClick={() => handleSelectMarca(m, idx)}
+                          className={`p-4 rounded-2xl border transition-all duration-300 cursor-pointer backdrop-blur-md flex items-center gap-3 ${
+                            isSelected
+                              ? 'bg-white text-slate-950 border-white shadow-xl scale-[1.03]'
+                              : 'bg-black/40 text-white border-white/20 hover:bg-black/60 hover:border-white/40'
+                          }`}
+                        >
+                          <div className={`px-3 py-2.5 rounded-xl font-extrabold text-xs tracking-wider border shrink-0 ${
+                            isSelected 
+                              ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                              : 'bg-white/10 text-white border-white/20'
+                          }`}>
+                            {m.initials}
+                          </div>
+
+                          <div className="overflow-hidden">
+                            <h4 className={`text-sm font-bold truncate ${isSelected ? 'text-slate-950' : 'text-white'}`}>
+                              {m.nome}
+                            </h4>
+                            <span className={`text-[11px] font-semibold block ${isSelected ? 'text-slate-500' : 'text-slate-300'}`}>
+                              {m.colecoesCount} Coleções • {m.pecasCount} Peças
+                            </span>
+                          </div>
                         </div>
-
-                        <div className="overflow-hidden">
-                          <h4 className={`text-sm font-bold truncate ${isSelected ? 'text-slate-950' : 'text-white'}`}>
-                            {m.nome}
-                          </h4>
-                          <span className={`text-[11px] font-semibold block ${isSelected ? 'text-slate-500' : 'text-slate-300'}`}>
-                            {m.colecoesCount} Coleções • {m.pecasCount} Peças
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
+
               </div>
-
             </div>
-
-            {/* LISTAGEM DE COLEÇÕES DA MARCA ATIVA (IGUAL AO PRINT 5) */}
-            <div className="pt-4 border-t border-slate-200">
-              <h3 className="text-base font-bold text-slate-900 mb-4">
-                Coleções em Acompanhamento ({currentMarca.nome})
-              </h3>
-              <ColecoesTab />
-            </div>
-          </div>
+          )
         )}
 
         {/* ABA 2: PEÇAS (CATÁLOGO & FILTROS) */}
