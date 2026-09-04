@@ -107,20 +107,20 @@ export const GraficosTab: React.FC = () => {
   const maxScale = maxVal <= 10 ? 2.2 : maxVal <= 1000 ? 1000 : maxVal <= 1200 ? 1200 : 1800;
 
   return (
-    <div className="space-y-6 font-sans">
+    <div className="space-y-6 font-sans animate-in fade-in duration-200">
       
       {/* 1. PAINEL DE FILTROS & CONTEXTOS (CARD NÍVEL 2) */}
-      <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-5">
+      <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-5 transition-all duration-300">
         
         <div className="border-b border-border-muted pb-3">
-          <h4 className="text-sm font-bold text-primary">Filtros</h4>
+          <h4 className="text-sm font-bold font-editorial text-primary">Filtros</h4>
         </div>
 
         {/* 1.1 AGRUPAMENTO COM ÍCONE DE INFORMAÇÃO ⓘ */}
         <div className="space-y-2 border-b border-border-muted pb-4">
           <label className="block text-xs font-semibold text-muted-foreground flex items-center gap-1">
             <span>Agrupamento</span>
-            <Info className="w-3.5 h-3.5 text-muted" />
+            <Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
           </label>
           <div className="flex flex-wrap gap-2">
             {(['Campo', 'Criador', 'Fornecedor', 'Marca', 'Estilista', 'Time', 'Tipo', 'Tag'] as const).map((item) => {
@@ -130,7 +130,7 @@ export const GraficosTab: React.FC = () => {
                   key={item}
                   type="button"
                   onClick={() => setAgrupamento(item)}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer border ${
+                  className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer border ${
                     isSelected
                       ? 'bg-accent-camel text-white border-accent-camel shadow-2xs'
                       : 'bg-surface text-muted-foreground border-border hover:bg-surface-muted'
@@ -149,7 +149,7 @@ export const GraficosTab: React.FC = () => {
               <select
                 value={selectedCampo}
                 onChange={(e) => setSelectedCampo(e.target.value)}
-                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:outline-none shadow-2xs"
+                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
               >
                 <option value="">Selecione qual campo deseja agrupar</option>
                 <option value="estilista">Estilista Responsável</option>
@@ -166,7 +166,7 @@ export const GraficosTab: React.FC = () => {
               <select
                 value={selectedTime}
                 onChange={(e) => setSelectedTime(e.target.value)}
-                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:outline-none shadow-2xs"
+                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
               >
                 <option value="">Selecione uma marca abaixo</option>
               </select>
@@ -180,7 +180,7 @@ export const GraficosTab: React.FC = () => {
               <select
                 value={selectedTag}
                 onChange={(e) => setSelectedTag(e.target.value)}
-                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:outline-none shadow-2xs"
+                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
               >
                 <option value="">Selecione uma marca abaixo</option>
               </select>
@@ -188,7 +188,7 @@ export const GraficosTab: React.FC = () => {
           )}
         </div>
 
-        {/* 1.2 CONTEXTO GERAL (Marcas, Coleções, Times ⓘ) — oculto quando Marca */}
+        {/* 1.2 CONTEXTO GERAL (Marcas, Coleções, Times ⓘ) */}
         {agrupamento !== 'Marca' && (
         <div className="space-y-2 border-b border-border-muted pb-4">
           <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider">
@@ -200,7 +200,7 @@ export const GraficosTab: React.FC = () => {
               <select
                 value={selectedMarca}
                 onChange={(e) => setSelectedMarca(e.target.value)}
-                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:outline-none shadow-2xs"
+                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
               >
                 <option value="">Selecione marcas</option>
                 <option value="King & Joe">King & Joe</option>
@@ -214,7 +214,7 @@ export const GraficosTab: React.FC = () => {
               <select
                 value={selectedColecao}
                 onChange={(e) => setSelectedColecao(e.target.value)}
-                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:outline-none shadow-2xs"
+                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
               >
                 <option value="">Selecione marcas</option>
                 {COLECOES_OPTIONS.map(c => (
@@ -227,12 +227,12 @@ export const GraficosTab: React.FC = () => {
               <div>
                 <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
                   <span>Times</span>
-                  <Info className="w-3.5 h-3.5 text-muted" />
+                  <Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
                 </label>
                 <select
                   value={selectedTime}
                   onChange={(e) => setSelectedTime(e.target.value)}
-                  className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:outline-none shadow-2xs"
+                  className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
                 >
                   <option value="">Selecione marcas</option>
                   <option value="time_estilo">Time de Estilo</option>
@@ -245,7 +245,7 @@ export const GraficosTab: React.FC = () => {
         </div>
         )}
 
-        {/* 1.3 CONTEXTO DE TAGS (Tags ⓘ, Item de Tag ⓘ) — oculto quando Marca ou Tag */}
+        {/* 1.3 CONTEXTO DE TAGS (Tags ⓘ, Item de Tag ⓘ) */}
         {agrupamento !== 'Marca' && agrupamento !== 'Tag' && (
         <div className="space-y-2 border-b border-border-muted pb-4">
           <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider">
@@ -255,12 +255,12 @@ export const GraficosTab: React.FC = () => {
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
                 <span>Tags</span>
-                <Info className="w-3.5 h-3.5 text-muted" />
+                <Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
               </label>
               <select
                 value={selectedTag}
                 onChange={(e) => setSelectedTag(e.target.value)}
-                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:outline-none shadow-2xs"
+                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
               >
                 <option value="">Selecione marcas</option>
                 <option value="linha_nobre">Linha Nobre</option>
@@ -271,12 +271,12 @@ export const GraficosTab: React.FC = () => {
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
                 <span>Item de Tag</span>
-                <Info className="w-3.5 h-3.5 text-muted" />
+                <Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
               </label>
               <select
                 value={selectedItemTag}
                 onChange={(e) => setSelectedItemTag(e.target.value)}
-                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:outline-none shadow-2xs"
+                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
               >
                 <option value="">Selecione tags</option>
               </select>
@@ -285,7 +285,7 @@ export const GraficosTab: React.FC = () => {
         </div>
         )}
 
-        {/* 1.4 CONTEXTO DE CAMPOS (Campos Customizados, Valores) */}
+        {/* 1.4 CONTEXTO DE CAMPOS */}
         <div className="space-y-2 border-b border-border-muted pb-4">
           <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider">
             Contexto de Campos
@@ -296,7 +296,7 @@ export const GraficosTab: React.FC = () => {
               <select
                 value={selectedCampoCust}
                 onChange={(e) => setSelectedCampoCust(e.target.value)}
-                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:outline-none shadow-2xs"
+                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
               >
                 <option value="">Selecione...</option>
               </select>
@@ -307,7 +307,7 @@ export const GraficosTab: React.FC = () => {
               <select
                 value={selectedValor}
                 onChange={(e) => setSelectedValor(e.target.value)}
-                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:outline-none shadow-2xs"
+                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
               >
                 <option value="">Selecione Campos</option>
               </select>
@@ -315,7 +315,7 @@ export const GraficosTab: React.FC = () => {
           </div>
         </div>
 
-        {/* 1.5 CONTEXTO DE ETAPAS (Fluxos ⓘ, Percurso de Etapas, Período ⓘ) */}
+        {/* 1.5 CONTEXTO DE ETAPAS */}
         <div className="space-y-2">
           <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider">
             Contexto de Etapas
@@ -324,12 +324,12 @@ export const GraficosTab: React.FC = () => {
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
                 <span>Fluxos</span>
-                <Info className="w-3.5 h-3.5 text-muted" />
+                <Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
               </label>
               <select
                 value={selectedFluxo}
                 onChange={(e) => setSelectedFluxo(e.target.value)}
-                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:outline-none shadow-2xs"
+                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
               >
                 <option value="">Selecione...</option>
               </select>
@@ -341,7 +341,7 @@ export const GraficosTab: React.FC = () => {
                 <select
                   value={selectedPercurso1}
                   onChange={(e) => setSelectedPercurso1(e.target.value)}
-                  className="w-1/2 px-2 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:outline-none shadow-2xs"
+                  className="w-1/2 px-2 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
                 >
                   <option value="">Selecione...</option>
                   {ETAPAS_OPTIONS.slice(0, 5).map(e => <option key={e} value={e}>{e}</option>)}
@@ -350,7 +350,7 @@ export const GraficosTab: React.FC = () => {
                 <select
                   value={selectedPercurso2}
                   onChange={(e) => setSelectedPercurso2(e.target.value)}
-                  className="w-1/2 px-2 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:outline-none shadow-2xs"
+                  className="w-1/2 px-2 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
                 >
                   <option value="">Selecione...</option>
                   {ETAPAS_OPTIONS.slice(5, 10).map(e => <option key={e} value={e}>{e}</option>)}
@@ -361,7 +361,7 @@ export const GraficosTab: React.FC = () => {
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
                 <span>Período</span>
-                <Info className="w-3.5 h-3.5 text-muted" />
+                <Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
               </label>
               <div className="flex gap-2">
                 <input
@@ -369,14 +369,14 @@ export const GraficosTab: React.FC = () => {
                   placeholder="Depois de..."
                   value={periodoDepois}
                   onChange={(e) => setPeriodoDepois(e.target.value)}
-                  className="w-1/2 px-2.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:outline-none shadow-2xs"
+                  className="w-1/2 px-2.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
                 />
                 <input
                   type="text"
                   placeholder="Antes de..."
                   value={periodoAntes}
                   onChange={(e) => setPeriodoAntes(e.target.value)}
-                  className="w-1/2 px-2.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:outline-none shadow-2xs"
+                  className="w-1/2 px-2.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
                 />
               </div>
             </div>
@@ -385,11 +385,11 @@ export const GraficosTab: React.FC = () => {
 
       </div>
 
-      {/* 2. GRÁFICO DE BARRAS DA QUANTIDADE DE PRODUTOS (CARD NÍVEL 2) */}
-      <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-4">
+      {/* 2. GRÁFICO DE BARRAS (CARD NÍVEL 2) */}
+      <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-4 transition-all duration-300">
         
         <div className="flex items-center justify-between border-b border-border-muted pb-3">
-          <h4 className="text-sm font-bold text-primary flex items-center gap-2">
+          <h4 className="text-sm font-bold font-editorial text-primary flex items-center gap-2">
             <BarChart3 className="w-4 h-4 text-accent-camel" /> Gráficos — Agrupado por {agrupamento}
           </h4>
           <span className="text-xs font-semibold text-muted italic">Quantidade de Produtos</span>
@@ -458,7 +458,7 @@ export const GraficosTab: React.FC = () => {
           )}
         </div>
 
-        {/* BARRAS HORIZONTAIS COM COR PRETO-TINTA PRIMÁRIA DA MARCA */}
+        {/* BARRAS HORIZONTAIS */}
         <div className="space-y-3.5 pt-2">
           {currentData.map((item: GraficoDimensaoMetric, idx: number) => {
             const percent = (item.quantidade / maxScale) * 100;
@@ -471,7 +471,7 @@ export const GraficosTab: React.FC = () => {
 
                 <div className="flex-1 bg-surface-muted h-8 rounded-lg overflow-hidden flex items-center p-0.5 relative border border-border/70">
                   <div
-                    className="h-full bg-primary rounded-md transition-all duration-700"
+                    className="h-full bg-primary rounded-md transition-all duration-500"
                     style={{ width: `${percent}%` }}
                   />
                   <span className="ml-3 font-extrabold text-primary text-xs">

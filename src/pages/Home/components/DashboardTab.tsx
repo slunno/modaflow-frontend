@@ -5,8 +5,7 @@
  * PROJETO: ModaFlow PLM — AKR BRANDS
  * DESCRIÇÃO: Exibe as estatísticas de tempo de permanência por etapa.
  *            Utiliza cartões de conteúdo elevados com bordas suaves e paleta
- *            alinhada aos tokens institucionais da marca (Preto-Tinta, Camel,
- *            Verde Militar, Bordô e Off-White).
+ *            alinhada aos tokens institucionais da marca.
  * ============================================================================
  */
 
@@ -85,13 +84,13 @@ export const DashboardTab: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 font-sans">
+    <div className="space-y-6 font-sans animate-in fade-in duration-200">
       
       {/* 1. PAINEL DE FILTROS DO DASHBOARD (CARD NÍVEL 2) */}
-      <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-4">
+      <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-4 transition-all duration-300">
         <div className="flex items-center justify-between border-b border-border-muted pb-3">
-          <h4 className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-2">
-            <Filter className="w-4 h-4 text-accent-camel" /> Filtros do Dashboard
+          <h4 className="text-xs font-bold font-editorial text-primary uppercase tracking-wider flex items-center gap-2">
+            <Filter className="w-4 h-4 text-accent-camel" strokeWidth={1.5} /> Filtros do Dashboard
           </h4>
           <span className="text-xs font-semibold text-muted bg-surface-muted px-3 py-1 rounded-lg border border-border-muted">
             Visão Geral Operacional
@@ -106,7 +105,7 @@ export const DashboardTab: React.FC = () => {
             <select
               value={selectedEtapa}
               onChange={(e) => setSelectedEtapa(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-semibold text-primary focus:bg-surface focus:border-accent-camel focus:outline-none transition shadow-2xs"
+              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-semibold text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
             >
               {ETAPAS_OPTIONS.map((et) => (
                 <option key={et} value={et}>{et.toUpperCase()}</option>
@@ -120,7 +119,7 @@ export const DashboardTab: React.FC = () => {
             <select
               value={selectedMarca}
               onChange={(e) => setSelectedMarca(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:outline-none transition shadow-2xs"
+              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
             >
               <option value="">Todas as marcas</option>
               <option value="King & Joe">King & Joe</option>
@@ -146,7 +145,7 @@ export const DashboardTab: React.FC = () => {
               placeholder="Buscar responsável..."
               value={responsaveisBusca}
               onChange={(e) => setResponsaveisBusca(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:outline-none transition shadow-2xs"
+              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
             />
           </div>
 
@@ -171,18 +170,18 @@ export const DashboardTab: React.FC = () => {
       {/* 2. SEÇÃO VISÃO GERAL */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-bold text-primary tracking-tight">Visão geral</h3>
+          <h3 className="text-base font-bold font-editorial text-primary tracking-tight">Visão geral</h3>
           <span className="text-xs text-muted-foreground flex items-center gap-1.5 font-medium bg-surface px-3 py-1 rounded-lg border border-border shadow-2xs">
-            <MousePointerClick className="w-4 h-4 text-accent-camel" /> Clique em qualquer barra para alterar a etapa
+            <MousePointerClick className="w-4 h-4 text-accent-camel" strokeWidth={1.5} /> Clique em qualquer barra para alterar a etapa
           </span>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* CARD ESQUERDO: MÉDIAS DE TEMPO (CARD NÍVEL 2) */}
-          <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-6 flex flex-col justify-between">
+          {/* CARD ESQUERDO: MÉDIAS DE TEMPO */}
+          <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-6 flex flex-col justify-between transition-all duration-300">
             <div>
-              <h4 className="text-sm font-bold text-primary border-b border-border-muted pb-2 mb-4">
+              <h4 className="text-sm font-bold font-editorial text-primary border-b border-border-muted pb-2 mb-4">
                 {selectedEtapa.toLowerCase()}
               </h4>
 
@@ -224,8 +223,8 @@ export const DashboardTab: React.FC = () => {
             </div>
           </div>
 
-          {/* CARD DIREITO: GRÁFICOS DONUT COM TOKENS DE MARCA (CARD NÍVEL 2) */}
-          <div className="lg:col-span-2 bg-surface p-6 rounded-xl border border-border shadow-2xs flex items-center justify-around flex-wrap gap-6">
+          {/* CARD DIREITO: GRÁFICOS DONUT */}
+          <div className="lg:col-span-2 bg-surface p-6 rounded-xl border border-border shadow-2xs flex items-center justify-around flex-wrap gap-6 transition-all duration-300">
             
             {/* DONUT 1: EM DIA (ACCENT CAMEL) */}
             <div className="flex flex-col items-center text-center">
@@ -261,10 +260,10 @@ export const DashboardTab: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. GRÁFICO DE BARRAS (CARD NÍVEL 2) */}
-      <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-4">
+      {/* 3. GRÁFICO DE BARRAS */}
+      <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-4 transition-all duration-300">
         <div className="flex items-center justify-between border-b border-border-muted pb-3">
-          <h4 className="text-sm font-bold text-primary flex items-center gap-2">
+          <h4 className="text-sm font-bold font-editorial text-primary flex items-center gap-2">
             <BarChart2 className="w-4 h-4 text-accent-camel" /> Quantidade de Peças por Etapa de Produção
           </h4>
           <span className="text-xs text-muted font-medium">Clique em qualquer barra para detalhar</span>
@@ -282,9 +281,9 @@ export const DashboardTab: React.FC = () => {
               <div 
                 key={idx} 
                 onClick={() => setSelectedEtapa(item.etapa)}
-                className={`flex items-center text-xs p-2 rounded-lg transition cursor-pointer ${
+                className={`flex items-center text-xs p-2 rounded-lg transition-all duration-200 cursor-pointer ${
                   isSelected 
-                    ? 'bg-accent-camel/10 border border-accent-camel/40 shadow-2xs' 
+                    ? 'bg-accent-camel/10 border border-accent-camel/40 shadow-2xs scale-[1.01]' 
                     : 'hover:bg-surface-muted'
                 }`}
               >

@@ -71,7 +71,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     <div className="h-screen w-full flex items-center justify-center p-4 font-sans selection:bg-accent-camel selection:text-white overflow-hidden relative bg-bg text-primary">
       
       {/* CARD CENTRALIZADO DE LOGIN AKR BRANDS (NÍVEL 1 HERO/DESTAQUE) */}
-      <div className="w-full max-w-md bg-surface text-primary border border-border shadow-xl p-8 sm:p-10 rounded-3xl relative z-10">
+      <div className="w-full max-w-md bg-surface text-primary border border-border shadow-xl p-8 sm:p-10 rounded-3xl relative z-10 animate-in fade-in duration-300">
         
         {/* TOPO: LOGO AKR BRANDS (BRANDING EDITORIAL) */}
         <div className="mb-8 text-center">
@@ -106,7 +106,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="nathanhlima10@gmail.com"
-              className="w-full px-4 py-3 rounded-lg text-xs font-medium focus:outline-none transition bg-surface-muted border border-border text-primary focus:bg-surface focus:border-accent-camel"
+              className="w-full px-4 py-3 rounded-lg text-xs font-medium focus:outline-none transition-all duration-200 bg-surface-muted border border-border text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20"
               required
             />
           </div>
@@ -122,15 +122,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-lg text-xs font-medium focus:outline-none transition pr-10 bg-surface-muted border border-border text-primary focus:bg-surface focus:border-accent-camel"
+                className="w-full px-4 py-3 rounded-lg text-xs font-medium focus:outline-none transition-all duration-200 pr-10 bg-surface-muted border border-border text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-primary cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-primary cursor-pointer transition-colors duration-200"
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPassword ? <EyeOff className="w-4 h-4" strokeWidth={1.5} /> : <Eye className="w-4 h-4" strokeWidth={1.5} />}
               </button>
             </div>
           </div>
@@ -147,7 +147,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               <span className="text-xs font-semibold text-muted-foreground">Não sou um robô</span>
             </label>
             <div className="flex flex-col items-center pr-2">
-              <RefreshCw className="w-3.5 h-3.5 text-accent-camel animate-spin-slow" />
+              <RefreshCw className="w-3.5 h-3.5 text-accent-camel animate-spin-slow" strokeWidth={1.5} />
               <span className="text-[7px] font-extrabold text-muted uppercase tracking-tighter mt-0.5">reCAPTCHA</span>
             </div>
           </div>
@@ -156,11 +156,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           <div className="flex items-center justify-between text-xs pt-1">
             <span className="text-muted">
               Não tem cadastro?{' '}
-              <a href="#cadastro" className="text-accent-camel hover:underline font-bold transition">
+              <a href="#cadastro" className="text-accent-camel hover:underline font-bold transition-all duration-200">
                 Cadastre-se
               </a>
             </span>
-            <a href="#esqueceu" className="text-accent-camel hover:underline font-bold transition">
+            <a href="#esqueceu" className="text-accent-camel hover:underline font-bold transition-all duration-200">
               Esqueceu a senha?
             </a>
           </div>
@@ -169,7 +169,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 px-4 text-white font-bold text-xs rounded-lg shadow-2xs transition duration-200 flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer bg-primary hover:bg-accent-camel"
+            className="w-full py-3.5 px-4 text-white font-bold text-xs rounded-lg shadow-2xs transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer bg-primary hover:bg-accent-camel"
           >
             {loading ? (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

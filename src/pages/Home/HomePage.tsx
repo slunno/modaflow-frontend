@@ -29,7 +29,7 @@ import { BrandCollectionsView } from './components/BrandCollectionsView';
 export const HomePage: React.FC = () => {
   const { activeMarca, setActiveMarca } = useAuth();
   
-  // Estado da Sub-aba ativa na Home com persistência no localStorage (Sobrevive ao F5 / Refresh)
+  // Estado da Sub-aba ativa na Home com persistência no localStorage
   const [subTab, setSubTab] = useState<'marcas' | 'pecas' | 'dashboard' | 'graficos'>(() => {
     const saved = localStorage.getItem('modaflow_sub_tab');
     if (saved === 'marcas' || saved === 'pecas' || saved === 'dashboard' || saved === 'graficos') {
@@ -38,7 +38,7 @@ export const HomePage: React.FC = () => {
     return 'marcas';
   });
   
-  // Marca selecionada recuperada do localStorage (Sobrevive ao F5 / Refresh)
+  // Marca selecionada recuperada do localStorage
   const [selectedMarcaForView, setSelectedMarcaForView] = useState<MarcaSummary | null>(() => {
     const savedMarcaId = localStorage.getItem('modaflow_selected_marca_id');
     if (savedMarcaId) {
@@ -117,7 +117,7 @@ export const HomePage: React.FC = () => {
               setSubTab('marcas');
               setSelectedMarcaForView(null);
             }}
-            className={`pb-3 border-b-2 transition cursor-pointer ${
+            className={`pb-3 border-b-2 transition-all duration-200 cursor-pointer ${
               subTab === 'marcas'
                 ? 'border-primary text-primary font-bold'
                 : 'border-transparent text-muted hover:text-muted-foreground'
@@ -127,7 +127,7 @@ export const HomePage: React.FC = () => {
           </button>
           <button
             onClick={() => setSubTab('pecas')}
-            className={`pb-3 border-b-2 transition cursor-pointer ${
+            className={`pb-3 border-b-2 transition-all duration-200 cursor-pointer ${
               subTab === 'pecas'
                 ? 'border-primary text-primary font-bold'
                 : 'border-transparent text-muted hover:text-muted-foreground'
@@ -137,7 +137,7 @@ export const HomePage: React.FC = () => {
           </button>
           <button
             onClick={() => setSubTab('dashboard')}
-            className={`pb-3 border-b-2 transition cursor-pointer ${
+            className={`pb-3 border-b-2 transition-all duration-200 cursor-pointer ${
               subTab === 'dashboard'
                 ? 'border-primary text-primary font-bold'
                 : 'border-transparent text-muted hover:text-muted-foreground'
@@ -147,7 +147,7 @@ export const HomePage: React.FC = () => {
           </button>
           <button
             onClick={() => setSubTab('graficos')}
-            className={`pb-3 border-b-2 transition cursor-pointer ${
+            className={`pb-3 border-b-2 transition-all duration-200 cursor-pointer ${
               subTab === 'graficos'
                 ? 'border-primary text-primary font-bold'
                 : 'border-transparent text-muted hover:text-muted-foreground'
@@ -158,31 +158,33 @@ export const HomePage: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. CONTEÚDO REATIVO POR ABA SELECIONADA */}
+      {/* 2. CONTEÚDO REATIVO POR ABA SELECIONADA COM FADE SUTIL */}
       <div className={`w-full ${subTab === 'marcas' && !selectedMarcaForView ? 'p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto' : 'max-w-7xl mx-auto p-4 sm:p-6 lg:p-8'}`}>
         
         {/* ABA 1: MARCAS (CARROSSEL SUSPENSO E DETALHAMENTO DE COLEÇÕES) */}
         {subTab === 'marcas' && (
           selectedMarcaForView ? (
-            <BrandCollectionsView 
-              marca={selectedMarcaForView} 
-              onBack={() => setSelectedMarcaForView(null)} 
-              onSelectMarca={(m) => setSelectedMarcaForView(m)}
-            />
+            <div className="animate-in fade-in duration-200">
+              <BrandCollectionsView 
+                marca={selectedMarcaForView} 
+                onBack={() => setSelectedMarcaForView(null)} 
+                onSelectMarca={(m) => setSelectedMarcaForView(m)}
+              />
+            </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-in fade-in duration-200">
               <div className="mb-2">
                 <h3 className="text-base font-bold font-editorial text-primary tracking-tight">
                   Marcas da organização
                 </h3>
               </div>
 
-              {/* HERO CARROSSEL SUSPENSO DAS MARCAS AKR BRANDS (NÍVEL 1 HERO - ROUNDED-3XL + SHADOW-XL) */}
+              {/* HERO CARROSSEL SUSPENSO DAS MARCAS AKR BRANDS */}
               <div className="relative w-full rounded-3xl overflow-hidden shadow-xl min-h-[480px] sm:min-h-[520px] flex flex-col justify-between p-6 sm:p-10 text-white transition-all duration-500 bg-neutral-950">
                 
                 {/* IMAGEM DE FUNDO DA MARCA ATIVA NO CARROSSEL */}
                 <div 
-                  className="absolute inset-0 bg-cover bg-center transition-all duration-700 transform scale-105"
+                  className="absolute inset-0 bg-cover bg-center transition-all duration-500 transform scale-105 img-brand-treated"
                   style={{ backgroundImage: `url(${currentMarca.heroImageUrl})` }}
                 />
                 
@@ -192,7 +194,7 @@ export const HomePage: React.FC = () => {
                 {/* BARRA SUPERIOR SUSPENSA DO CARROSSEL */}
                 <div className="relative z-10 flex items-center justify-between">
                   <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold">
-                    <Sparkles className="w-3.5 h-3.5 text-accent-camel" />
+                    <Sparkles className="w-3.5 h-3.5 text-accent-camel" strokeWidth={1.5} />
                     <span>AKR BRANDS • {currentMarca.badgeTag}</span>
                   </div>
 
@@ -205,7 +207,7 @@ export const HomePage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handlePrev}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/40 hover:bg-white text-white hover:text-primary border border-white/20 backdrop-blur-md flex items-center justify-center transition shadow-md hover:scale-110 active:scale-95 cursor-pointer"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/40 hover:bg-white text-white hover:text-primary border border-white/20 backdrop-blur-md flex items-center justify-center transition-all duration-200 shadow-md hover:scale-105 active:scale-95 cursor-pointer"
                   title="Marca Anterior"
                 >
                   <ChevronLeft className="w-6 h-6" />
@@ -214,7 +216,7 @@ export const HomePage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/40 hover:bg-white text-white hover:text-primary border border-white/20 backdrop-blur-md flex items-center justify-center transition shadow-md hover:scale-110 active:scale-95 cursor-pointer"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/40 hover:bg-white text-white hover:text-primary border border-white/20 backdrop-blur-md flex items-center justify-center transition-all duration-200 shadow-md hover:scale-105 active:scale-95 cursor-pointer"
                   title="Próxima Marca"
                 >
                   <ChevronRight className="w-6 h-6" />
@@ -236,7 +238,7 @@ export const HomePage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleOpenColecoes(currentMarca)}
-                      className="px-6 py-3.5 bg-white hover:bg-surface-muted text-primary font-bold text-xs rounded-xl shadow-md flex items-center gap-2 transition hover:scale-105 cursor-pointer"
+                      className="px-6 py-3.5 bg-white hover:bg-surface-muted text-primary font-bold text-xs rounded-xl shadow-md flex items-center gap-2 transition-all duration-200 hover:scale-[1.02] cursor-pointer"
                     >
                       <span>Abrir Coleções de {currentMarca.nome}</span>
                       <ArrowRight className="w-4 h-4 text-accent-camel" />

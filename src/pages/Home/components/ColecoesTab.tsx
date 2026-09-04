@@ -60,7 +60,7 @@ const MOCK_COLECOES: ColecaoItem[] = [
     pecasTotal: 151,
     concluidoEmDate: '07/07/2025',
     dataEntrega: '10/01/2025',
-    diasAtraso: 0 // Entregue
+    diasAtraso: 0
   },
   {
     id: 'c5',
@@ -94,14 +94,14 @@ export const ColecoesTab: React.FC = () => {
   const colecoesFiltradas = MOCK_COLECOES.filter(c => c.status === statusFiltro);
 
   return (
-    <div className="space-y-4 font-sans">
+    <div className="space-y-4 font-sans animate-in fade-in duration-200">
       
       {/* 1. NAVEGAÇÃO DE SUB-STATUS */}
       <div className="flex items-center justify-between border-b border-border pb-3">
         <div className="flex gap-6 text-xs font-semibold">
           <button
             onClick={() => setStatusFiltro('Em andamento')}
-            className={`pb-2 border-b-2 transition cursor-pointer ${
+            className={`pb-2 border-b-2 transition-all duration-200 cursor-pointer ${
               statusFiltro === 'Em andamento'
                 ? 'border-primary text-primary font-bold'
                 : 'border-transparent text-muted hover:text-muted-foreground'
@@ -112,7 +112,7 @@ export const ColecoesTab: React.FC = () => {
 
           <button
             onClick={() => setStatusFiltro('Completas')}
-            className={`pb-2 border-b-2 transition cursor-pointer ${
+            className={`pb-2 border-b-2 transition-all duration-200 cursor-pointer ${
               statusFiltro === 'Completas'
                 ? 'border-primary text-primary font-bold'
                 : 'border-transparent text-muted hover:text-muted-foreground'
@@ -123,9 +123,9 @@ export const ColecoesTab: React.FC = () => {
 
           <button
             onClick={() => setStatusFiltro('Arquivadas')}
-            className={`pb-2 border-b-2 transition cursor-pointer ${
+            className={`pb-2 border-b-2 transition-all duration-200 cursor-pointer ${
               statusFiltro === 'Arquivadas'
-                ? 'border-primary text-primary font-bold'
+                ? 'border-transparent text-muted hover:text-muted-foreground'
                 : 'border-transparent text-muted hover:text-muted-foreground'
             }`}
           >
@@ -137,8 +137,8 @@ export const ColecoesTab: React.FC = () => {
           <span className="text-xs font-semibold text-muted">
             {colecoesFiltradas.length}/{MOCK_COLECOES.length}
           </span>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-accent-camel/30 text-accent-camel bg-accent-camel/10 text-xs font-bold hover:bg-accent-camel/20 transition cursor-pointer">
-            <ArrowUpDown className="w-3.5 h-3.5" /> Ordenação
+          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-accent-camel/30 text-accent-camel bg-accent-camel/10 text-xs font-bold hover:bg-accent-camel/20 transition-all duration-200 cursor-pointer">
+            <ArrowUpDown className="w-3.5 h-3.5" strokeWidth={1.5} /> Ordenação
           </button>
         </div>
       </div>
@@ -150,9 +150,9 @@ export const ColecoesTab: React.FC = () => {
           return (
             <div
               key={c.id}
-              className="bg-surface border border-border rounded-xl p-5 shadow-2xs hover:shadow-xs transition space-y-4"
+              className="bg-surface border border-border rounded-xl p-5 shadow-2xs hover:shadow-md hover:scale-[1.01] transition-all duration-300 space-y-4 cursor-pointer"
             >
-              {/* Título da Coleção com fonte editorial para elegância */}
+              {/* Título da Coleção com fonte editorial */}
               <h4 className="text-xs font-bold font-editorial text-primary leading-snug uppercase tracking-wide min-h-[32px]">
                 {c.nome}
               </h4>

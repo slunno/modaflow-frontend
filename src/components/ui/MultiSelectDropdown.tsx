@@ -6,9 +6,6 @@
  * DESCRIÇÃO: Componente de seleção múltipla com caixa de busca opcional, opção
  *            de "Selecionar todos" e selos circulares de checkmark (✓) fiéis às
  *            telas do Coleção Moda PLM.
- * ----------------------------------------------------------------------------
- * PADRÃO DE USO:
- * - Importe em qualquer formulário de filtro (Peças, Dashboard, Relatórios).
  * ============================================================================
  */
 
@@ -77,25 +74,25 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-3.5 py-2.5 bg-surface border border-border rounded-lg text-xs font-medium text-primary flex items-center justify-between shadow-2xs hover:border-accent-camel focus:outline-none focus:ring-2 focus:ring-accent-camel/20 cursor-pointer"
+        className="w-full px-3.5 py-2.5 bg-surface border border-border rounded-lg text-xs font-medium text-primary flex items-center justify-between shadow-2xs hover:border-accent-camel focus:outline-none focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 transition-all duration-200 cursor-pointer"
       >
         <span className={`truncate ${selectedValues.length === 0 ? 'text-muted' : 'text-primary font-semibold'}`}>
           {displayText}
         </span>
-        <ChevronDown className="w-4 h-4 text-muted shrink-0 ml-1" />
+        <ChevronDown className="w-4 h-4 text-muted shrink-0 ml-1" strokeWidth={1.5} />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-full bg-surface border border-border rounded-xl shadow-xl z-50 py-2 max-h-72 overflow-y-auto text-xs animate-fade-in">
+        <div className="absolute top-full left-0 mt-1 w-full bg-surface border border-border rounded-xl shadow-xl z-50 py-2 max-h-72 overflow-y-auto text-xs animate-in fade-in duration-200">
           
           <div
             onClick={toggleSelectAll}
-            className="px-3.5 py-2 hover:bg-surface-muted flex items-center gap-2.5 cursor-pointer font-bold border-b border-border-muted text-primary"
+            className="px-3.5 py-2 hover:bg-surface-muted flex items-center gap-2.5 cursor-pointer font-bold border-b border-border-muted text-primary transition-colors duration-200"
           >
-            <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition ${
+            <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors duration-200 ${
               isAllSelected ? 'bg-accent-camel border-accent-camel text-white' : 'border-border bg-surface'
             }`}>
-              {isAllSelected && <Check className="w-3 h-3 stroke-[3]" />}
+              {isAllSelected && <Check className="w-3 h-3" strokeWidth={2} />}
             </div>
             <span>Selecionar todos</span>
           </div>
@@ -106,14 +103,14 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
               <div
                 key={`${opt}-${idx}`}
                 onClick={() => toggleItem(opt)}
-                className={`px-3.5 py-2 hover:bg-surface-muted flex items-center gap-2.5 cursor-pointer font-medium text-muted-foreground ${
+                className={`px-3.5 py-2 hover:bg-surface-muted flex items-center gap-2.5 cursor-pointer font-medium text-muted-foreground transition-colors duration-200 ${
                   checked ? 'bg-surface-muted/80 font-bold text-primary' : ''
                 }`}
               >
-                <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition ${
+                <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors duration-200 ${
                   checked ? 'bg-accent-camel border-accent-camel text-white' : 'border-border bg-surface'
                 }`}>
-                  {checked && <Check className="w-3 h-3 stroke-[3]" />}
+                  {checked && <Check className="w-3 h-3" strokeWidth={2} />}
                 </div>
                 <span className="truncate">{opt}</span>
               </div>

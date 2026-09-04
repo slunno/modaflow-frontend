@@ -12,7 +12,7 @@
   --color-accent-bordo: #7A2E2E;
   --color-accent-militar: #4B5320;
 
-  /* ── Superfícies & bordas (substitui slate-*) ── */
+  /* ── Superfícies & bordas ── */
   --color-surface: #FFFFFF;
   --color-surface-muted: #F7F5F2;
   --color-border: #E5E2DC;
@@ -35,7 +35,7 @@
   }
 }
 
-/* Fonte editorial serifada — titulos de marca, hero banners, nomes de coleção */
+/* Fonte editorial serifada — titulos de marca, hero banners, nomes de coleção, cabeçalhos */
 .font-editorial {
   font-family: 'Fraunces', Georgia, serif;
 }
@@ -47,4 +47,10 @@
   background-size: 30px 30px;
   background-position: 0 0, 15px 15px;
   opacity: 0.95;
+}
+
+/* Polimento fino: Tratamento sutil e uniforme de croquis e imagens hero */
+.img-brand-treated {
+  filter: saturate(0.95) contrast(1.05);
+  transition: filter 0.3s ease, transform 0.3s ease;
 }

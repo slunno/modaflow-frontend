@@ -245,7 +245,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
   // Ordenação das coleções
   const [sortOrder, setSortOrder] = useState<'progress_desc' | 'name_asc'>('progress_desc');
 
-  // Estado da Coleção selecionada para abrir o detalhe de 10 sub-abas
+  // Estado da Coleção selecionada
   const [selectedColecao, setSelectedColecao] = useState<ColecaoItem | null>(() => {
     const savedColecaoId = localStorage.getItem('modaflow_selected_colecao_id');
     if (savedColecaoId) {
@@ -317,7 +317,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
   }
 
   return (
-    <div className="space-y-6 font-sans pb-12">
+    <div className="space-y-6 font-sans pb-12 animate-in fade-in duration-200">
       
       {/* 1. BREADCRUMBS NO ESTILO DO MOCKUP */}
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -325,12 +325,12 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
           <button 
             type="button"
             onClick={onBack}
-            className="flex items-center gap-1 hover:text-accent-camel transition cursor-pointer font-bold text-primary bg-surface px-3 py-1.5 rounded-lg border border-border shadow-2xs"
+            className="flex items-center gap-1 hover:text-accent-camel transition-all duration-200 cursor-pointer font-bold text-primary bg-surface px-3 py-1.5 rounded-lg border border-border shadow-2xs"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
+            <ArrowLeft className="w-3.5 h-3.5" strokeWidth={1.5} />
             <span>Início</span>
           </button>
-          <ChevronRight className="w-3.5 h-3.5 text-muted" />
+          <ChevronRight className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
           <span className="text-primary font-bold px-2.5 py-1 bg-surface-muted rounded-lg border border-border-muted">
             {currentMarca.nome}
           </span>
@@ -340,29 +340,29 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
         <button 
           type="button"
           onClick={() => setIsBrandModalOpen(true)}
-          className="text-xs font-bold px-4 py-2 rounded-lg border border-accent-camel/30 bg-accent-camel/10 text-accent-camel hover:bg-accent-camel/20 transition cursor-pointer shadow-2xs flex items-center gap-2"
+          className="text-xs font-bold px-4 py-2 rounded-lg border border-accent-camel/30 bg-accent-camel/10 text-accent-camel hover:bg-accent-camel/20 transition-all duration-200 cursor-pointer shadow-2xs flex items-center gap-2"
         >
-          <Building2 className="w-4 h-4 text-accent-camel" />
+          <Building2 className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
           <span>Alternar Marca</span>
         </button>
       </div>
 
       {/* 2. CARD HERO DARK GLASSMORPHIC (HERO NÍVEL 1: ROUNDED-3XL + SHADOW-XL) */}
-      <div className="relative rounded-3xl bg-neutral-950 text-white p-6 sm:p-8 shadow-xl overflow-hidden border border-neutral-800">
+      <div className="relative rounded-3xl bg-neutral-950 text-white p-6 sm:p-8 shadow-xl overflow-hidden border border-neutral-800 transition-all duration-500">
         
         {/* Fundo com degradê escuro e luz sutil */}
         <div 
-          className="absolute inset-0 bg-cover bg-center opacity-20 blur-xs"
+          className="absolute inset-0 bg-cover bg-center opacity-20 blur-xs img-brand-treated transition-all duration-500"
           style={{ backgroundImage: `url(${marca.heroImageUrl})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-900/95 to-neutral-950" />
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
           
-          {/* Esquerda: Badge, Título, Descrição e Botões de Ação [Coleções] [Cronograma] */}
+          {/* Esquerda: Badge, Título, Descrição e Botões de Ação */}
           <div className="space-y-4 max-w-xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] font-bold text-neutral-300">
-              <Sparkles className="w-3.5 h-3.5 text-accent-camel" />
+              <Sparkles className="w-3.5 h-3.5 text-accent-camel" strokeWidth={1.5} />
               <span>{marca.badgeTag || 'Linha Premium'}</span>
             </div>
 
@@ -379,26 +379,26 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveSubTab('colecoes')}
-                className={`px-5 py-2.5 rounded-lg text-xs font-bold transition-all duration-300 flex items-center gap-2 cursor-pointer ${
+                className={`px-5 py-2.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-2 cursor-pointer ${
                   activeSubTab === 'colecoes'
                     ? 'bg-white text-primary shadow-md scale-[1.02]'
                     : 'bg-white/10 text-white border border-white/15 hover:bg-white/20'
                 }`}
               >
-                <Layers className="w-4 h-4 text-accent-camel" />
+                <Layers className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
                 <span>Coleções</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveSubTab('cronograma')}
-                className={`px-5 py-2.5 rounded-lg text-xs font-bold transition-all duration-300 flex items-center gap-2 cursor-pointer ${
+                className={`px-5 py-2.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-2 cursor-pointer ${
                   activeSubTab === 'cronograma'
                     ? 'bg-white text-primary shadow-md scale-[1.02]'
                     : 'bg-white/10 text-white border border-white/15 hover:bg-white/20'
                 }`}
               >
-                <Calendar className="w-4 h-4 text-accent-camel" />
+                <Calendar className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
                 <span>Cronograma</span>
               </button>
             </div>
@@ -441,17 +441,17 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
 
       {/* 3. CONTEÚDO DA ABA SELECIONADA */}
       {activeSubTab === 'colecoes' && (
-        <div className="space-y-5">
+        <div className="space-y-5 animate-in fade-in duration-200">
           
           {/* BARRA DE FILTROS (CARD NÍVEL 2) */}
-          <div className="bg-surface p-4 rounded-xl border border-border shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+          <div className="bg-surface p-4 rounded-xl border border-border shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 transition-all duration-300">
             
             {/* Status Pills */}
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={() => setStatusFiltro('Em andamento')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${
                   statusFiltro === 'Em andamento'
                     ? 'bg-primary text-white shadow-2xs'
                     : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
@@ -463,7 +463,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
               <button
                 type="button"
                 onClick={() => setStatusFiltro('Completas')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${
                   statusFiltro === 'Completas'
                     ? 'bg-primary text-white shadow-2xs'
                     : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
@@ -475,7 +475,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
               <button
                 type="button"
                 onClick={() => setStatusFiltro('Arquivadas')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${
                   statusFiltro === 'Arquivadas'
                     ? 'bg-primary text-white shadow-2xs'
                     : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
@@ -489,24 +489,24 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
             <div className="flex items-center gap-3">
               
               <div className="relative flex-1 sm:w-64">
-                <Search className="w-3.5 h-3.5 text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="w-3.5 h-3.5 text-muted absolute left-3 top-1/2 -translate-y-1/2" strokeWidth={1.5} />
                 <input
                   type="text"
                   placeholder="Buscar coleção..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:outline-none"
+                  className="w-full pl-9 pr-3 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200"
                 />
               </div>
 
               <button
                 type="button"
                 onClick={() => setSortOrder(prev => prev === 'progress_desc' ? 'name_asc' : 'progress_desc')}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-border text-muted-foreground bg-surface-muted hover:bg-border-muted text-xs font-bold transition cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-border text-muted-foreground bg-surface-muted hover:bg-border-muted text-xs font-bold transition-all duration-200 cursor-pointer"
               >
-                <ArrowUpDown className="w-3.5 h-3.5 text-muted" />
+                <ArrowUpDown className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
                 <span>{sortOrder === 'progress_desc' ? 'Progresso' : 'Nome'}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-muted" />
+                <ChevronDown className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
               </button>
 
             </div>
@@ -516,8 +516,8 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
           {/* GRID DE CARDS (CARD NÍVEL 2) */}
           {colecoesFiltradas.length === 0 ? (
             <div className="bg-surface p-12 rounded-xl border border-border text-center space-y-3">
-              <Layers className="w-10 h-10 text-muted mx-auto" />
-              <h4 className="text-sm font-bold text-muted-foreground">Nenhuma coleção encontrada</h4>
+              <Layers className="w-10 h-10 text-muted mx-auto" strokeWidth={1.5} />
+              <h4 className="text-sm font-bold text-muted-foreground font-editorial">Nenhuma coleção encontrada</h4>
               <p className="text-xs text-muted">Tente alternar o filtro de status ou limpar o campo de busca.</p>
             </div>
           ) : (
@@ -532,7 +532,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                       if (onSelectColecao) onSelectColecao(c);
                       setSelectedColecao(c);
                     }}
-                    className="bg-surface border border-border rounded-xl p-6 shadow-2xs hover:shadow-md transition-all duration-300 space-y-5 flex flex-col justify-between relative group cursor-pointer"
+                    className="bg-surface border border-border rounded-xl p-6 shadow-2xs hover:shadow-md hover:scale-[1.01] transition-all duration-300 space-y-5 flex flex-col justify-between relative group cursor-pointer"
                   >
                     <div>
                       {/* Topo do Card: Badge de Código (KB, KJ, KP) */}
@@ -548,7 +548,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                       </div>
 
                       {/* Título da Coleção com fonte editorial */}
-                      <h3 className="text-sm font-bold font-editorial text-primary uppercase tracking-wide leading-snug group-hover:text-accent-camel transition min-h-[40px]">
+                      <h3 className="text-sm font-bold font-editorial text-primary uppercase tracking-wide leading-snug group-hover:text-accent-camel transition-colors duration-200 min-h-[40px]">
                         {c.nome}
                       </h3>
                     </div>
@@ -599,12 +599,12 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
 
       {/* 4. ABA CRONOGRAMA */}
       {activeSubTab === 'cronograma' && (
-        <div className="bg-surface p-6 sm:p-8 rounded-xl border border-border shadow-2xs space-y-6">
+        <div className="bg-surface p-6 sm:p-8 rounded-xl border border-border shadow-2xs space-y-6 animate-in fade-in duration-200">
           
           <div className="flex items-center justify-between border-b border-border-muted pb-4">
             <div>
               <h3 className="text-base font-bold font-editorial text-primary flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-accent-camel" />
+                <Calendar className="w-5 h-5 text-accent-camel" strokeWidth={1.5} />
                 <span>Cronograma & Marcos de Produção — {marca.nome}</span>
               </h3>
               <p className="text-xs text-muted-foreground mt-1">Acompanhamento temporal dos marcos de entrega de coleções</p>
@@ -642,28 +642,28 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                   <div className="p-2.5 bg-surface rounded-lg border border-border">
                     <span className="text-[10px] font-bold uppercase text-muted block">1. Design & Estilo</span>
                     <span className="font-bold text-emerald-600 flex items-center gap-1 mt-0.5">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Concluído
+                      <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={1.5} /> Concluído
                     </span>
                   </div>
 
                   <div className="p-2.5 bg-surface rounded-lg border border-border">
                     <span className="text-[10px] font-bold uppercase text-muted block">2. Modelagem & Ficha</span>
                     <span className="font-bold text-emerald-600 flex items-center gap-1 mt-0.5">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Concluído
+                      <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={1.5} /> Concluído
                     </span>
                   </div>
 
                   <div className="p-2.5 bg-surface rounded-lg border border-border">
                     <span className="text-[10px] font-bold uppercase text-muted block">3. Pilotagem & Corte</span>
                     <span className={`font-bold flex items-center gap-1 mt-0.5 ${c.progressoPercent > 50 ? 'text-emerald-600' : 'text-accent-camel'}`}>
-                      <Clock className="w-3.5 h-3.5" /> {c.progressoPercent > 50 ? 'Concluído' : 'Em andamento'}
+                      <Clock className="w-3.5 h-3.5" strokeWidth={1.5} /> {c.progressoPercent > 50 ? 'Concluído' : 'Em andamento'}
                     </span>
                   </div>
 
                   <div className="p-2.5 bg-surface rounded-lg border border-border">
                     <span className="text-[10px] font-bold uppercase text-muted block">4. Produção & ERP</span>
                     <span className={`font-bold flex items-center gap-1 mt-0.5 ${c.progressoPercent === 100 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                      {c.progressoPercent === 100 ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+                      {c.progressoPercent === 100 ? <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={1.5} /> : <Clock className="w-3.5 h-3.5" strokeWidth={1.5} />}
                       {c.progressoPercent === 100 ? 'Entregue' : 'Aguardando'}
                     </span>
                   </div>
@@ -679,13 +679,13 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
       {/* 5. QUADRO DE ALTERNAR LINHA / MARCA (MODAL INTERATIVO NÍVEL 2) */}
       {isBrandModalOpen && (
         <div className="fixed inset-0 bg-neutral-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-surface rounded-xl p-6 sm:p-8 border border-border shadow-xl max-w-xl w-full space-y-6 animate-in fade-in zoom-in-95">
+          <div className="bg-surface rounded-xl p-6 sm:p-8 border border-border shadow-xl max-w-xl w-full space-y-6 animate-in fade-in zoom-in-95 duration-200">
             
             {/* Header do Quadro */}
             <div className="flex items-center justify-between border-b border-border-muted pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-accent-camel/10 border border-accent-camel/30 text-accent-camel flex items-center justify-center font-bold">
-                  <Building2 className="w-5 h-5" />
+                  <Building2 className="w-5 h-5" strokeWidth={1.5} />
                 </div>
                 <div>
                   <h3 className="text-base font-bold font-editorial text-primary">Linhas & Marcas da Organização</h3>
@@ -696,9 +696,9 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsBrandModalOpen(false)}
-                className="p-2 rounded-lg text-muted hover:text-primary hover:bg-surface-muted transition cursor-pointer"
+                className="p-2 rounded-lg text-muted hover:text-primary hover:bg-surface-muted transition-colors duration-200 cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" strokeWidth={1.5} />
               </button>
             </div>
 
@@ -711,7 +711,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                   <div
                     key={m.id}
                     onClick={() => handleSwitchBrand(m)}
-                    className={`p-4 rounded-lg border transition-all duration-300 cursor-pointer flex items-center justify-between gap-4 ${
+                    className={`p-4 rounded-lg border transition-all duration-200 cursor-pointer flex items-center justify-between gap-4 ${
                       isSelected
                         ? 'bg-accent-camel/10 border-accent-camel shadow-2xs ring-1 ring-accent-camel/30'
                         : 'bg-surface border-border hover:border-accent-camel/50 hover:bg-surface-muted'
@@ -742,7 +742,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                     <div className="shrink-0">
                       {isSelected ? (
                         <div className="w-7 h-7 rounded-full bg-accent-camel text-white flex items-center justify-center font-bold text-xs shadow-2xs">
-                          <Check className="w-4 h-4" />
+                          <Check className="w-4 h-4" strokeWidth={2} />
                         </div>
                       ) : (
                         <span className="text-xs font-bold text-accent-camel hover:underline">
@@ -760,7 +760,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsBrandModalOpen(false)}
-                className="px-4 py-2 bg-surface-muted hover:bg-border-muted text-primary text-xs font-bold rounded-lg transition cursor-pointer"
+                className="px-4 py-2 bg-surface-muted hover:bg-border-muted text-primary text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer"
               >
                 Fechar Quadro
               </button>
