@@ -80,159 +80,8 @@ const INITIAL_TEAMS: TeamItem[] = [
   { id: 't-4', nome: 'Espectador', designadoProduto: false }
 ];
 
-// LISTA DE USUÁRIOS REATIVA (PRONTA PARA CONSUMIR BANCO DE DADOS)
-const INITIAL_USERS_DATA: UserRecord[] = [
-  {
-    id: 'u-1',
-    email: 'suporte.kingjoe@colecao.moda',
-    nome: 'Suporte Suporte',
-    codigo: '--',
-    marcas: ['King & Joe', 'King & Joe Play', 'K&J Black'],
-    status: 'Ativo',
-    acesso: 'Permitido',
-    isFantasma: false,
-    brandRoles: [
-      { marcaId: '2', marcaNome: 'K&J Black', cargo: 'Administrador', times: [] },
-      { marcaId: '1', marcaNome: 'King & Joe', cargo: 'Administrador', times: ['Estilista'] },
-      { marcaId: '3', marcaNome: 'King & Joe Play', cargo: 'Administrador', times: [] }
-    ]
-  },
-  {
-    id: 'u-2',
-    email: 'fabiano.moutinho@kingjoe.com.br',
-    nome: 'Fabiano',
-    codigo: '--',
-    marcas: ['King & Joe', 'King & Joe Play', 'K&J Black'],
-    status: 'Ativo',
-    acesso: 'Permitido',
-    isFantasma: false,
-    brandRoles: [
-      { marcaId: '2', marcaNome: 'K&J Black', cargo: 'Administrador', times: [] },
-      { marcaId: '1', marcaNome: 'King & Joe', cargo: 'Administrador', times: [] },
-      { marcaId: '3', marcaNome: 'King & Joe Play', cargo: 'Administrador', times: [] }
-    ]
-  },
-  {
-    id: 'u-3',
-    email: 'jessica.oliveira@kingjoe.com.br',
-    nome: 'Jéssica',
-    codigo: '--',
-    marcas: ['King & Joe', 'King & Joe Play', 'K&J Black'],
-    status: 'Ativo',
-    acesso: 'Permitido',
-    isFantasma: false,
-    brandRoles: [
-      { marcaId: '2', marcaNome: 'K&J Black', cargo: 'Administrador', times: [] },
-      { marcaId: '1', marcaNome: 'King & Joe', cargo: 'Administrador', times: [] },
-      { marcaId: '3', marcaNome: 'King & Joe Play', cargo: 'Administrador', times: [] }
-    ]
-  },
-  {
-    id: 'u-4',
-    email: 'mariana.barbosa@kingjoe.com.br',
-    nome: 'Mariana Barbosa',
-    codigo: '--',
-    marcas: ['King & Joe', 'King & Joe Play', 'K&J Black'],
-    status: 'Ativo',
-    acesso: 'Permitido',
-    isFantasma: false,
-    brandRoles: [
-      { marcaId: '2', marcaNome: 'K&J Black', cargo: 'Administrador', times: [] },
-      { marcaId: '1', marcaNome: 'King & Joe', cargo: 'Administrador', times: ['Estilista'] },
-      { marcaId: '3', marcaNome: 'King & Joe Play', cargo: 'Administrador', times: [] }
-    ]
-  },
-  {
-    id: 'u-5',
-    email: 'desenvolvimento@kingjoe.com.br',
-    nome: 'Ivonete Barbosa',
-    codigo: '--',
-    marcas: ['King & Joe', 'King & Joe Play', 'K&J Black'],
-    status: 'Ativo',
-    acesso: 'Permitido',
-    isFantasma: false,
-    brandRoles: [
-      { marcaId: '2', marcaNome: 'K&J Black', cargo: 'Administrador', times: [] },
-      { marcaId: '1', marcaNome: 'King & Joe', cargo: 'Administrador', times: ['Estilista'] },
-      { marcaId: '3', marcaNome: 'King & Joe Play', cargo: 'Administrador', times: [] }
-    ]
-  },
-  {
-    id: 'u-6',
-    email: 'cleilson.teixeira@kingjoe.com.br',
-    nome: 'Cleilson Teixeira',
-    codigo: '--',
-    marcas: ['King & Joe', 'King & Joe Play', 'K&J Black'],
-    status: 'Ativo',
-    acesso: 'Permitido',
-    isFantasma: false,
-    brandRoles: [
-      { marcaId: '2', marcaNome: 'K&J Black', cargo: 'Estilista', times: [] },
-      { marcaId: '1', marcaNome: 'King & Joe', cargo: 'Estilista', times: ['Modelista'] },
-      { marcaId: '3', marcaNome: 'King & Joe Play', cargo: 'Estilista', times: [] }
-    ]
-  },
-  {
-    id: 'u-7',
-    email: 'marlaine.suave@kingjoe.com.br',
-    nome: 'Marlaine',
-    codigo: '--',
-    marcas: ['King & Joe', 'King & Joe Play', 'K&J Black'],
-    status: 'Ativo',
-    acesso: 'Permitido',
-    isFantasma: false,
-    brandRoles: [
-      { marcaId: '2', marcaNome: 'K&J Black', cargo: 'Administrador', times: [] },
-      { marcaId: '1', marcaNome: 'King & Joe', cargo: 'Administrador', times: [] },
-      { marcaId: '3', marcaNome: 'King & Joe Play', cargo: 'Administrador', times: [] }
-    ]
-  },
-  {
-    id: 'u-8',
-    email: 'juliano.brito@kingjoe.com.br',
-    nome: 'Juliano',
-    codigo: '--',
-    marcas: ['King & Joe', 'King & Joe Play', 'K&J Black'],
-    status: 'Ativo',
-    acesso: 'Permitido',
-    isFantasma: false,
-    brandRoles: [
-      { marcaId: '2', marcaNome: 'K&J Black', cargo: 'Administrador', times: [] },
-      { marcaId: '1', marcaNome: 'King & Joe', cargo: 'Administrador', times: [] },
-      { marcaId: '3', marcaNome: 'King & Joe Play', cargo: 'Administrador', times: [] }
-    ]
-  },
-  {
-    id: 'u-9',
-    email: 'beatriz.sparani@kingjoe.com.br',
-    nome: 'Beatriz Sparani',
-    codigo: '--',
-    marcas: ['King & Joe', 'King & Joe Play', 'K&J Black'],
-    status: 'Ativo',
-    acesso: 'Permitido',
-    isFantasma: false,
-    brandRoles: [
-      { marcaId: '2', marcaNome: 'K&J Black', cargo: 'Administrador', times: [] },
-      { marcaId: '1', marcaNome: 'King & Joe', cargo: 'Administrador', times: ['Estilista'] },
-      { marcaId: '3', marcaNome: 'King & Joe Play', cargo: 'Administrador', times: [] }
-    ]
-  },
-  {
-    id: 'u-10',
-    email: 'tatiana.gaio@kingjoe.com.br',
-    nome: 'Tatiana',
-    codigo: '--',
-    marcas: ['King & Joe', 'King & Joe Play', 'K&J Black'],
-    status: 'Ativo',
-    acesso: 'Permitido',
-    isFantasma: false,
-    brandRoles: [
-      { marcaId: '2', marcaNome: 'K&J Black', cargo: 'Assistente', times: [] },
-      { marcaId: '1', marcaNome: 'King & Joe', cargo: 'Assistente', times: [] },
-      { marcaId: '3', marcaNome: 'King & Joe Play', cargo: 'Assistente', times: [] }
-    ]
-  }
-];
+// LISTA DE USUÁRIOS REATIVA (RECEPTORA DE DADOS DO BANCO DE DADOS / API)
+const INITIAL_USERS_DATA: UserRecord[] = [];
 
 export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   // Aba de Gestão Ativa (Sub-navegação de cadastros)
@@ -866,7 +715,14 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border-muted">
-                    {filteredUsers.map((u) => (
+                    {filteredUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="py-12 text-center text-muted-foreground font-medium">
+                          Nenhum usuário cadastrado. Clique em "+ Criar usuário" para cadastrar um novo perfil.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredUsers.map((u) => (
                       <tr key={u.id} className="hover:bg-surface-muted/30 transition">
                         {/* E-MAIL */}
                         <td className="py-3 px-4 font-medium text-muted-foreground">
@@ -940,7 +796,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                           )}
                         </td>
                       </tr>
-                    ))}
+                    )))}
                   </tbody>
                 </table>
               </div>
