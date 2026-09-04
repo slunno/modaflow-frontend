@@ -6,10 +6,6 @@
  * DESCRIÇÃO: Renderiza a listagem de peças com os dropdowns multi-seleção de
  *            Etapas, Tipos de Peças (incluindo Regata, Short, Sunga, Tricot),
  *            Status da Coleção, Coleções e Estações.
- * ----------------------------------------------------------------------------
- * PADRÃO DE INTEGRABILIDADE COM O BACKEND JAVA SPRING BOOT:
- * - A lista de etapas, tipos e estações selecionadas é mantida em arrays de estado
- *   prontos para consulta parametrizada via API REST.
  * ============================================================================
  */
 
@@ -227,16 +223,16 @@ export const PecasTab: React.FC = () => {
   }, [searchTerm, filterMarca, selectedEtapas, selectedTipos, filterStatusPeca, selectedColecoes, filterTecido]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       
-      {/* 1. PAINEL DE FILTROS AVANÇADOS */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+      {/* 1. PAINEL DE FILTROS AVANÇADOS (CARD NÍVEL 2) */}
+      <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-4">
         
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <Filter className="w-4 h-4 text-blue-600" /> Filtros
+        <div className="flex items-center justify-between border-b border-border-muted pb-3">
+          <h4 className="text-sm font-bold text-primary flex items-center gap-2">
+            <Filter className="w-4 h-4 text-accent-camel" /> Filtros
           </h4>
-          <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+          <span className="text-xs font-semibold text-muted bg-surface-muted px-3 py-1 rounded-lg border border-border-muted">
             Opções de Filtro
           </span>
         </div>
@@ -244,11 +240,11 @@ export const PecasTab: React.FC = () => {
         {/* LINHA 1 DE FILTROS: Marcas, Etapas, Tipos de Peças, Status da Peça */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Marcas</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Marcas</label>
             <select
               value={filterMarca}
               onChange={(e) => setFilterMarca(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:border-blue-600 focus:outline-none"
+              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:border-accent-camel focus:outline-none"
             >
               <option value="">Selecionar marcas</option>
               <option value="King & Joe">King & Joe</option>
@@ -274,11 +270,11 @@ export const PecasTab: React.FC = () => {
           />
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Status da Peça</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Status da Peça</label>
             <select
               value={filterStatusPeca}
               onChange={(e) => setFilterStatusPeca(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:border-blue-600 focus:outline-none"
+              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:border-accent-camel focus:outline-none"
             >
               <option value="">Selecionar status</option>
               <option value="Em andamento">Em andamento</option>
@@ -291,11 +287,11 @@ export const PecasTab: React.FC = () => {
         {/* LINHA 2 DE FILTROS: Status da Coleção, Coleções, Estações */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Status da Coleção</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Status da Coleção</label>
             <select
               value={filterStatusColecao}
               onChange={(e) => setFilterStatusColecao(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:border-blue-600 focus:outline-none"
+              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:border-accent-camel focus:outline-none"
             >
               <option value="">Selecione as coleções</option>
               <option value="Em andamento">Em andamento</option>
@@ -324,47 +320,47 @@ export const PecasTab: React.FC = () => {
         {/* LINHA 3 DE FILTROS: Tecido, Aviamento, Terceiro */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Tecido</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Tecido</label>
             <input
               type="text"
               placeholder="Buscar Tecido"
               value={filterTecido}
               onChange={(e) => setFilterTecido(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:border-blue-600 focus:outline-none"
+              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:border-accent-camel focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Aviamento</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Aviamento</label>
             <input
               type="text"
               placeholder="Buscar Aviamento"
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:border-blue-600 focus:outline-none"
+              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:border-accent-camel focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Terceiro</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Terceiro</label>
             <input
               type="text"
               placeholder="Buscar Terceiro"
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:border-blue-600 focus:outline-none"
+              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:border-accent-camel focus:outline-none"
             />
           </div>
         </div>
 
         {/* LINHA 4 DE FILTROS: Buscar Peças */}
         <div className="max-w-xs pt-1">
-          <label className="block text-xs font-bold text-slate-700 mb-1">Buscar Peças</label>
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">Buscar Peças</label>
           <div className="relative">
             <input
               type="text"
               placeholder="Buscar produto"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:border-blue-600 focus:outline-none"
+              className="w-full pl-9 pr-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:border-accent-camel focus:outline-none"
             />
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+            <Search className="w-4 h-4 text-muted absolute left-3 top-3" />
           </div>
         </div>
 
@@ -373,25 +369,25 @@ export const PecasTab: React.FC = () => {
       {/* 2. GRID DE EXIBIÇÃO DE PEÇAS */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-bold text-slate-900">
+          <h3 className="text-base font-bold text-primary">
             Peças ({filteredPecas.length})
           </h3>
-          <span className="text-xs text-slate-500 font-medium">Exibindo catálogo da coleção</span>
+          <span className="text-xs text-muted font-medium">Exibindo catálogo da coleção</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {filteredPecas.map((peca) => (
             <div
               key={peca.id}
-              className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs hover:border-blue-500/50 hover:shadow-md transition group"
+              className="bg-surface border border-border rounded-xl p-4 shadow-2xs hover:border-accent-camel/50 hover:shadow-xs transition group"
             >
               <div className="flex items-center justify-between mb-3">
-                <h4 className="text-xs font-extrabold text-slate-900 truncate">
+                <h4 className="text-xs font-bold text-primary truncate">
                   {peca.nome}
                 </h4>
               </div>
 
-              <div className="w-full h-44 rounded-xl bg-slate-50 border border-slate-100 overflow-hidden mb-3 relative flex items-center justify-center">
+              <div className="w-full h-44 rounded-lg bg-surface-muted border border-border-muted overflow-hidden mb-3 relative flex items-center justify-center">
                 <img
                   src={peca.imagemCroquiUrl}
                   alt={peca.nome}
@@ -399,11 +395,11 @@ export const PecasTab: React.FC = () => {
                 />
               </div>
 
-              <div className="space-y-1 text-[11px] text-slate-600">
-                <p>Status: <strong className="text-slate-900">{peca.status}</strong></p>
-                <p>Tema: <strong className="text-slate-900">{peca.tema}</strong></p>
-                <p className="truncate">Coleção: <strong className="text-slate-900">{peca.colecaoNome}</strong></p>
-                <p>Marca: <strong className="text-blue-600">{peca.marcaNome}</strong></p>
+              <div className="space-y-1 text-[11px] text-muted-foreground">
+                <p>Status: <strong className="text-primary font-semibold">{peca.status}</strong></p>
+                <p>Tema: <strong className="text-primary font-semibold">{peca.tema}</strong></p>
+                <p className="truncate">Coleção: <strong className="text-primary font-semibold">{peca.colecaoNome}</strong></p>
+                <p>Marca: <strong className="text-accent-camel font-semibold">{peca.marcaNome}</strong></p>
               </div>
             </div>
           ))}

@@ -72,28 +72,28 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
 
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
-      <label className="block text-xs font-bold text-slate-700 mb-1">{label}</label>
+      <label className="block text-xs font-semibold text-primary mb-1">{label}</label>
       
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-800 flex items-center justify-between shadow-xs hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer"
+        className="w-full px-3.5 py-2.5 bg-surface border border-border rounded-lg text-xs font-medium text-primary flex items-center justify-between shadow-2xs hover:border-accent-camel focus:outline-none focus:ring-2 focus:ring-accent-camel/20 cursor-pointer"
       >
-        <span className={`truncate ${selectedValues.length === 0 ? 'text-slate-400' : 'text-slate-900 font-semibold'}`}>
+        <span className={`truncate ${selectedValues.length === 0 ? 'text-muted' : 'text-primary font-semibold'}`}>
           {displayText}
         </span>
-        <ChevronDown className="w-4 h-4 text-slate-500 shrink-0 ml-1" />
+        <ChevronDown className="w-4 h-4 text-muted shrink-0 ml-1" />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-full bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 py-2 max-h-72 overflow-y-auto text-xs animate-fade-in">
+        <div className="absolute top-full left-0 mt-1 w-full bg-surface border border-border rounded-xl shadow-xl z-50 py-2 max-h-72 overflow-y-auto text-xs animate-fade-in">
           
           <div
             onClick={toggleSelectAll}
-            className="px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5 cursor-pointer font-bold border-b border-slate-100 text-slate-800"
+            className="px-3.5 py-2 hover:bg-surface-muted flex items-center gap-2.5 cursor-pointer font-bold border-b border-border-muted text-primary"
           >
             <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition ${
-              isAllSelected ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300 bg-white'
+              isAllSelected ? 'bg-accent-camel border-accent-camel text-white' : 'border-border bg-surface'
             }`}>
               {isAllSelected && <Check className="w-3 h-3 stroke-[3]" />}
             </div>
@@ -106,12 +106,12 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
               <div
                 key={`${opt}-${idx}`}
                 onClick={() => toggleItem(opt)}
-                className={`px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2.5 cursor-pointer font-medium text-slate-700 ${
-                  checked ? 'bg-slate-50/80 font-bold text-slate-950' : ''
+                className={`px-3.5 py-2 hover:bg-surface-muted flex items-center gap-2.5 cursor-pointer font-medium text-muted-foreground ${
+                  checked ? 'bg-surface-muted/80 font-bold text-primary' : ''
                 }`}
               >
                 <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition ${
-                  checked ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300 bg-white'
+                  checked ? 'bg-accent-camel border-accent-camel text-white' : 'border-border bg-surface'
                 }`}>
                   {checked && <Check className="w-3 h-3 stroke-[3]" />}
                 </div>

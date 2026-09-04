@@ -1,17 +1,12 @@
 /**
  * ============================================================================
- * MÓDULO: Aba Dashboard (Visão Geral & Gráficos Estilo Plataforma Flutuante)
+ * MÓDULO: Aba Dashboard (Visão Geral & Gráficos com Tokens AKR BRANDS)
  * ARQUIVO: src/pages/Home/components/DashboardTab.tsx
  * PROJETO: ModaFlow PLM — AKR BRANDS
  * DESCRIÇÃO: Exibe as estatísticas de tempo de permanência por etapa.
- *            Restaura as barras em Azul Vibrante, donuts coloridos e aplica o
- *            design de "Plataforma Flutuante" (cards brancos elevados com sombra
- *            suave e bordas finas elegantes).
- * ----------------------------------------------------------------------------
- * PADRÃO DE DESIGN:
- * - As barras dos gráficos utilizam Azul Vibrante (`bg-blue-600` / `bg-blue-500`).
- * - Os cartões utilizam o efeito de plataforma flutuante:
- *   `bg-white border border-slate-200/80 shadow-xl shadow-slate-200/50 rounded-3xl`.
+ *            Utiliza cartões de conteúdo elevados com bordas suaves e paleta
+ *            alinhada aos tokens institucionais da marca (Preto-Tinta, Camel,
+ *            Verde Militar, Bordô e Off-White).
  * ============================================================================
  */
 
@@ -63,7 +58,7 @@ export const DashboardTab: React.FC = () => {
   const [selectedFornecedores, setSelectedFornecedores] = useState<string[]>([]);
   const [responsaveisBusca, setResponsaveisBusca] = useState('');
 
-  // DADOS DE ETAPAS E BARRAS (VOLTANDO AO AZUL VIBRANTE)
+  // DADOS DE ETAPAS E BARRAS
   const etapasBarrasData = [
     { etapa: '03 modelagem', azul: 12, laranja: 0 },
     { etapa: '02 engenharia recebimento', azul: 7, laranja: 3 },
@@ -92,13 +87,13 @@ export const DashboardTab: React.FC = () => {
   return (
     <div className="space-y-6 font-sans">
       
-      {/* 1. PAINEL DE FILTROS DO DASHBOARD ESTILO PLATAFORMA FLUTUANTE */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-            <Filter className="w-4 h-4 text-blue-600" /> Filtros do Dashboard
+      {/* 1. PAINEL DE FILTROS DO DASHBOARD (CARD NÍVEL 2) */}
+      <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-4">
+        <div className="flex items-center justify-between border-b border-border-muted pb-3">
+          <h4 className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-2">
+            <Filter className="w-4 h-4 text-accent-camel" /> Filtros do Dashboard
           </h4>
-          <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+          <span className="text-xs font-semibold text-muted bg-surface-muted px-3 py-1 rounded-lg border border-border-muted">
             Visão Geral Operacional
           </span>
         </div>
@@ -107,11 +102,11 @@ export const DashboardTab: React.FC = () => {
           
           {/* SELETOR DE ETAPA */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Etapa</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Etapa</label>
             <select
               value={selectedEtapa}
               onChange={(e) => setSelectedEtapa(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:border-blue-600 focus:outline-none transition shadow-xs"
+              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-semibold text-primary focus:bg-surface focus:border-accent-camel focus:outline-none transition shadow-2xs"
             >
               {ETAPAS_OPTIONS.map((et) => (
                 <option key={et} value={et}>{et.toUpperCase()}</option>
@@ -121,11 +116,11 @@ export const DashboardTab: React.FC = () => {
 
           {/* SELETOR DE MARCAS */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Marcas</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Marcas</label>
             <select
               value={selectedMarca}
               onChange={(e) => setSelectedMarca(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:border-blue-600 focus:outline-none transition shadow-xs"
+              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:outline-none transition shadow-2xs"
             >
               <option value="">Todas as marcas</option>
               <option value="King & Joe">King & Joe</option>
@@ -145,13 +140,13 @@ export const DashboardTab: React.FC = () => {
 
           {/* RESPONSÁVEIS */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Responsáveis</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Responsáveis</label>
             <input
               type="text"
               placeholder="Buscar responsável..."
               value={responsaveisBusca}
               onChange={(e) => setResponsaveisBusca(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:border-blue-600 focus:outline-none transition shadow-xs"
+              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:outline-none transition shadow-2xs"
             />
           </div>
 
@@ -167,59 +162,59 @@ export const DashboardTab: React.FC = () => {
         </div>
 
         <div className="pt-1">
-          <span className="inline-block text-[11px] font-bold text-blue-700 bg-blue-50 px-3.5 py-1 rounded-full border border-blue-200 uppercase tracking-wider">
+          <span className="inline-block text-[11px] font-bold text-accent-camel bg-accent-camel/10 px-3.5 py-1 rounded-lg border border-accent-camel/30 uppercase tracking-wider">
             Etapa Ativa: {selectedEtapa}
           </span>
         </div>
       </div>
 
-      {/* 2. SEÇÃO VISÃO GERAL COM CARD FLUTUANTE ELEGANTE */}
+      {/* 2. SEÇÃO VISÃO GERAL */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-bold text-slate-900 tracking-tight">Visão geral</h3>
-          <span className="text-xs text-slate-600 flex items-center gap-1.5 font-medium bg-white px-3 py-1 rounded-full border border-slate-200 shadow-xs">
-            <MousePointerClick className="w-4 h-4 text-blue-600" /> Clique em qualquer barra para alterar a etapa
+          <h3 className="text-base font-bold text-primary tracking-tight">Visão geral</h3>
+          <span className="text-xs text-muted-foreground flex items-center gap-1.5 font-medium bg-surface px-3 py-1 rounded-lg border border-border shadow-2xs">
+            <MousePointerClick className="w-4 h-4 text-accent-camel" /> Clique em qualquer barra para alterar a etapa
           </span>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* CARD ESQUERDO: MÉDIAS DE TEMPO (ESTILO PLATAFORMA FLUTUANTE) */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 space-y-6 flex flex-col justify-between">
+          {/* CARD ESQUERDO: MÉDIAS DE TEMPO (CARD NÍVEL 2) */}
+          <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-6 flex flex-col justify-between">
             <div>
-              <h4 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">
+              <h4 className="text-sm font-bold text-primary border-b border-border-muted pb-2 mb-4">
                 {selectedEtapa.toLowerCase()}
               </h4>
 
               <div className="space-y-3.5 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-600">Média mês atual</span>
-                  <strong className="text-slate-900 font-bold text-xs">{currentMetric.mediaMes}</strong>
+                  <span className="text-muted-foreground">Média mês atual</span>
+                  <strong className="text-primary font-bold text-xs">{currentMetric.mediaMes}</strong>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-600">Média semana atual</span>
-                  <strong className="text-slate-900 font-bold text-xs">{currentMetric.mediaSemana}</strong>
+                  <span className="text-muted-foreground">Média semana atual</span>
+                  <strong className="text-primary font-bold text-xs">{currentMetric.mediaSemana}</strong>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-600">Entradas na semana</span>
-                  <strong className="text-slate-900 font-bold text-xs">{currentMetric.entradas}</strong>
+                  <span className="text-muted-foreground">Entradas na semana</span>
+                  <strong className="text-primary font-bold text-xs">{currentMetric.entradas}</strong>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-600">Saídas na semana</span>
-                  <strong className="text-slate-900 font-bold text-xs">{currentMetric.saidas}</strong>
+                  <span className="text-muted-foreground">Saídas na semana</span>
+                  <strong className="text-primary font-bold text-xs">{currentMetric.saidas}</strong>
                 </div>
               </div>
             </div>
 
-            {/* AVATARES DOS RESPONSÁVEIS (CORES DA MARCA: PRETO-TINTA E CAMEL - PASSO 4) */}
-            <div className="border-t border-slate-100 pt-3">
-              <span className="block text-[11px] font-bold text-slate-700 mb-2">Responsáveis</span>
+            {/* AVATARES DOS RESPONSÁVEIS */}
+            <div className="border-t border-border-muted pt-3">
+              <span className="block text-[11px] font-bold text-muted-foreground mb-2">Responsáveis</span>
               <div className="flex items-center gap-2">
                 {currentMetric.responsaveis.map((resp, i) => (
                   <div 
                     key={i} 
-                    className={`w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center shadow-2xs text-white ${
-                      i % 2 === 0 ? 'bg-[#181818]' : 'bg-[#A9764A]'
+                    className={`w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center text-white ${
+                      i % 2 === 0 ? 'bg-primary' : 'bg-accent-camel'
                     }`}
                   >
                     {resp}
@@ -229,36 +224,36 @@ export const DashboardTab: React.FC = () => {
             </div>
           </div>
 
-          {/* CARD DIREITO: GRÁFICOS DONUT COM CORES DA MARCA (CAMEL, VERDE MILITAR, BORDÔ - PASSO 4) */}
-          <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 flex items-center justify-around flex-wrap gap-6">
+          {/* CARD DIREITO: GRÁFICOS DONUT COM TOKENS DE MARCA (CARD NÍVEL 2) */}
+          <div className="lg:col-span-2 bg-surface p-6 rounded-xl border border-border shadow-2xs flex items-center justify-around flex-wrap gap-6">
             
-            {/* DONUT 1: EM DIA (CAMEL #A9764A) */}
+            {/* DONUT 1: EM DIA (ACCENT CAMEL) */}
             <div className="flex flex-col items-center text-center">
               <div className="relative w-32 h-32 flex items-center justify-center">
-                <div className="w-full h-full rounded-full border-[10px] border-[#A9764A] border-t-amber-100" />
-                <span className="absolute text-3xl font-black text-slate-900">{currentMetric.emDia}</span>
+                <div className="w-full h-full rounded-full border-[10px] border-accent-camel border-t-amber-100" />
+                <span className="absolute text-3xl font-bold text-primary">{currentMetric.emDia}</span>
               </div>
-              <span className="text-xs font-bold text-slate-600 mt-2">Em dia</span>
+              <span className="text-xs font-semibold text-muted-foreground mt-2">Em dia</span>
             </div>
 
-            {/* DONUT 2: ENTREGA HOJE (VERDE MILITAR #4B5320) */}
+            {/* DONUT 2: ENTREGA HOJE (ACCENT VERDE MILITAR) */}
             <div className="flex flex-col items-center text-center">
               <div className="relative w-32 h-32 flex items-center justify-center">
-                <div className="w-full h-full rounded-full border-[10px] border-[#4B5320] border-t-emerald-100" />
-                <span className="absolute text-3xl font-black text-slate-900">{currentMetric.entregaHoje}</span>
+                <div className="w-full h-full rounded-full border-[10px] border-accent-militar border-t-emerald-100" />
+                <span className="absolute text-3xl font-bold text-primary">{currentMetric.entregaHoje}</span>
               </div>
-              <span className="text-xs font-bold text-slate-600 mt-2">Entrega Hoje</span>
+              <span className="text-xs font-semibold text-muted-foreground mt-2">Entrega Hoje</span>
             </div>
 
-            {/* DONUT 3: ATRASADAS (BORDÔ #7A2E2E) */}
+            {/* DONUT 3: ATRASADAS (ACCENT BORDÔ) */}
             <div className="flex flex-col items-center text-center">
               <div className="relative w-32 h-32 flex items-center justify-center">
-                <div className="w-full h-full rounded-full border-[10px] border-[#7A2E2E] border-t-rose-100" />
-                <span className="absolute text-2xl font-bold text-slate-400">
+                <div className="w-full h-full rounded-full border-[10px] border-accent-bordo border-t-accent-bordo/20" />
+                <span className="absolute text-2xl font-bold text-muted">
                   {currentMetric.atrasadas > 0 ? currentMetric.atrasadas : '--'}
                 </span>
               </div>
-              <span className="text-xs font-bold text-slate-600 mt-2">Atrasadas</span>
+              <span className="text-xs font-semibold text-muted-foreground mt-2">Atrasadas</span>
             </div>
 
           </div>
@@ -266,13 +261,13 @@ export const DashboardTab: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. GRÁFICO DE BARRAS (PRETO-TINTA + CAMEL - PASSO 4) */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <BarChart2 className="w-4 h-4 text-[#A9764A]" /> Quantidade de Peças por Etapa de Produção
+      {/* 3. GRÁFICO DE BARRAS (CARD NÍVEL 2) */}
+      <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-4">
+        <div className="flex items-center justify-between border-b border-border-muted pb-3">
+          <h4 className="text-sm font-bold text-primary flex items-center gap-2">
+            <BarChart2 className="w-4 h-4 text-accent-camel" /> Quantidade de Peças por Etapa de Produção
           </h4>
-          <span className="text-xs text-slate-500 font-medium">Clique em qualquer barra para detalhar</span>
+          <span className="text-xs text-muted font-medium">Clique em qualquer barra para detalhar</span>
         </div>
 
         <div className="space-y-3 pt-2">
@@ -287,36 +282,36 @@ export const DashboardTab: React.FC = () => {
               <div 
                 key={idx} 
                 onClick={() => setSelectedEtapa(item.etapa)}
-                className={`flex items-center text-xs p-2 rounded-2xl transition cursor-pointer ${
+                className={`flex items-center text-xs p-2 rounded-lg transition cursor-pointer ${
                   isSelected 
-                    ? 'bg-amber-50/90 border border-amber-300 shadow-md scale-[1.01]' 
-                    : 'hover:bg-slate-50'
+                    ? 'bg-accent-camel/10 border border-accent-camel/40 shadow-2xs' 
+                    : 'hover:bg-surface-muted'
                 }`}
               >
-                <span className={`w-48 font-bold truncate pr-3 text-right ${
-                  isSelected ? 'text-[#A9764A] font-extrabold' : 'text-slate-700'
+                <span className={`w-48 font-semibold truncate pr-3 text-right ${
+                  isSelected ? 'text-accent-camel font-bold' : 'text-muted-foreground'
                 }`}>
                   {item.etapa}
                 </span>
 
-                {/* BARRA DO GRÁFICO PRETO-TINTA + CAMEL (PASSO 4) */}
-                <div className="flex-1 h-7 bg-slate-100 rounded-lg overflow-hidden flex items-center p-0.5 relative border border-slate-200/80">
+                {/* BARRA DO GRÁFICO PRETO-TINTA + CAMEL */}
+                <div className="flex-1 h-7 bg-surface-muted rounded-lg overflow-hidden flex items-center p-0.5 relative border border-border">
                   {/* BARRA PRETO-TINTA */}
                   {item.azul > 0 && (
                     <div 
-                      className="h-full bg-[#181818] rounded-l-md transition-all duration-500 shadow-xs" 
+                      className="h-full bg-primary rounded-l-md transition-all duration-500" 
                       style={{ width: `${widthBluePercent}%` }}
                     />
                   )}
                   {/* BARRA CAMEL */}
                   {item.laranja > 0 && (
                     <div 
-                      className="h-full bg-[#A9764A] rounded-r-md transition-all duration-500 shadow-xs" 
+                      className="h-full bg-accent-camel rounded-r-md transition-all duration-500" 
                       style={{ width: `${widthOrangePercent}%` }}
                     />
                   )}
 
-                  <span className="ml-2 font-extrabold text-slate-900 text-xs">
+                  <span className="ml-2 font-bold text-primary text-xs">
                     {total}
                   </span>
                 </div>

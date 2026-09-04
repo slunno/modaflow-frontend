@@ -6,10 +6,6 @@
  * DESCRIÇÃO: Componente de Layout global exibido após a autenticação.
  *            Possui o cabeçalho superior com as 4 áreas de navegação principal
  *            (Início, Gestão, Relatórios, Kanban), notificações e perfil do usuário.
- * ----------------------------------------------------------------------------
- * PADRÃO DE ADIÇÃO/ALTERAÇÃO:
- * - Para criar novas seções no sistema, adicione as opções no menu `<nav>` e
- *   mapeie a renderização correspondente no bloco `<main>`.
  * ============================================================================
  */
 
@@ -38,14 +34,14 @@ export const MainLayout: React.FC = () => {
   const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
+    <div className="min-h-screen bg-bg text-primary flex flex-col font-sans selection:bg-accent-camel selection:text-white">
       
-      {/* 1. NAVEGAÇÃO DO TOPO (HEADER FIEL AO PRINT DO SISTEMA PLM) */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-xs">
+      {/* 1. NAVEGAÇÃO DO TOPO (HEADER CORPORATIVO AKR BRANDS) */}
+      <header className="bg-surface border-b border-border sticky top-0 z-50 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             
-            {/* Esquerda: AKR BRANDS (Branding Editorial Clicável - Passo 5) */}
+            {/* Esquerda: AKR BRANDS (Branding Editorial Clicável) */}
             <div className="flex items-center gap-4">
               <button
                 type="button"
@@ -55,23 +51,23 @@ export const MainLayout: React.FC = () => {
                   localStorage.removeItem('modaflow_selected_colecao_id');
                   window.dispatchEvent(new Event('modaflow_reset_to_home'));
                 }}
-                className="font-editorial text-base font-semibold tracking-[0.25em] text-neutral-900 uppercase hover:text-amber-800 transition cursor-pointer flex items-center gap-2"
+                className="font-editorial text-base font-semibold tracking-[0.25em] text-primary uppercase hover:text-accent-camel transition cursor-pointer flex items-center gap-2"
                 title="Voltar para o Menu Inicial"
               >
                 <span>AKR</span>
-                <span className="w-1 h-1 rounded-full bg-amber-800"></span>
+                <span className="w-1 h-1 rounded-full bg-accent-camel"></span>
                 <span className="font-light tracking-[0.3em]">BRANDS</span>
               </button>
             </div>
 
             {/* Centro: As 4 Grandes Áreas de Navegação (Início, Gestão, Relatórios, Kanban) */}
-            <nav className="flex items-center gap-2 sm:gap-6 text-sm font-medium">
+            <nav className="flex items-center gap-2 sm:gap-6 text-sm font-semibold">
               <button
                 onClick={() => setActiveTab('inicio')}
-                className={`py-2 transition ${
+                className={`py-2 transition cursor-pointer ${
                   activeTab === 'inicio'
-                    ? 'text-neutral-950 font-bold border-b-2 border-neutral-900'
-                    : 'text-neutral-500 hover:text-neutral-800'
+                    ? 'text-primary font-bold border-b-2 border-primary'
+                    : 'text-muted hover:text-primary'
                 }`}
               >
                 Início
@@ -79,10 +75,10 @@ export const MainLayout: React.FC = () => {
 
               <button
                 onClick={() => setActiveTab('gestao')}
-                className={`py-2 transition ${
+                className={`py-2 transition cursor-pointer ${
                   activeTab === 'gestao'
-                    ? 'text-neutral-950 font-bold border-b-2 border-neutral-900'
-                    : 'text-neutral-500 hover:text-neutral-800'
+                    ? 'text-primary font-bold border-b-2 border-primary'
+                    : 'text-muted hover:text-primary'
                 }`}
               >
                 Gestão
@@ -90,10 +86,10 @@ export const MainLayout: React.FC = () => {
 
               <button
                 onClick={() => setActiveTab('relatorios')}
-                className={`py-2 transition ${
+                className={`py-2 transition cursor-pointer ${
                   activeTab === 'relatorios'
-                    ? 'text-neutral-950 font-bold border-b-2 border-neutral-900'
-                    : 'text-neutral-500 hover:text-neutral-800'
+                    ? 'text-primary font-bold border-b-2 border-primary'
+                    : 'text-muted hover:text-primary'
                 }`}
               >
                 Relatórios
@@ -101,10 +97,10 @@ export const MainLayout: React.FC = () => {
 
               <button
                 onClick={() => setActiveTab('kanban')}
-                className={`py-2 transition ${
+                className={`py-2 transition cursor-pointer ${
                   activeTab === 'kanban'
-                    ? 'text-neutral-950 font-bold border-b-2 border-neutral-900'
-                    : 'text-neutral-500 hover:text-neutral-800'
+                    ? 'text-primary font-bold border-b-2 border-primary'
+                    : 'text-muted hover:text-primary'
                 }`}
               >
                 Kanban
@@ -117,18 +113,18 @@ export const MainLayout: React.FC = () => {
               {/* Notificação com Badge '2' */}
               <button
                 type="button"
-                className="p-1.5 rounded-full text-neutral-500 hover:text-neutral-900 transition relative cursor-pointer"
+                className="p-1.5 rounded-full text-muted-foreground hover:text-primary transition relative cursor-pointer"
                 title="Notificações Internas"
               >
-                <Bell className="w-5 h-5 text-neutral-700" />
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-900 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
+                <Bell className="w-5 h-5 text-muted-foreground" />
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-accent-camel text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-surface">
                   2
                 </span>
               </button>
 
               {/* Seletor de Perfil do Usuário */}
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-neutral-900 text-amber-200 font-bold text-xs flex items-center justify-center shadow-2xs border border-neutral-800">
+                <div className="w-8 h-8 rounded-full bg-primary text-amber-200 font-bold text-xs flex items-center justify-center shadow-2xs border border-neutral-800">
                   {user?.nome.charAt(0) || 'J'}
                 </div>
 
@@ -136,24 +132,24 @@ export const MainLayout: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setBrandDropdownOpen(!brandDropdownOpen)}
-                    className="flex items-center gap-1 text-xs font-semibold text-neutral-700 hover:text-neutral-950 transition cursor-pointer"
+                    className="flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-primary transition cursor-pointer"
                   >
                     <span>{user?.nome || 'Juliano'}</span>
-                    <ChevronDown className="w-3.5 h-3.5 text-neutral-500" />
+                    <ChevronDown className="w-3.5 h-3.5 text-muted" />
                   </button>
 
                   {/* Dropdown de Opções do Perfil / Logout */}
                   {brandDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-neutral-200 rounded-2xl shadow-xl z-50 p-2 text-xs">
-                      <div className="px-3 py-1.5 text-[10px] font-extrabold text-neutral-400 uppercase tracking-wider border-b border-neutral-100 mb-1">
+                    <div className="absolute top-full right-0 mt-2 w-48 bg-surface border border-border rounded-xl shadow-xl z-50 p-2 text-xs">
+                      <div className="px-3 py-1.5 text-[10px] font-extrabold text-muted uppercase tracking-wider border-b border-border-muted mb-1">
                         Conta Corporativa
                       </div>
-                      <div className="px-3 py-1.5 font-bold text-neutral-800">
+                      <div className="px-3 py-1.5 font-bold text-primary">
                         {user?.email}
                       </div>
                       <button
                         onClick={logout}
-                        className="w-full text-left px-3 py-2 text-red-600 hover:bg-red-50 font-bold rounded-xl flex items-center gap-2 transition cursor-pointer"
+                        className="w-full text-left px-3 py-2 text-accent-bordo hover:bg-accent-bordo/10 font-bold rounded-lg flex items-center gap-2 transition cursor-pointer"
                       >
                         <LogOut className="w-4 h-4" />
                         <span>Sair do Sistema</span>
@@ -177,30 +173,30 @@ export const MainLayout: React.FC = () => {
 
         {activeTab === 'gestao' && (
           <div className="max-w-7xl mx-auto p-8">
-            <div className="p-12 rounded-3xl bg-fabric-pattern border border-neutral-200 shadow-2xs text-center space-y-3">
-              <FolderKanban className="w-12 h-12 text-amber-800 mx-auto opacity-80" />
-              <h3 className="text-xl font-bold font-editorial text-neutral-900">Módulo de Gestão & Cadastros Base</h3>
-              <p className="text-xs text-neutral-600 max-w-md mx-auto">Gerenciamento centralizado de marcas, linhas de produto, fichas técnicas de tecidos, aviamentos, estamparia e tabelas de precificação da holding AKR BRANDS.</p>
+            <div className="p-12 rounded-xl bg-fabric-pattern border border-border shadow-2xs text-center space-y-3">
+              <FolderKanban className="w-12 h-12 text-accent-camel mx-auto opacity-80" />
+              <h3 className="text-xl font-bold font-editorial text-primary">Módulo de Gestão & Cadastros Base</h3>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto">Gerenciamento centralizado de marcas, linhas de produto, fichas técnicas de tecidos, aviamentos, estamparia e tabelas de precificação da holding AKR BRANDS.</p>
             </div>
           </div>
         )}
 
         {activeTab === 'relatorios' && (
           <div className="max-w-7xl mx-auto p-8">
-            <div className="p-12 rounded-3xl bg-fabric-pattern border border-neutral-200 shadow-2xs text-center space-y-3">
-              <BarChart3 className="w-12 h-12 text-amber-800 mx-auto opacity-80" />
-              <h3 className="text-xl font-bold font-editorial text-neutral-900">Módulo de Relatórios & BI Executivo</h3>
-              <p className="text-xs text-neutral-600 max-w-md mx-auto">Histórico consolidado de coleções, índices de repilotagem por marca, consumo de matéria-prima e exportação de relatórios gerenciais.</p>
+            <div className="p-12 rounded-xl bg-fabric-pattern border border-border shadow-2xs text-center space-y-3">
+              <BarChart3 className="w-12 h-12 text-accent-camel mx-auto opacity-80" />
+              <h3 className="text-xl font-bold font-editorial text-primary">Módulo de Relatórios & BI Executivo</h3>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto">Histórico consolidado de coleções, índices de repilotagem por marca, consumo de matéria-prima e exportação de relatórios gerenciais.</p>
             </div>
           </div>
         )}
 
         {activeTab === 'kanban' && (
           <div className="max-w-7xl mx-auto p-8">
-            <div className="p-8 rounded-3xl bg-white border border-slate-200 text-center">
-              <Kanban className="w-12 h-12 text-blue-600 mx-auto mb-3" />
-              <h3 className="text-lg font-bold text-slate-900">Quadro Kanban de Planejamento Visual</h3>
-              <p className="text-xs text-slate-500 mt-1">Visualização por colunas com as 23 etapas de produção e drag-and-drop de peças.</p>
+            <div className="p-8 rounded-xl bg-surface border border-border text-center">
+              <Kanban className="w-12 h-12 text-accent-camel mx-auto mb-3" />
+              <h3 className="text-lg font-bold font-editorial text-primary">Quadro Kanban de Planejamento Visual</h3>
+              <p className="text-xs text-muted-foreground mt-1">Visualização por colunas com as 23 etapas de produção e drag-and-drop de peças.</p>
             </div>
           </div>
         )}

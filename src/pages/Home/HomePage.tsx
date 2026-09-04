@@ -6,10 +6,6 @@
  * DESCRIÇÃO: Exibe o Menu Inicial com sub-abas (Marcas, Peças, Dashboard, Gráficos)
  *            e o Carrossel Suspenso de Marcas da AKR BRANDS com setas de navegação
  *            interativas (< e >) e transição dinâmica de imagem de fundo.
- * ----------------------------------------------------------------------------
- * PADRÃO DE ADIÇÃO/ALTERAÇÃO:
- * - Para trocar as imagens de fundo das marcas no carrossel, altere o campo
- *   `heroImageUrl` na constante `MOCK_MARCAS` em `src/contexts/AuthContext.tsx`.
  * ============================================================================
  */
 
@@ -114,7 +110,7 @@ export const HomePage: React.FC = () => {
     <div className="w-full flex flex-col font-sans">
       
       {/* 1. NAVEGAÇÃO DE SUB-ABAS (Marcas | Peças | Dashboard | Gráficos) */}
-      <div className="border-b border-slate-200 bg-white px-4 sm:px-8 pt-4">
+      <div className="border-b border-border bg-surface px-4 sm:px-8 pt-4">
         <div className="max-w-7xl mx-auto flex items-center gap-8 text-sm font-semibold">
           <button
             onClick={() => {
@@ -123,8 +119,8 @@ export const HomePage: React.FC = () => {
             }}
             className={`pb-3 border-b-2 transition cursor-pointer ${
               subTab === 'marcas'
-                ? 'border-slate-900 text-slate-900 font-extrabold'
-                : 'border-transparent text-slate-400 hover:text-slate-700'
+                ? 'border-primary text-primary font-bold'
+                : 'border-transparent text-muted hover:text-muted-foreground'
             }`}
           >
             Marcas
@@ -133,8 +129,8 @@ export const HomePage: React.FC = () => {
             onClick={() => setSubTab('pecas')}
             className={`pb-3 border-b-2 transition cursor-pointer ${
               subTab === 'pecas'
-                ? 'border-slate-900 text-slate-900 font-extrabold'
-                : 'border-transparent text-slate-400 hover:text-slate-700'
+                ? 'border-primary text-primary font-bold'
+                : 'border-transparent text-muted hover:text-muted-foreground'
             }`}
           >
             Peças
@@ -143,8 +139,8 @@ export const HomePage: React.FC = () => {
             onClick={() => setSubTab('dashboard')}
             className={`pb-3 border-b-2 transition cursor-pointer ${
               subTab === 'dashboard'
-                ? 'border-slate-900 text-slate-900 font-extrabold'
-                : 'border-transparent text-slate-400 hover:text-slate-700'
+                ? 'border-primary text-primary font-bold'
+                : 'border-transparent text-muted hover:text-muted-foreground'
             }`}
           >
             Dashboard
@@ -153,8 +149,8 @@ export const HomePage: React.FC = () => {
             onClick={() => setSubTab('graficos')}
             className={`pb-3 border-b-2 transition cursor-pointer ${
               subTab === 'graficos'
-                ? 'border-slate-900 text-slate-900 font-extrabold'
-                : 'border-transparent text-slate-400 hover:text-slate-700'
+                ? 'border-primary text-primary font-bold'
+                : 'border-transparent text-muted hover:text-muted-foreground'
             }`}
           >
             Gráficos
@@ -176,13 +172,13 @@ export const HomePage: React.FC = () => {
           ) : (
             <div className="space-y-6">
               <div className="mb-2">
-                <h3 className="text-base font-bold text-slate-900 tracking-tight">
+                <h3 className="text-base font-bold font-editorial text-primary tracking-tight">
                   Marcas da organização
                 </h3>
               </div>
 
-              {/* HERO CARROSSEL SUSPENSO DAS MARCAS AKR BRANDS (EXPANDIDO FULL-WIDTH) */}
-              <div className="relative w-full rounded-3xl overflow-hidden shadow-2xl min-h-[480px] sm:min-h-[520px] flex flex-col justify-between p-6 sm:p-10 text-white transition-all duration-500 bg-slate-900">
+              {/* HERO CARROSSEL SUSPENSO DAS MARCAS AKR BRANDS (NÍVEL 1 HERO - ROUNDED-3XL + SHADOW-XL) */}
+              <div className="relative w-full rounded-3xl overflow-hidden shadow-xl min-h-[480px] sm:min-h-[520px] flex flex-col justify-between p-6 sm:p-10 text-white transition-all duration-500 bg-neutral-950">
                 
                 {/* IMAGEM DE FUNDO DA MARCA ATIVA NO CARROSSEL */}
                 <div 
@@ -191,12 +187,12 @@ export const HomePage: React.FC = () => {
                 />
                 
                 {/* OVERLAY DE DEGRADÊ PARA LEITURA PERFEITA */}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-950/30" />
+                <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-neutral-950/30" />
 
                 {/* BARRA SUPERIOR SUSPENSA DO CARROSSEL */}
                 <div className="relative z-10 flex items-center justify-between">
                   <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold">
-                    <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+                    <Sparkles className="w-3.5 h-3.5 text-accent-camel" />
                     <span>AKR BRANDS • {currentMarca.badgeTag}</span>
                   </div>
 
@@ -209,7 +205,7 @@ export const HomePage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handlePrev}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/40 hover:bg-white text-white hover:text-slate-900 border border-white/20 backdrop-blur-md flex items-center justify-center transition shadow-lg hover:scale-110 active:scale-95 cursor-pointer"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/40 hover:bg-white text-white hover:text-primary border border-white/20 backdrop-blur-md flex items-center justify-center transition shadow-md hover:scale-110 active:scale-95 cursor-pointer"
                   title="Marca Anterior"
                 >
                   <ChevronLeft className="w-6 h-6" />
@@ -218,7 +214,7 @@ export const HomePage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/40 hover:bg-white text-white hover:text-slate-900 border border-white/20 backdrop-blur-md flex items-center justify-center transition shadow-lg hover:scale-110 active:scale-95 cursor-pointer"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/40 hover:bg-white text-white hover:text-primary border border-white/20 backdrop-blur-md flex items-center justify-center transition shadow-md hover:scale-110 active:scale-95 cursor-pointer"
                   title="Próxima Marca"
                 >
                   <ChevronRight className="w-6 h-6" />
@@ -226,7 +222,7 @@ export const HomePage: React.FC = () => {
 
                 {/* MEIO: INFORMAÇÕES DA MARCA SELECIONADA */}
                 <div className="relative z-10 my-auto max-w-2xl">
-                  <div className="inline-block px-3 py-1 rounded-md bg-[#A9764A] font-extrabold text-xs uppercase tracking-widest text-white mb-2 shadow-md">
+                  <div className="inline-block px-3 py-1 rounded-md bg-accent-camel font-extrabold text-xs uppercase tracking-widest text-white mb-2 shadow-2xs">
                     {currentMarca.code}
                   </div>
                   <h2 className="text-4xl sm:text-5xl font-bold font-editorial text-white tracking-wide mb-3">
@@ -240,15 +236,15 @@ export const HomePage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleOpenColecoes(currentMarca)}
-                      className="px-6 py-3.5 bg-white hover:bg-blue-50 text-slate-950 font-bold text-xs rounded-xl shadow-xl flex items-center gap-2 transition hover:scale-105 cursor-pointer"
+                      className="px-6 py-3.5 bg-white hover:bg-surface-muted text-primary font-bold text-xs rounded-xl shadow-md flex items-center gap-2 transition hover:scale-105 cursor-pointer"
                     >
                       <span>Abrir Coleções de {currentMarca.nome}</span>
-                      <ArrowRight className="w-4 h-4 text-blue-600" />
+                      <ArrowRight className="w-4 h-4 text-accent-camel" />
                     </button>
                   </div>
                 </div>
 
-                {/* CARDS SUSPENSOS DAS MARCAS (FORMATO KB, KING&JOE, K&) */}
+                {/* CARDS SUSPENSOS DAS MARCAS */}
                 <div className="relative z-10 pt-6">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {MOCK_MARCAS.map((m, idx) => {
@@ -257,25 +253,25 @@ export const HomePage: React.FC = () => {
                         <div
                           key={m.id}
                           onClick={() => handleSelectMarca(m, idx)}
-                          className={`p-4 rounded-2xl border transition-all duration-300 cursor-pointer backdrop-blur-md flex items-center gap-3 ${
+                          className={`p-4 rounded-xl border transition-all duration-300 cursor-pointer backdrop-blur-md flex items-center gap-3 ${
                             isSelected
-                              ? 'bg-white text-slate-950 border-white shadow-xl scale-[1.03]'
+                              ? 'bg-white text-primary border-white shadow-md scale-[1.02]'
                               : 'bg-black/40 text-white border-white/20 hover:bg-black/60 hover:border-white/40'
                           }`}
                         >
-                          <div className={`px-3 py-2.5 rounded-xl font-extrabold text-xs tracking-wider border shrink-0 ${
+                          <div className={`px-3 py-2.5 rounded-lg font-extrabold text-xs tracking-wider border shrink-0 ${
                             isSelected 
-                              ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                              ? 'bg-accent-camel/10 text-accent-camel border-accent-camel/30' 
                               : 'bg-white/10 text-white border-white/20'
                           }`}>
                             {m.initials}
                           </div>
 
                           <div className="overflow-hidden">
-                            <h4 className={`text-sm font-bold truncate ${isSelected ? 'text-slate-950' : 'text-white'}`}>
+                            <h4 className={`text-sm font-bold truncate ${isSelected ? 'text-primary' : 'text-white'}`}>
                               {m.nome}
                             </h4>
-                            <span className={`text-[11px] font-semibold block ${isSelected ? 'text-slate-500' : 'text-slate-300'}`}>
+                            <span className={`text-[11px] font-semibold block ${isSelected ? 'text-muted-foreground' : 'text-neutral-300'}`}>
                               {m.colecoesCount} Coleções • {m.pecasCount} Peças
                             </span>
                           </div>

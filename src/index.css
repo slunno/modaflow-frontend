@@ -1,14 +1,24 @@
 @import "tailwindcss";
 
 @theme {
+  /* ── Tipografia ── */
   --font-serif: 'Fraunces', Georgia, serif;
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 
+  /* ── Paleta de marca ── */
   --color-primary: #181818;
   --color-bg: #F5F3EF;
   --color-accent-camel: #A9764A;
   --color-accent-bordo: #7A2E2E;
   --color-accent-militar: #4B5320;
+
+  /* ── Superfícies & bordas (substitui slate-*) ── */
+  --color-surface: #FFFFFF;
+  --color-surface-muted: #F7F5F2;
+  --color-border: #E5E2DC;
+  --color-border-muted: #EDEBE7;
+  --color-muted: #8A8680;
+  --color-muted-foreground: #6B6762;
 }
 
 @layer base {
@@ -16,15 +26,21 @@
     background-color: var(--color-bg);
     color: var(--color-primary);
     font-family: var(--font-sans);
-    @apply antialiased min-h-screen selection:bg-amber-900 selection:text-white;
+    @apply antialiased min-h-screen;
+  }
+
+  ::selection {
+    background-color: var(--color-accent-camel);
+    color: white;
   }
 }
 
+/* Fonte editorial serifada — titulos de marca, hero banners, nomes de coleção */
 .font-editorial {
   font-family: 'Fraunces', Georgia, serif;
 }
 
-/* Textura sutil de tecido para placeholders de Gestão e Relatórios (Passo 6) */
+/* Textura sutil de tecido para placeholders de Gestão e Relatórios */
 .bg-fabric-pattern {
   background-color: #F5F3EF;
   background-image: radial-gradient(#181818 0.75px, transparent 0.75px), radial-gradient(#181818 0.75px, #F5F3EF 0.75px);
