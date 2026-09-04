@@ -1134,14 +1134,6 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                             <FileSpreadsheet className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
                             <span>Planilha</span>
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => setShowOpcoesTecidoMenu(false)}
-                            className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
-                          >
-                            <Download className="w-4 h-4 text-muted" strokeWidth={1.5} />
-                            <span>Instalar</span>
-                          </button>
                         </>
                       )}
                     </div>
