@@ -5,9 +5,9 @@
  * PROJETO: ModaFlow PLM — AKR BRANDS
  * DESCRIÇÃO: Interface de gerenciamento centralizado de Marcas, Usuários, Times,
  *            Tecidos e Aviamentos.
- *            Suporta as visões de Marcas e Usuários (com "Editar Perfil / Cargos de usuário"
- *            e o modal "Criação de Usuário"), com estado dinâmico pronto para
- *            integração com API/Banco de Dados.
+ *            Possui 4 visões interativas: Marcas, Usuários, Times (com modal Atualizar Time)
+ *            e Tecidos (com busca por Insumo/Cor/Fornecedor, menu de Opções com sub-menu Exportar,
+ *            modal Criando Insumo e modal Importar).
  * ============================================================================
  */
 
@@ -28,14 +28,20 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowLeft,
-  Info
+  Info,
+  ChevronDown,
+  UploadCloud,
+  Download,
+  RotateCcw,
+  Trash2,
+  FileSpreadsheet
 } from 'lucide-react';
 
 interface GestaoPageProps {
   onOpenColecoes: (marca: MarcaSummary) => void;
 }
 
-// OPÇÕES DE CARGOS DEFINIDAS NA TELA DE CARGOS DE USUÁRIO (PRINT 2)
+// OPÇÕES DE CARGOS DEFINIDAS NA TELA DE CARGOS DE USUÁRIO
 const CARGOS_OPCOES = [
   'Nenhum',
   'Administrador',
@@ -45,7 +51,7 @@ const CARGOS_OPCOES = [
   'Estilista'
 ];
 
-// ESTRUTURAS DE DADOS DE USUÁRIOS DINÂMICAS
+// ESTRUTURAS DE DADOS DE USUÁRIOS
 export interface UserBrandRole {
   marcaId: string;
   marcaNome: string;
@@ -66,25 +72,42 @@ export interface UserRecord {
   brandRoles: UserBrandRole[];
 }
 
-// MOCK DE TIMES DE PRODUTO PARA MODIFICAR TIMES (PRINT 5)
+// ESTRUTURA DE TIMES
 interface TeamItem {
   id: string;
   nome: string;
+  descricao?: string;
   designadoProduto: boolean;
 }
 
 const INITIAL_TEAMS: TeamItem[] = [
-  { id: 't-1', nome: 'Administrador', designadoProduto: false },
-  { id: 't-2', nome: 'Assistente', designadoProduto: false },
-  { id: 't-3', nome: 'Coordenador', designadoProduto: false },
-  { id: 't-4', nome: 'Espectador', designadoProduto: false }
+  { id: 't-1', nome: 'Administrador', descricao: '--', designadoProduto: false },
+  { id: 't-2', nome: 'Assistente', descricao: '--', designadoProduto: false },
+  { id: 't-3', nome: 'Coordenador', descricao: '--', designadoProduto: false },
+  { id: 't-4', nome: 'Espectador', descricao: '--', designadoProduto: false },
+  { id: 't-5', nome: 'Estilista', descricao: '--', designadoProduto: false },
+  { id: 't-6', nome: 'Modelista', descricao: '--', designadoProduto: false }
 ];
 
-// LISTA DE USUÁRIOS REATIVA (RECEPTORA DE DADOS DO BANCO DE DADOS / API)
+// ESTRUTURA DE TECIDOS / INSUMOS
+interface TecidoInsumoItem {
+  id: string;
+  nome: string;
+  codigo: string;
+  temErp: boolean;
+  imagemUrl?: string;
+  fornecedores: string;
+  custo: string;
+  unidade: 'M' | 'Kg' | 'Metros';
+}
+
+const INITIAL_TECIDOS_DATA: TecidoInsumoItem[] = [];
+
+// LISTA DE USUÁRIOS REATIVA (ARRAY VAZIO POR PADRÃO CONFORME ORIENTAÇÃO)
 const INITIAL_USERS_DATA: UserRecord[] = [];
 
 export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
-  // Aba de Gestão Ativa (Sub-navegação de cadastros)
+  // Aba de Gestão Ativa
   const [gestaoSubTab, setGestaoSubTab] = useState<
     'marcas' | 'usuarios' | 'times' | 'tecidos' | 'aviamentos' | 'caracteristicas' |
     'custos_fixos' | 'precificacao' | 'tipos_peca' | 'fornecedores' | 'tags' | 'fluxos' | 'campos_custom'
@@ -100,10 +123,9 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   const [updatingTeamsMarca, setUpdatingTeamsMarca] = useState<MarcaSummary | null>(null);
   const [formMarcaNome, setFormMarcaNome] = useState('');
   const [formMarcaIntegracaoId, setFormMarcaIntegracaoId] = useState('');
-  const [teamsList, setTeamsList] = useState<TeamItem[]>(INITIAL_TEAMS);
 
   // ============================================================================
-  // ESTADOS DA SEÇÃO DE USUÁRIOS (PRINTS 1, 2, 3)
+  // ESTADOS DA SEÇÃO DE USUÁRIOS
   // ============================================================================
   const [usersList, setUsersList] = useState<UserRecord[]>(INITIAL_USERS_DATA);
   const [userFilterMarca, setUserFilterMarca] = useState<'Todas' | 'King & Joe' | 'King & Joe Play' | 'K&J Black'>('Todas');
@@ -111,12 +133,12 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [openMenuUserId, setOpenMenuUserId] = useState<string | null>(null);
 
-  // TELA DE EDITAR PERFIL / CARGOS DE USUÁRIO (PRINT 2)
+  // TELA DE EDITAR PERFIL / CARGOS DE USUÁRIO
   const [editingUserProfile, setEditingUserProfile] = useState<UserRecord | null>(null);
   const [filtrarCargosToggle, setFiltrarCargosToggle] = useState(false);
   const [searchCargoQuery, setSearchCargoQuery] = useState('');
 
-  // MODAL DE CRIAÇÃO DE USUÁRIO (PRINT 3)
+  // MODAL DE CRIAÇÃO DE USUÁRIO
   const [showCriarUsuarioModal, setShowCriarUsuarioModal] = useState(false);
   const [newUserName, setNewUserName] = useState('');
   const [newUserCodigo, setNewUserCodigo] = useState('');
@@ -125,6 +147,47 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   const [newUserSenha, setNewUserSenha] = useState('');
   const [newUserConfirmarSenha, setNewUserConfirmarSenha] = useState('');
 
+  // ============================================================================
+  // ESTADOS DA SEÇÃO DE TIMES (PRINTS 1 E 2)
+  // ============================================================================
+  const [teamFilterMarca, setTeamFilterMarca] = useState('King & Joe');
+  const [teamsList, setTeamsList] = useState<TeamItem[]>(INITIAL_TEAMS);
+  const [openMenuTeamId, setOpenMenuTeamId] = useState<string | null>(null);
+  const [editingTeam, setEditingTeam] = useState<TeamItem | null>(null);
+  const [showAtualizarTimeModal, setShowAtualizarTimeModal] = useState(false);
+  const [teamFormNome, setTeamFormNome] = useState('');
+  const [teamFormDesignado, setTeamFormDesignado] = useState(false);
+  const [teamFormDescricao, setTeamFormDescricao] = useState('');
+
+  // ============================================================================
+  // ESTADOS DA SEÇÃO DE TECIDOS (PRINTS 3, 4, 5)
+  // ============================================================================
+  const [searchTecidoInsumo, setSearchTecidoInsumo] = useState('');
+  const [searchTecidoCor, setSearchTecidoCor] = useState('');
+  const [searchTecidoFornecedor, setSearchTecidoFornecedor] = useState('');
+  const [tecidosList, setTecidosList] = useState<TecidoInsumoItem[]>(INITIAL_TECIDOS_DATA);
+  
+  // MENU DE OPÇÕES (IMPORTAR, EXPORTAR SUB-MENU, RESTAURAR, EXCLUIR)
+  const [showOpcoesTecidoMenu, setShowOpcoesTecidoMenu] = useState(false);
+  const [opcoesTecidoSubMenu, setOpcoesTecidoSubMenu] = useState<'main' | 'exportar'>('main');
+
+  // MODAIS DE TECIDOS
+  const [showCriandoInsumoModal, setShowCriandoInsumoModal] = useState(false);
+  const [showImportarInsumosModal, setShowImportarInsumosModal] = useState(false);
+
+  // FORMULÁRIO DO MODAL "CRIANDO INSUMO" (PRINT 4)
+  const [insumoNome, setInsumoNome] = useState('');
+  const [insumoCodigo, setInsumoCodigo] = useState('');
+  const [insumoPreco, setInsumoPreco] = useState('0');
+  const [insumoUnidade, setInsumoUnidade] = useState<'Metros' | 'Kg'>('Metros');
+  const [insumoGramatura, setInsumoGramatura] = useState('0');
+  const [insumoLargura, setInsumoLargura] = useState('0');
+  const [insumoRendimento1, setInsumoRendimento1] = useState('0.00');
+  const [insumoRendimento2, setInsumoRendimento2] = useState('0.00');
+  const [insumoEncolhimento, setInsumoEncolhimento] = useState('');
+  const [insumoConstrucao, setInsumoConstrucao] = useState('');
+  const [insumoObservacoes, setInsumoObservacoes] = useState('');
+
   // Marcas filtradas
   const filteredMarcas = MOCK_MARCAS.filter(m => 
     m.nome.toLowerCase().includes(searchMarca.toLowerCase())
@@ -132,14 +195,9 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
 
   // Usuários filtrados
   const filteredUsers = usersList.filter(u => {
-    // Filtro por marca
-    if (userFilterMarca !== 'Todas' && !u.marcas.includes(userFilterMarca)) {
-      return false;
-    }
-    // Filtro por status
+    if (userFilterMarca !== 'Todas' && !u.marcas.includes(userFilterMarca)) return false;
     if (userFilterStatus === 'Ativos' && u.status !== 'Ativo') return false;
     if (userFilterStatus === 'Inativos' && u.status !== 'Inativo') return false;
-    // Filtro por busca
     if (userSearchQuery.trim()) {
       const q = userSearchQuery.toLowerCase();
       const matchName = u.nome.toLowerCase().includes(q);
@@ -150,7 +208,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
     return true;
   });
 
-  // Handler de Criar Novo Usuário (Print 3)
+  // Handler de Criar Novo Usuário
   const handleCreateUser = () => {
     if (!newUserName.trim() || !newUserEmail.trim()) return;
 
@@ -180,13 +238,13 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
     setNewUserConfirmarSenha('');
   };
 
-  // Abrir Tela de Editar Perfil (Print 2 - Cargos de Usuário)
+  // Abrir Tela de Editar Perfil
   const handleOpenEditarPerfil = (user: UserRecord) => {
     setOpenMenuUserId(null);
     setEditingUserProfile(JSON.parse(JSON.stringify(user)));
   };
 
-  // Salvar Alterações de Editar Perfil (Print 2)
+  // Salvar Alterações de Editar Perfil
   const handleSaveUserProfile = () => {
     if (!editingUserProfile) return;
     setUsersList(prev => prev.map(u => u.id === editingUserProfile.id ? editingUserProfile : u));
@@ -205,7 +263,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
     });
   };
 
-  // Abrir Modal de Edição de Marca (Print 3 Marca)
+  // Abrir Modal de Edição de Marca
   const handleOpenEditarMarca = (marca: MarcaSummary) => {
     setOpenMenuMarcaId(null);
     setEditingMarca(marca);
@@ -224,7 +282,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
     setGestaoSubTab('usuarios');
   };
 
-  // Abrir Modal de Atualizar Times (Print 5 Marca)
+  // Abrir Modal de Atualizar Times na Marca
   const handleOpenAtualizarTimes = (marca: MarcaSummary) => {
     setOpenMenuMarcaId(null);
     setUpdatingTeamsMarca(marca);
@@ -233,6 +291,60 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   // Toggle checkbox em Modificar Times
   const handleToggleTeamProductDesignated = (teamId: string) => {
     setTeamsList(prev => prev.map(t => t.id === teamId ? { ...t, designadoProduto: !t.designadoProduto } : t));
+  };
+
+  // Abrir Modal de Editar/Atualizar Time na tela Times (Print 1)
+  const handleOpenEditTeamModal = (team: TeamItem) => {
+    setOpenMenuTeamId(null);
+    setEditingTeam(team);
+    setTeamFormNome(team.nome);
+    setTeamFormDesignado(team.designadoProduto);
+    setTeamFormDescricao(team.descricao || '');
+    setShowAtualizarTimeModal(true);
+  };
+
+  // Salvar Time
+  const handleSaveTeam = () => {
+    if (editingTeam) {
+      setTeamsList(prev => prev.map(t => t.id === editingTeam.id ? { 
+        ...t, 
+        nome: teamFormNome, 
+        designadoProduto: teamFormDesignado, 
+        descricao: teamFormDescricao || '--' 
+      } : t));
+    } else {
+      const newT: TeamItem = {
+        id: `t-${Date.now()}`,
+        nome: teamFormNome || 'Novo Time',
+        descricao: teamFormDescricao || '--',
+        designadoProduto: teamFormDesignado
+      };
+      setTeamsList(prev => [...prev, newT]);
+    }
+    setShowAtualizarTimeModal(false);
+    setEditingTeam(null);
+  };
+
+  // Handler do Form de Criar Insumo (Print 4)
+  const handleCreateInsumo = () => {
+    if (!insumoNome.trim()) return;
+
+    const newInsumo: TecidoInsumoItem = {
+      id: `tec-${Date.now()}`,
+      nome: insumoNome.trim(),
+      codigo: insumoCodigo.trim() || '01010001',
+      temErp: true,
+      fornecedores: 'VICUNHA - MARACANAÚ 010020',
+      custo: `R$ ${insumoPreco || '0'},0000 /${insumoUnidade === 'Metros' ? 'M' : 'Kg'}`,
+      unidade: insumoUnidade
+    };
+
+    setTecidosList(prev => [newInsumo, ...prev]);
+    setShowCriandoInsumoModal(false);
+    setInsumoNome('');
+    setInsumoCodigo('');
+    setInsumoPreco('0');
+    setInsumoObservacoes('');
   };
 
   return (
@@ -392,25 +504,141 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-in fade-in duration-200">
         
         {/* ============================================================================ */}
-        {/* SEÇÃO EDITAR PERFIL / CARGOS DE USUÁRIO (PRINT 2) */}
+        {/* SEÇÃO 1: MARCAS */}
         {/* ============================================================================ */}
-        {editingUserProfile ? (
+        {gestaoSubTab === 'marcas' && !editingUserProfile ? (
+          <>
+            <div className="p-6 rounded-xl bg-surface border border-border shadow-2xs space-y-4">
+              <div className="flex items-center gap-2 text-xs font-bold text-muted uppercase tracking-wider">
+                <Search className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                <span>Filtros</span>
+              </div>
+              <div className="space-y-1 max-w-xs">
+                <label className="text-xs font-semibold text-muted-foreground block">Busca</label>
+                <input
+                  type="text"
+                  value={searchMarca}
+                  onChange={(e) => setSearchMarca(e.target.value)}
+                  placeholder="Buscar"
+                  className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="p-6 rounded-xl bg-surface border border-border shadow-2xs space-y-6">
+              <div className="flex items-center justify-between border-b border-border-muted pb-4">
+                <h2 className="text-lg font-bold font-editorial text-primary">Marcas</h2>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormMarcaNome('');
+                    setFormMarcaIntegracaoId('');
+                    setShowCriarMarcaModal(true);
+                  }}
+                  className="px-4 py-2 bg-primary hover:bg-neutral-800 text-white font-bold text-xs rounded-lg transition shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" strokeWidth={1.5} />
+                  <span>Nova Marca</span>
+                </button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-border text-muted-foreground font-bold bg-surface-muted/50">
+                      <th className="py-3 px-4">Imagem</th>
+                      <th className="py-3 px-4">Nome</th>
+                      <th className="py-3 px-4">Coleções</th>
+                      <th className="py-3 px-4">Usuários</th>
+                      <th className="py-3 px-4 text-right">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border-muted">
+                    {filteredMarcas.map((marca) => (
+                      <tr key={marca.id} className="hover:bg-surface-muted/30 transition">
+                        <td className="py-3 px-4">
+                          <div className="w-10 h-10 rounded-lg bg-surface-muted border border-border flex items-center justify-center overflow-hidden">
+                            {marca.heroImageUrl ? (
+                              <img src={marca.heroImageUrl} alt={marca.nome} className="w-full h-full object-cover img-brand-treated" />
+                            ) : (
+                              <ImageIcon className="w-5 h-5 text-muted opacity-50" strokeWidth={1.5} />
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 font-bold text-primary">{marca.nome}</td>
+                        <td className="py-3 px-4 text-muted-foreground font-medium">{marca.totalColecoes || marca.colecoesCount}</td>
+                        <td className="py-3 px-4 text-muted-foreground font-medium">{marca.totalUsuarios || 16}</td>
+                        <td className="py-3 px-4 text-right relative">
+                          <button
+                            type="button"
+                            onClick={() => setOpenMenuMarcaId(openMenuMarcaId === marca.id ? null : marca.id)}
+                            className="p-1.5 rounded-lg text-muted hover:text-primary hover:bg-surface-muted transition cursor-pointer"
+                          >
+                            <MoreVertical className="w-4 h-4" strokeWidth={1.5} />
+                          </button>
+                          {openMenuMarcaId === marca.id && (
+                            <div className="absolute right-4 top-10 w-44 bg-surface border border-border rounded-xl shadow-xl z-50 p-1 text-left text-xs animate-in fade-in zoom-in-95 duration-150">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOpenMenuMarcaId(null);
+                                  onOpenColecoes(marca);
+                                }}
+                                className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
+                              >
+                                <FolderOpen className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                                <span>Abrir</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditarMarca(marca)}
+                                className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
+                              >
+                                <Pencil className="w-4 h-4 text-muted" strokeWidth={1.5} />
+                                <span>Editar Marca</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditarUsuarios(marca)}
+                                className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
+                              >
+                                <UserCog className="w-4 h-4 text-muted" strokeWidth={1.5} />
+                                <span>Editar Usuários</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenAtualizarTimes(marca)}
+                                className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
+                              >
+                                <Users2 className="w-4 h-4 text-muted" strokeWidth={1.5} />
+                                <span>Atualizar Times</span>
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        ) : editingUserProfile ? (
+          /* ============================================================================ */
+          /* SEÇÃO EDITAR PERFIL / CARGOS DE USUÁRIO */
+          /* ============================================================================ */
           <div className="space-y-6 animate-in fade-in zoom-in-98 duration-200">
-            
-            {/* CABEÇALHO DO EDITAR PERFIL COM BOTÃO ATUALIZAR */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setEditingUserProfile(null)}
                   className="p-1.5 rounded-lg border border-border bg-surface text-muted hover:text-primary transition cursor-pointer"
-                  title="Voltar para a lista de usuários"
                 >
                   <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
                 </button>
                 <h2 className="text-lg font-bold font-editorial text-primary">Cargos de usuário</h2>
               </div>
-
               <button
                 type="button"
                 onClick={handleSaveUserProfile}
@@ -420,18 +648,11 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               </button>
             </div>
 
-            {/* CARD 1: INFORMAÇÕES DO USUÁRIO */}
             <div className="p-6 rounded-xl bg-surface border border-border shadow-2xs space-y-4">
-              <div className="text-xs font-bold text-muted uppercase tracking-wider">
-                Informações do usuário
-              </div>
-
+              <div className="text-xs font-bold text-muted uppercase tracking-wider">Informações do usuário</div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                {/* NOME * */}
                 <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground block">
-                    Nome <span className="text-accent-bordo">*</span>
-                  </label>
+                  <label className="font-semibold text-muted-foreground block">Nome <span className="text-accent-bordo">*</span></label>
                   <input
                     type="text"
                     value={editingUserProfile.nome}
@@ -439,12 +660,8 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                     className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
                   />
                 </div>
-
-                {/* E-MAIL * */}
                 <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground block">
-                    E-mail <span className="text-accent-bordo">*</span>
-                  </label>
+                  <label className="font-semibold text-muted-foreground block">E-mail <span className="text-accent-bordo">*</span></label>
                   <input
                     type="email"
                     value={editingUserProfile.email}
@@ -452,8 +669,6 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                     className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
                   />
                 </div>
-
-                {/* CÓDIGO */}
                 <div className="space-y-1">
                   <label className="font-semibold text-muted-foreground flex items-center gap-1">
                     <span>Código</span>
@@ -466,8 +681,6 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                     className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
                   />
                 </div>
-
-                {/* ATIVO SWITCH TOGGLE */}
                 <div className="space-y-1 flex flex-col justify-end">
                   <div className="flex items-center gap-3">
                     <button
@@ -490,12 +703,8 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               </div>
             </div>
 
-            {/* CARD 2: FILTROS */}
             <div className="p-6 rounded-xl bg-surface border border-border shadow-2xs space-y-4">
-              <div className="text-xs font-bold text-muted uppercase tracking-wider">
-                Filtros
-              </div>
-
+              <div className="text-xs font-bold text-muted uppercase tracking-wider">Filtros</div>
               <div className="flex items-center justify-between gap-4">
                 <input
                   type="text"
@@ -504,7 +713,6 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                   placeholder="Buscar"
                   className="max-w-xs bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
                 />
-
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
@@ -522,12 +730,8 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               </div>
             </div>
 
-            {/* CARD 3: TABELA DE CARGOS POR MARCA (PRINT 2) */}
             <div className="p-6 rounded-xl bg-surface border border-border shadow-2xs space-y-6">
-              <div className="text-xs font-bold text-muted uppercase tracking-wider">
-                Cargos
-              </div>
-
+              <div className="text-xs font-bold text-muted uppercase tracking-wider">Cargos</div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
@@ -546,26 +750,14 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                         cargo: 'Nenhum',
                         times: []
                       };
-
                       return (
                         <tr key={marca.id} className="hover:bg-surface-muted/30 transition">
-                          {/* IMAGEM DA MARCA */}
                           <td className="py-3 px-4">
                             <div className="w-10 h-10 rounded-lg bg-surface-muted border border-border flex items-center justify-center overflow-hidden">
-                              {marca.heroImageUrl ? (
-                                <img src={marca.heroImageUrl} alt="" className="w-full h-full object-cover img-brand-treated" />
-                              ) : (
-                                <ImageIcon className="w-5 h-5 text-muted opacity-50" strokeWidth={1.5} />
-                              )}
+                              <ImageIcon className="w-5 h-5 text-muted opacity-50" strokeWidth={1.5} />
                             </div>
                           </td>
-
-                          {/* NOME DA MARCA */}
-                          <td className="py-3 px-4 font-bold text-primary">
-                            {marca.nome}
-                          </td>
-
-                          {/* DROPDOWN SELECT DE CARGOS COM AS 6 OPÇÕES (PRINT 2) */}
+                          <td className="py-3 px-4 font-bold text-primary">{marca.nome}</td>
                           <td className="py-3 px-4">
                             <select
                               value={roleEntry.cargo}
@@ -573,22 +765,12 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                               className="bg-surface border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none cursor-pointer w-48"
                             >
                               {CARGOS_OPCOES.map(cargo => (
-                                <option key={cargo} value={cargo}>
-                                  {cargo}
-                                </option>
+                                <option key={cargo} value={cargo}>{cargo}</option>
                               ))}
                             </select>
                           </td>
-
-                          {/* COLUNA TIMES */}
                           <td className="py-3 px-4">
-                            {roleEntry.times.length > 0 ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-muted border border-border text-muted-foreground text-[11px] font-medium">
-                                {roleEntry.times.join(', ')}
-                              </span>
-                            ) : (
-                              <div className="w-full max-w-xs h-9 rounded-lg border border-border bg-surface-muted/30"></div>
-                            )}
+                            <div className="w-full max-w-xs h-9 rounded-lg border border-border bg-surface-muted/30"></div>
                           </td>
                         </tr>
                       );
@@ -596,38 +778,20 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                   </tbody>
                 </table>
               </div>
-
-              {/* PAGINAÇÃO */}
-              <div className="flex items-center justify-between border-t border-border-muted pt-4 text-xs text-muted">
-                <span>1-3 de 3</span>
-                <div className="flex items-center gap-1">
-                  <button className="p-1 rounded border border-border text-muted hover:text-primary transition cursor-pointer disabled:opacity-50">
-                    <ChevronLeft className="w-4 h-4" strokeWidth={1.5} />
-                  </button>
-                  <button className="p-1 rounded border border-border text-muted hover:text-primary transition cursor-pointer disabled:opacity-50">
-                    <ChevronRight className="w-4 h-4" strokeWidth={1.5} />
-                  </button>
-                </div>
-              </div>
-
             </div>
-
           </div>
         ) : gestaoSubTab === 'usuarios' ? (
           /* ============================================================================ */
-          /* TAB DE USUÁRIOS (PRINT 1) */
+          /* SEÇÃO USUÁRIOS */
           /* ============================================================================ */
           <>
-            {/* CARD DE FILTROS (PRINT 1) */}
             <div className="p-6 rounded-xl bg-surface border border-border shadow-2xs space-y-4">
               <div className="flex items-center gap-2 text-xs font-bold text-muted uppercase tracking-wider">
                 <Search className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
                 <span>Filtros</span>
               </div>
 
-              {/* FILTROS POR MARCAS E STATUS */}
               <div className="space-y-3">
-                {/* MARCAS PILLS */}
                 <div className="flex items-center gap-2 text-xs">
                   <span className="font-semibold text-muted-foreground w-16">Marcas</span>
                   <div className="flex items-center gap-1.5">
@@ -637,9 +801,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                         type="button"
                         onClick={() => setUserFilterMarca(m)}
                         className={`px-3 py-1 rounded-md text-xs font-semibold transition cursor-pointer ${
-                          userFilterMarca === m
-                            ? 'bg-primary text-white shadow-2xs'
-                            : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
+                          userFilterMarca === m ? 'bg-primary text-white shadow-2xs' : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
                         }`}
                       >
                         {m}
@@ -648,7 +810,6 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                   </div>
                 </div>
 
-                {/* STATUS PILLS */}
                 <div className="flex items-center gap-2 text-xs">
                   <span className="font-semibold text-muted-foreground w-16">Status</span>
                   <div className="flex items-center gap-1.5">
@@ -658,9 +819,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                         type="button"
                         onClick={() => setUserFilterStatus(s)}
                         className={`px-3 py-1 rounded-md text-xs font-semibold transition cursor-pointer ${
-                          userFilterStatus === s
-                            ? 'bg-primary text-white shadow-2xs'
-                            : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
+                          userFilterStatus === s ? 'bg-primary text-white shadow-2xs' : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
                         }`}
                       >
                         {s}
@@ -670,7 +829,6 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                 </div>
               </div>
 
-              {/* INPUT DE BUSCA (PRINT 1) */}
               <div className="space-y-1 max-w-xs pt-2">
                 <label className="text-xs font-semibold text-muted-foreground block">Busca</label>
                 <input
@@ -683,13 +841,9 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               </div>
             </div>
 
-            {/* PAINEL DE USUÁRIOS E TABELA (PRINT 1) */}
             <div className="p-6 rounded-xl bg-surface border border-border shadow-2xs space-y-6">
-              
-              {/* CABEÇALHO DO PAINEL COM BOTÃO + CRIAR USUÁRIO */}
               <div className="flex items-center justify-between border-b border-border-muted pb-4">
                 <h2 className="text-lg font-bold font-editorial text-primary">Usuários</h2>
-
                 <button
                   type="button"
                   onClick={() => setShowCriarUsuarioModal(true)}
@@ -700,7 +854,6 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                 </button>
               </div>
 
-              {/* TABELA DE USUÁRIOS (PRINT 1) */}
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
@@ -723,237 +876,351 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                       </tr>
                     ) : (
                       filteredUsers.map((u) => (
-                      <tr key={u.id} className="hover:bg-surface-muted/30 transition">
-                        {/* E-MAIL */}
-                        <td className="py-3 px-4 font-medium text-muted-foreground">
-                          {u.email}
-                        </td>
-
-                        {/* NOME */}
-                        <td className="py-3 px-4 font-bold text-primary">
-                          {u.nome}
-                        </td>
-
-                        {/* CÓDIGO */}
-                        <td className="py-3 px-4 text-muted">
-                          {u.codigo || '--'}
-                        </td>
-
-                        {/* MARCAS VINCULADAS */}
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            {u.marcas.map(m => (
-                              <span key={m} className="px-2 py-0.5 rounded-md bg-accent-camel/10 text-accent-camel font-semibold text-[11px]">
-                                {m}
-                              </span>
-                            ))}
-                          </div>
-                        </td>
-
-                        {/* STATUS */}
-                        <td className="py-3 px-4">
-                          <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
-                            u.status === 'Ativo' 
-                              ? 'bg-emerald-500/10 text-emerald-700' 
-                              : 'bg-rose-500/10 text-rose-700'
-                          }`}>
-                            {u.status}
-                          </span>
-                        </td>
-
-                        {/* ACESSO */}
-                        <td className="py-3 px-4">
-                          <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
-                            u.acesso === 'Permitido' 
-                              ? 'bg-emerald-500/10 text-emerald-700' 
-                              : 'bg-rose-500/10 text-rose-700'
-                          }`}>
-                            {u.acesso}
-                          </span>
-                        </td>
-
-                        {/* AÇÕES (3 PONTOS) */}
-                        <td className="py-3 px-4 text-right relative">
-                          <button
-                            type="button"
-                            onClick={() => setOpenMenuUserId(openMenuUserId === u.id ? null : u.id)}
-                            className="p-1.5 rounded-lg text-muted hover:text-primary hover:bg-surface-muted transition cursor-pointer"
-                          >
-                            <MoreVertical className="w-4 h-4" strokeWidth={1.5} />
-                          </button>
-
-                          {openMenuUserId === u.id && (
-                            <div className="absolute right-4 top-10 w-40 bg-surface border border-border rounded-xl shadow-xl z-50 p-1 text-left text-xs animate-in fade-in zoom-in-95 duration-150">
-                              <button
-                                type="button"
-                                onClick={() => handleOpenEditarPerfil(u)}
-                                className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
-                              >
-                                <UserCog className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
-                                <span>Editar perfil</span>
-                              </button>
+                        <tr key={u.id} className="hover:bg-surface-muted/30 transition">
+                          <td className="py-3 px-4 font-medium text-muted-foreground">{u.email}</td>
+                          <td className="py-3 px-4 font-bold text-primary">{u.nome}</td>
+                          <td className="py-3 px-4 text-muted">{u.codigo || '--'}</td>
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {u.marcas.map(m => (
+                                <span key={m} className="px-2 py-0.5 rounded-md bg-accent-camel/10 text-accent-camel font-semibold text-[11px]">{m}</span>
+                              ))}
                             </div>
-                          )}
-                        </td>
-                      </tr>
-                    )))}
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${u.status === 'Ativo' ? 'bg-emerald-500/10 text-emerald-700' : 'bg-rose-500/10 text-rose-700'}`}>
+                              {u.status}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${u.acesso === 'Permitido' ? 'bg-emerald-500/10 text-emerald-700' : 'bg-rose-500/10 text-rose-700'}`}>
+                              {u.acesso}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-right relative">
+                            <button
+                              type="button"
+                              onClick={() => setOpenMenuUserId(openMenuUserId === u.id ? null : u.id)}
+                              className="p-1.5 rounded-lg text-muted hover:text-primary hover:bg-surface-muted transition cursor-pointer"
+                            >
+                              <MoreVertical className="w-4 h-4" strokeWidth={1.5} />
+                            </button>
+                            {openMenuUserId === u.id && (
+                              <div className="absolute right-4 top-10 w-40 bg-surface border border-border rounded-xl shadow-xl z-50 p-1 text-left text-xs animate-in fade-in zoom-in-95 duration-150">
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenEditarPerfil(u)}
+                                  className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
+                                >
+                                  <UserCog className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                                  <span>Editar perfil</span>
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
-
-              {/* PAGINAÇÃO */}
-              <div className="flex items-center justify-between border-t border-border-muted pt-4 text-xs text-muted">
-                <span>1-{filteredUsers.length} de {filteredUsers.length}</span>
-                <div className="flex items-center gap-1">
-                  <button className="p-1 rounded border border-border text-muted hover:text-primary transition cursor-pointer disabled:opacity-50">
-                    <ChevronLeft className="w-4 h-4" strokeWidth={1.5} />
-                  </button>
-                  <button className="p-1 rounded border border-border text-muted hover:text-primary transition cursor-pointer disabled:opacity-50">
-                    <ChevronRight className="w-4 h-4" strokeWidth={1.5} />
-                  </button>
-                </div>
-              </div>
-
             </div>
           </>
-        ) : gestaoSubTab === 'marcas' ? (
+        ) : gestaoSubTab === 'times' ? (
           /* ============================================================================ */
-          /* TAB DE MARCAS (PRINT 2 DA ETAPA ANTERIOR) */
+          /* SEÇÃO TIMES (PRINTS 1 E 2) */
           /* ============================================================================ */
           <>
-            {/* CARD DE FILTROS E BUSCA DE MARCAS */}
             <div className="p-6 rounded-xl bg-surface border border-border shadow-2xs space-y-4">
               <div className="flex items-center gap-2 text-xs font-bold text-muted uppercase tracking-wider">
                 <Search className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
                 <span>Filtros</span>
               </div>
-
               <div className="space-y-1 max-w-xs">
-                <label className="text-xs font-semibold text-muted-foreground block">Busca</label>
-                <input
-                  type="text"
-                  value={searchMarca}
-                  onChange={(e) => setSearchMarca(e.target.value)}
-                  placeholder="Buscar"
-                  className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
-                />
+                <label className="text-xs font-semibold text-muted-foreground block">Marca</label>
+                <select
+                  value={teamFilterMarca}
+                  onChange={(e) => setTeamFilterMarca(e.target.value)}
+                  className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none cursor-pointer"
+                >
+                  <option value="King & Joe">King & Joe</option>
+                  <option value="King & Joe Play">King & Joe Play</option>
+                  <option value="K&J Black">K&J Black</option>
+                </select>
               </div>
             </div>
 
-            {/* PAINEL PRINCIPAL DE MARCAS & TABELA */}
             <div className="p-6 rounded-xl bg-surface border border-border shadow-2xs space-y-6">
               <div className="flex items-center justify-between border-b border-border-muted pb-4">
-                <h2 className="text-lg font-bold font-editorial text-primary">Marcas</h2>
-
+                <h2 className="text-lg font-bold font-editorial text-primary">Times</h2>
                 <button
                   type="button"
                   onClick={() => {
-                    setFormMarcaNome('');
-                    setFormMarcaIntegracaoId('');
-                    setShowCriarMarcaModal(true);
+                    setEditingTeam(null);
+                    setTeamFormNome('');
+                    setTeamFormDesignado(false);
+                    setTeamFormDescricao('');
+                    setShowAtualizarTimeModal(true);
                   }}
                   className="px-4 py-2 bg-primary hover:bg-neutral-800 text-white font-bold text-xs rounded-lg transition shadow-2xs flex items-center gap-1.5 cursor-pointer"
                 >
                   <Plus className="w-4 h-4" strokeWidth={1.5} />
-                  <span>Nova Marca</span>
+                  <span>Adicionar</span>
                 </button>
               </div>
 
-              {/* TABELA DE MARCAS */}
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
                     <tr className="border-b border-border text-muted-foreground font-bold bg-surface-muted/50">
-                      <th className="py-3 px-4">Imagem</th>
                       <th className="py-3 px-4">Nome</th>
-                      <th className="py-3 px-4">Coleções</th>
-                      <th className="py-3 px-4">Usuários</th>
+                      <th className="py-3 px-4">Descrição</th>
                       <th className="py-3 px-4 text-right">Ações</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border-muted">
-                    {filteredMarcas.map((marca) => (
-                      <tr key={marca.id} className="hover:bg-surface-muted/30 transition">
-                        <td className="py-3 px-4">
-                          <div className="w-10 h-10 rounded-lg bg-surface-muted border border-border flex items-center justify-center overflow-hidden">
-                            {marca.heroImageUrl ? (
-                              <img 
-                                src={marca.heroImageUrl} 
-                                alt={marca.nome} 
-                                className="w-full h-full object-cover img-brand-treated" 
-                              />
-                            ) : (
-                              <ImageIcon className="w-5 h-5 text-muted opacity-50" strokeWidth={1.5} />
-                            )}
-                          </div>
-                        </td>
-
-                        <td className="py-3 px-4 font-bold text-primary">
-                          {marca.nome}
-                        </td>
-
-                        <td className="py-3 px-4 text-muted-foreground font-medium">
-                          {marca.totalColecoes || marca.colecoesCount}
-                        </td>
-
-                        <td className="py-3 px-4 text-muted-foreground font-medium">
-                          {marca.totalUsuarios || 16}
-                        </td>
-
+                    {teamsList.map((team) => (
+                      <tr key={team.id} className="hover:bg-surface-muted/30 transition">
+                        <td className="py-3 px-4 font-bold text-primary">{team.nome}</td>
+                        <td className="py-3 px-4 text-muted-foreground font-medium">{team.descricao || '--'}</td>
                         <td className="py-3 px-4 text-right relative">
                           <button
                             type="button"
-                            onClick={() => setOpenMenuMarcaId(openMenuMarcaId === marca.id ? null : marca.id)}
+                            onClick={() => setOpenMenuTeamId(openMenuTeamId === team.id ? null : team.id)}
                             className="p-1.5 rounded-lg text-muted hover:text-primary hover:bg-surface-muted transition cursor-pointer"
                           >
                             <MoreVertical className="w-4 h-4" strokeWidth={1.5} />
                           </button>
-
-                          {openMenuMarcaId === marca.id && (
-                            <div className="absolute right-4 top-10 w-44 bg-surface border border-border rounded-xl shadow-xl z-50 p-1 text-left text-xs animate-in fade-in zoom-in-95 duration-150">
+                          {openMenuTeamId === team.id && (
+                            <div className="absolute right-4 top-10 w-36 bg-surface border border-border rounded-xl shadow-xl z-50 p-1 text-left text-xs animate-in fade-in zoom-in-95 duration-150">
                               <button
                                 type="button"
-                                onClick={() => {
-                                  setOpenMenuMarcaId(null);
-                                  onOpenColecoes(marca);
-                                }}
-                                className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
-                              >
-                                <FolderOpen className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
-                                <span>Abrir</span>
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => handleOpenEditarMarca(marca)}
+                                onClick={() => handleOpenEditTeamModal(team)}
                                 className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
                               >
                                 <Pencil className="w-4 h-4 text-muted" strokeWidth={1.5} />
-                                <span>Editar Marca</span>
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => handleOpenEditarUsuarios(marca)}
-                                className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
-                              >
-                                <UserCog className="w-4 h-4 text-muted" strokeWidth={1.5} />
-                                <span>Editar Usuários</span>
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => handleOpenAtualizarTimes(marca)}
-                                className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
-                              >
-                                <Users2 className="w-4 h-4 text-muted" strokeWidth={1.5} />
-                                <span>Atualizar Times</span>
+                                <span>Editar</span>
                               </button>
                             </div>
                           )}
                         </td>
                       </tr>
                     ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        ) : gestaoSubTab === 'tecidos' ? (
+          /* ============================================================================ */
+          /* SEÇÃO TECIDOS (PRINTS 3, 4, 5) */
+          /* ============================================================================ */
+          <>
+            <div className="p-6 rounded-xl bg-surface border border-border shadow-2xs space-y-4">
+              <div className="flex items-center gap-2 text-xs font-bold text-muted uppercase tracking-wider">
+                <Search className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                <span>Filtros</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <div className="space-y-1">
+                  <label className="font-semibold text-muted-foreground block">Insumo</label>
+                  <input
+                    type="text"
+                    value={searchTecidoInsumo}
+                    onChange={(e) => setSearchTecidoInsumo(e.target.value)}
+                    placeholder="Código ou Nome"
+                    className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="font-semibold text-muted-foreground block">Cor</label>
+                  <input
+                    type="text"
+                    value={searchTecidoCor}
+                    onChange={(e) => setSearchTecidoCor(e.target.value)}
+                    placeholder="Código ou Nome"
+                    className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="font-semibold text-muted-foreground block">Fornecedor</label>
+                  <input
+                    type="text"
+                    value={searchTecidoFornecedor}
+                    onChange={(e) => setSearchTecidoFornecedor(e.target.value)}
+                    placeholder="Código ou Nome"
+                    className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 rounded-xl bg-surface border border-border shadow-2xs space-y-6">
+              <div className="flex items-center justify-between border-b border-border-muted pb-4">
+                <h2 className="text-lg font-bold font-editorial text-primary">Insumos</h2>
+                <div className="flex items-center gap-3 relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowOpcoesTecidoMenu(!showOpcoesTecidoMenu);
+                      setOpcoesTecidoSubMenu('main');
+                    }}
+                    className="px-4 py-2 border border-border hover:bg-surface-muted font-bold text-xs rounded-lg transition shadow-2xs flex items-center gap-1.5 text-primary cursor-pointer"
+                  >
+                    <span>Opções</span>
+                    <ChevronDown className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
+                  </button>
+
+                  {showOpcoesTecidoMenu && (
+                    <div className="absolute right-32 top-11 w-44 bg-surface border border-border rounded-xl shadow-xl z-50 p-1 text-left text-xs animate-in fade-in zoom-in-95 duration-150">
+                      {opcoesTecidoSubMenu === 'main' ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowOpcoesTecidoMenu(false);
+                              setShowImportarInsumosModal(true);
+                            }}
+                            className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center justify-between transition cursor-pointer"
+                          >
+                            <span className="flex items-center gap-2">
+                              <UploadCloud className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                              <span>Importar</span>
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setOpcoesTecidoSubMenu('exportar')}
+                            className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center justify-between transition cursor-pointer"
+                          >
+                            <span className="flex items-center gap-2">
+                              <Download className="w-4 h-4 text-muted" strokeWidth={1.5} />
+                              <span>Exportar</span>
+                            </span>
+                            <ChevronRight className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowOpcoesTecidoMenu(false)}
+                            className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
+                          >
+                            <RotateCcw className="w-4 h-4 text-muted" strokeWidth={1.5} />
+                            <span>Restaurar</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowOpcoesTecidoMenu(false)}
+                            className="w-full text-left px-3 py-2 text-rose-600 hover:bg-rose-50 font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
+                          >
+                            <Trash2 className="w-4 h-4 text-rose-600" strokeWidth={1.5} />
+                            <span>Excluir</span>
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setOpcoesTecidoSubMenu('main')}
+                            className="w-full text-left px-3 py-2 text-muted-foreground hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
+                          >
+                            <ChevronLeft className="w-4 h-4 text-muted" strokeWidth={1.5} />
+                            <span>Voltar</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowOpcoesTecidoMenu(false)}
+                            className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
+                          >
+                            <FileSpreadsheet className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                            <span>Planilha</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowOpcoesTecidoMenu(false)}
+                            className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
+                          >
+                            <Download className="w-4 h-4 text-muted" strokeWidth={1.5} />
+                            <span>Instalar</span>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setShowCriandoInsumoModal(true)}
+                    className="px-4 py-2 bg-primary hover:bg-neutral-800 text-white font-bold text-xs rounded-lg transition shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" strokeWidth={1.5} />
+                    <span>Adicionar</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-border text-muted-foreground font-bold bg-surface-muted/50">
+                      <th className="py-3 px-4 w-10">
+                        <input type="checkbox" className="w-4 h-4 rounded border-border accent-accent-camel cursor-pointer" />
+                      </th>
+                      <th className="py-3 px-4">Nome</th>
+                      <th className="py-3 px-4">Código</th>
+                      <th className="py-3 px-4">Imagem</th>
+                      <th className="py-3 px-4">Fornecedores</th>
+                      <th className="py-3 px-4">Custo</th>
+                      <th className="py-3 px-4 text-right">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border-muted">
+                    {tecidosList.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="py-12 text-center text-muted-foreground font-medium">
+                          Nenhum insumo cadastrado. Clique em "+ Adicionar" ou "Importar" para cadastrar insumos.
+                        </td>
+                      </tr>
+                    ) : (
+                      tecidosList
+                        .filter(t => {
+                          if (searchTecidoInsumo.trim()) {
+                            const q = searchTecidoInsumo.toLowerCase();
+                            if (!t.nome.toLowerCase().includes(q) && !t.codigo.toLowerCase().includes(q)) return false;
+                          }
+                          if (searchTecidoFornecedor.trim()) {
+                            if (!t.fornecedores.toLowerCase().includes(searchTecidoFornecedor.toLowerCase())) return false;
+                          }
+                          return true;
+                        })
+                        .map((tecido) => (
+                          <tr key={tecido.id} className="hover:bg-surface-muted/30 transition">
+                            <td className="py-3 px-4">
+                              <input type="checkbox" className="w-4 h-4 rounded border-border accent-accent-camel cursor-pointer" />
+                            </td>
+                            <td className="py-3 px-4 font-bold text-primary">{tecido.nome}</td>
+                            <td className="py-3 px-4 font-mono text-muted-foreground">{tecido.codigo}</td>
+                            <td className="py-3 px-4">
+                              <div className="w-10 h-10 rounded-lg bg-surface-muted border border-border flex items-center justify-center overflow-hidden">
+                                {tecido.imagemUrl ? (
+                                  <img src={tecido.imagemUrl} alt={tecido.nome} className="w-full h-full object-cover" />
+                                ) : (
+                                  <ImageIcon className="w-5 h-5 text-muted opacity-50" strokeWidth={1.5} />
+                                )}
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-muted-foreground font-medium">{tecido.fornecedores}</td>
+                            <td className="py-3 px-4 font-bold text-primary">{tecido.custo}</td>
+                            <td className="py-3 px-4 text-right">
+                              <button
+                                type="button"
+                                className="p-1.5 rounded-lg text-muted hover:text-primary hover:bg-surface-muted transition cursor-pointer"
+                              >
+                                <MoreVertical className="w-4 h-4" strokeWidth={1.5} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -974,144 +1241,312 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
       </div>
 
       {/* ============================================================================ */}
-      {/* 3. MODAL DE CRIAÇÃO DE USUÁRIO (PRINT 3 DA NOVA SOLICITAÇÃO) */}
+      {/* MODAL DE ATUALIZAR TIME (PRINT 1 - SEÇÃO TIMES) */}
+      {/* ============================================================================ */}
+      {showAtualizarTimeModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-surface border border-border rounded-xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <h3 className="text-base font-bold font-editorial text-primary">
+                {editingTeam ? 'Atualizar time' : 'Criar time'}
+              </h3>
+              <button type="button" onClick={() => setShowAtualizarTimeModal(false)} className="text-muted hover:text-primary transition cursor-pointer">
+                <X className="w-5 h-5" strokeWidth={1.5} />
+              </button>
+            </div>
+            <div className="p-6 space-y-4 text-xs">
+              <div className="space-y-1">
+                <label className="font-semibold text-muted-foreground block">Nome <span className="text-accent-bordo">*</span></label>
+                <input
+                  type="text"
+                  value={teamFormNome}
+                  onChange={(e) => setTeamFormNome(e.target.value)}
+                  placeholder="Administrador"
+                  className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none font-medium"
+                />
+              </div>
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="designadoProdutoCheck"
+                  checked={teamFormDesignado}
+                  onChange={(e) => setTeamFormDesignado(e.target.checked)}
+                  className="w-4 h-4 rounded border-border text-primary accent-accent-camel cursor-pointer"
+                />
+                <label htmlFor="designadoProdutoCheck" className="font-semibold text-muted-foreground cursor-pointer flex items-center gap-1">
+                  <span>Designado de Produto</span>
+                  <Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
+                </label>
+              </div>
+              <div className="space-y-1 pt-1">
+                <label className="font-semibold text-muted-foreground block">Descrição</label>
+                <textarea
+                  rows={3}
+                  value={teamFormDescricao}
+                  onChange={(e) => setTeamFormDescricao(e.target.value)}
+                  className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-surface-muted/30 text-xs">
+              <button type="button" onClick={() => setShowAtualizarTimeModal(false)} className="px-4 py-2 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer">Cancelar</button>
+              <button type="button" onClick={handleSaveTeam} className="px-5 py-2 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs">{editingTeam ? 'Atualizar' : 'Criar'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================================ */}
+      {/* MODAL "CRIANDO INSUMO" (PRINT 4 - SEÇÃO TECIDOS) */}
+      {/* ============================================================================ */}
+      {showCriandoInsumoModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-surface border border-border rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <h3 className="text-base font-bold font-editorial text-primary">Criando insumo</h3>
+              <button type="button" onClick={() => setShowCriandoInsumoModal(false)} className="text-muted hover:text-primary transition cursor-pointer">
+                <X className="w-5 h-5" strokeWidth={1.5} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-8 text-xs">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
+                <div>
+                  <h4 className="font-bold text-primary text-sm">Identificação</h4>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">Nome do insumo e código de referência</p>
+                </div>
+                <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground block">Nome <span className="text-accent-bordo">*</span></label>
+                    <input type="text" value={insumoNome} onChange={(e) => setInsumoNome(e.target.value)} placeholder="Ex: Carmuça" className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground block">Código</label>
+                    <input type="text" value={insumoCodigo} onChange={(e) => setInsumoCodigo(e.target.value)} placeholder="Ex: 3141592" className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
+                <div>
+                  <h4 className="font-bold text-primary text-sm">Fornecedores</h4>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">Cadastre ou selecione quais são todos os fornecedores deste insumo.</p>
+                </div>
+                <div className="md:col-span-2">
+                  <button type="button" className="px-3 py-1.5 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer flex items-center gap-1"><Plus className="w-3.5 h-3.5" strokeWidth={1.5} /><span>Adicionar</span></button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
+                <div>
+                  <h4 className="font-bold text-primary text-sm">Imagens</h4>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">Imagens de referência</p>
+                </div>
+                <div className="md:col-span-2">
+                  <div className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-surface-muted hover:border-accent-camel transition cursor-pointer text-muted">
+                    <ImageIcon className="w-7 h-7" strokeWidth={1.5} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
+                <div>
+                  <h4 className="font-bold text-primary text-sm">Composição</h4>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">Ex.: 97% Poliéster, 3% Elastano</p>
+                </div>
+                <div className="md:col-span-2">
+                  <button type="button" className="px-3 py-1.5 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer flex items-center gap-1"><Plus className="w-3.5 h-3.5" strokeWidth={1.5} /><span>Adicionar</span></button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
+                <div>
+                  <h4 className="font-bold text-primary text-sm">Cores</h4>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">Ex.: Azul 2369 C</p>
+                </div>
+                <div className="md:col-span-2 flex items-center gap-2 flex-wrap">
+                  <div className="w-12 h-12 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-surface-muted text-muted cursor-pointer hover:border-accent-camel transition">
+                    <Plus className="w-4 h-4" strokeWidth={1.5} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
+                <div>
+                  <h4 className="font-bold text-primary text-sm">Propriedades</h4>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">Definição das propriedades do tecido para cálculo de custos</p>
+                </div>
+                <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground block">Gramatura</label>
+                    <input type="text" value={insumoGramatura} onChange={(e) => setInsumoGramatura(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground block">Largura (em metros)</label>
+                    <input type="text" value={insumoLargura} onChange={(e) => setInsumoLargura(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground block">Rendimento</label>
+                    <input type="text" value={insumoRendimento1} onChange={(e) => setInsumoRendimento1(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground block">Rendimento</label>
+                    <input type="text" value={insumoRendimento2} onChange={(e) => setInsumoRendimento2(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground block">Encolhimento</label>
+                    <input type="text" value={insumoEncolhimento} onChange={(e) => setInsumoEncolhimento(e.target.value)} placeholder="Ex.: Urdume 2 Trama 9" className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground block">Construção</label>
+                    <input type="text" value={insumoConstrucao} onChange={(e) => setInsumoConstrucao(e.target.value)} placeholder="Ex.: Sarja 2x1 z" className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                <div>
+                  <h4 className="font-bold text-primary text-sm">Preço e observações</h4>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">Informações de preço e observações do insumo cadastrado.</p>
+                </div>
+                <div className="md:col-span-2 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="font-semibold text-muted-foreground block">Preço</label>
+                      <input type="text" value={insumoPreco} onChange={(e) => setInsumoPreco(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="font-semibold text-muted-foreground block">Unidade</label>
+                      <select value={insumoUnidade} onChange={(e) => setInsumoUnidade(e.target.value as any)} className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none cursor-pointer">
+                        <option value="Metros">Metros</option>
+                        <option value="Kg">Kg</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground block">Observações</label>
+                    <textarea rows={3} value={insumoObservacoes} onChange={(e) => setInsumoObservacoes(e.target.value)} placeholder="Ex.: Lembrar de adicionar uma versão..." className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-start px-6 py-4 border-t border-border bg-surface-muted/30">
+              <button type="button" onClick={handleCreateInsumo} className="px-6 py-2.5 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs text-xs">Criar insumo</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================================ */}
+      {/* MODAL "IMPORTAÇÃO DE INSUMOS" (PRINT 5 - SEÇÃO TECIDOS) */}
+      {/* ============================================================================ */}
+      {showImportarInsumosModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-surface border border-border rounded-xl shadow-xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <h3 className="text-base font-bold font-editorial text-primary">Importação de Insumos</h3>
+              <button type="button" onClick={() => setShowImportarInsumosModal(false)} className="text-muted hover:text-primary transition cursor-pointer">
+                <X className="w-5 h-5" strokeWidth={1.5} />
+              </button>
+            </div>
+            <div className="p-6 space-y-6 text-xs">
+              <div className="space-y-2 text-primary font-medium">
+                <p>Para realizar a importação siga os passos:</p>
+                <ol className="list-decimal list-inside space-y-1.5 text-muted-foreground pl-1">
+                  <li><a href="#modelo" className="text-accent-camel hover:underline font-semibold">Baixe a planilha modelo clicando aqui.</a></li>
+                  <li>Preencha com seus insumos seguindo o formato modelo.</li>
+                  <li>Importe o arquivo .CSV clicando no botão importar abaixo.</li>
+                </ol>
+              </div>
+              <div className="flex justify-center py-2">
+                <button type="button" onClick={() => setShowImportarInsumosModal(false)} className="px-5 py-2.5 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer flex items-center gap-2 shadow-2xs">
+                  <span>Importar</span>
+                  <UploadCloud className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                </button>
+              </div>
+              <div className="border-t border-border-muted pt-4 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-bold text-primary">
+                  <Info className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                  <span>Atenção!</span>
+                </div>
+                <div className="text-muted-foreground space-y-2 text-[11px] leading-relaxed">
+                  <p>A planilha deve seguir o padrão abaixo:</p>
+                  <ul className="list-disc list-inside space-y-1 pl-1">
+                    <li><strong className="text-primary">Nome do insumo:</strong> preenchimento obrigatório</li>
+                    <li>
+                      <strong className="text-primary">Tipo do preço:</strong>
+                      <ul className="list-square list-inside pl-4 font-normal">
+                        <li>Tecidos → somente KG ou M.</li>
+                        <li>Aviamentos → somente M ou UN.</li>
+                      </ul>
+                    </li>
+                    <li>
+                      <strong className="text-primary">composição:</strong> No formato _%Material + _%Material
+                      <span className="block italic pl-4">Ex.: 90% Poliamida + 10% Elastano.</span>
+                    </li>
+                    <li>
+                      <strong className="text-primary">Fornecedor:</strong> Se já existir no CM informe o Código exatamente como está cadastrado
+                      <span className="block italic text-muted pl-4">(Caso Preenchido na planilha com código diferente ou em branco será criado novo fornecedor com o mesmo nome.)</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================================ */}
+      {/* MODAL CRIAÇÃO DE USUÁRIO */}
       {/* ============================================================================ */}
       {showCriarUsuarioModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-surface border border-border rounded-xl shadow-xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            
-            {/* TOPO DO MODAL */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <h3 className="text-base font-bold font-editorial text-primary">Criação de Usuário</h3>
-              <button
-                type="button"
-                onClick={() => setShowCriarUsuarioModal(false)}
-                className="text-muted hover:text-primary transition cursor-pointer"
-              >
+              <button type="button" onClick={() => setShowCriarUsuarioModal(false)} className="text-muted hover:text-primary transition cursor-pointer">
                 <X className="w-5 h-5" strokeWidth={1.5} />
               </button>
             </div>
-
-            {/* TEXTO DE ORIENTAÇÃO */}
             <div className="px-6 pt-4 text-xs text-muted-foreground leading-relaxed">
               Ao criar um usuário, é necessário definir quais serão os Cargos em cada uma das Marcas que você deseja que ele tenha acesso.
             </div>
-
-            {/* CONTEÚDO DO FORMULÁRIO (GRID 2 COLUNAS - PRINT 3) */}
             <div className="p-6 space-y-4 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                
-                {/* NOME * */}
                 <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground block">
-                    Nome <span className="text-accent-bordo">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={newUserName}
-                    onChange={(e) => setNewUserName(e.target.value)}
-                    className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
-                  />
+                  <label className="font-semibold text-muted-foreground block">Nome <span className="text-accent-bordo">*</span></label>
+                  <input type="text" value={newUserName} onChange={(e) => setNewUserName(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
                 </div>
-
-                {/* CÓDIGO ⓘ */}
                 <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground flex items-center gap-1">
-                    <span>Código</span>
-                    <Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
-                  </label>
-                  <input
-                    type="text"
-                    value={newUserCodigo}
-                    onChange={(e) => setNewUserCodigo(e.target.value)}
-                    className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
-                  />
+                  <label className="font-semibold text-muted-foreground flex items-center gap-1"><span>Código</span><Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} /></label>
+                  <input type="text" value={newUserCodigo} onChange={(e) => setNewUserCodigo(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
                 </div>
-
-                {/* E-MAIL * */}
                 <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground block">
-                    E-mail <span className="text-accent-bordo">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    value={newUserEmail}
-                    onChange={(e) => setNewUserEmail(e.target.value)}
-                    className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
-                  />
+                  <label className="font-semibold text-muted-foreground block">E-mail <span className="text-accent-bordo">*</span></label>
+                  <input type="email" value={newUserEmail} onChange={(e) => setNewUserEmail(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
                 </div>
-
-                {/* USUÁRIO FANTASMA ⓘ (TOGGLE) */}
                 <div className="space-y-1 flex flex-col justify-end">
-                  <label className="font-semibold text-muted-foreground flex items-center gap-1 mb-1">
-                    <span>Usuário fantasma</span>
-                    <Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
-                  </label>
+                  <label className="font-semibold text-muted-foreground flex items-center gap-1 mb-1"><span>Usuário fantasma</span><Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} /></label>
                   <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setNewUserIsFantasma(!newUserIsFantasma)}
-                      className={`w-10 h-5 rounded-full p-0.5 transition cursor-pointer ${
-                        newUserIsFantasma ? 'bg-accent-camel' : 'bg-surface-muted border border-border'
-                      }`}
-                    >
-                      <div className={`w-4 h-4 rounded-full bg-white shadow-2xs transition-transform ${
-                        newUserIsFantasma ? 'translate-x-5' : 'translate-x-0'
-                      }`} />
+                    <button type="button" onClick={() => setNewUserIsFantasma(!newUserIsFantasma)} className={`w-10 h-5 rounded-full p-0.5 transition cursor-pointer ${newUserIsFantasma ? 'bg-accent-camel' : 'bg-surface-muted border border-border'}`}>
+                      <div className={`w-4 h-4 rounded-full bg-white shadow-2xs transition-transform ${newUserIsFantasma ? 'translate-x-5' : 'translate-x-0'}`} />
                     </button>
-                    <span className="text-xs font-semibold text-primary">
-                      {newUserIsFantasma ? 'Sim' : 'Não'}
-                    </span>
+                    <span className="text-xs font-semibold text-primary">{newUserIsFantasma ? 'Sim' : 'Não'}</span>
                   </div>
                 </div>
-
-                {/* NOVA SENHA * */}
                 <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground block">
-                    Nova Senha <span className="text-accent-bordo">*</span>
-                  </label>
-                  <input
-                    type="password"
-                    value={newUserSenha}
-                    onChange={(e) => setNewUserSenha(e.target.value)}
-                    className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
-                  />
+                  <label className="font-semibold text-muted-foreground block">Nova Senha <span className="text-accent-bordo">*</span></label>
+                  <input type="password" value={newUserSenha} onChange={(e) => setNewUserSenha(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
                 </div>
-
-                {/* CONFIRMAÇÃO DE SENHA * */}
                 <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground block">
-                    Confirmação de Senha <span className="text-accent-bordo">*</span>
-                  </label>
-                  <input
-                    type="password"
-                    value={newUserConfirmarSenha}
-                    onChange={(e) => setNewUserConfirmarSenha(e.target.value)}
-                    className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
-                  />
+                  <label className="font-semibold text-muted-foreground block">Confirmação de Senha <span className="text-accent-bordo">*</span></label>
+                  <input type="password" value={newUserConfirmarSenha} onChange={(e) => setNewUserConfirmarSenha(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
                 </div>
-
               </div>
             </div>
-
-            {/* RODAPÉ DO MODAL */}
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-surface-muted/30">
-              <button
-                type="button"
-                onClick={() => setShowCriarUsuarioModal(false)}
-                className="px-4 py-2 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer text-xs"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={handleCreateUser}
-                className="px-5 py-2 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs text-xs"
-              >
-                Criar
-              </button>
+              <button type="button" onClick={() => setShowCriarUsuarioModal(false)} className="px-4 py-2 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer text-xs">Cancelar</button>
+              <button type="button" onClick={handleCreateUser} className="px-5 py-2 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs text-xs">Criar</button>
             </div>
-
           </div>
         </div>
       )}
@@ -1137,21 +1572,11 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               </div>
               <div className="space-y-1.5">
                 <label className="font-bold text-muted-foreground block">Nome *</label>
-                <input
-                  type="text"
-                  value={formMarcaNome}
-                  onChange={(e) => setFormMarcaNome(e.target.value)}
-                  className="w-full bg-surface-muted border border-border text-primary font-semibold rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
-                />
+                <input type="text" value={formMarcaNome} onChange={(e) => setFormMarcaNome(e.target.value)} className="w-full bg-surface-muted border border-border text-primary font-semibold rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
               </div>
               <div className="space-y-1.5">
                 <label className="font-bold text-muted-foreground block">ID de integração da marca</label>
-                <input
-                  type="text"
-                  value={formMarcaIntegracaoId}
-                  onChange={(e) => setFormMarcaIntegracaoId(e.target.value)}
-                  className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
-                />
+                <input type="text" value={formMarcaIntegracaoId} onChange={(e) => setFormMarcaIntegracaoId(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
               </div>
             </div>
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-surface-muted/30">
@@ -1189,23 +1614,11 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               </div>
               <div className="space-y-1.5">
                 <label className="font-bold text-muted-foreground block">Nome *</label>
-                <input
-                  type="text"
-                  value={formMarcaNome}
-                  onChange={(e) => setFormMarcaNome(e.target.value)}
-                  placeholder="Ex: Majestoso Brocado, Anos 80, Pegada CoolVibe"
-                  className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
-                />
+                <input type="text" value={formMarcaNome} onChange={(e) => setFormMarcaNome(e.target.value)} placeholder="Ex: Majestoso Brocado, Anos 80, Pegada CoolVibe" className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
               </div>
               <div className="space-y-1.5">
                 <label className="font-bold text-muted-foreground block">ID de integração da marca</label>
-                <input
-                  type="text"
-                  value={formMarcaIntegracaoId}
-                  onChange={(e) => setFormMarcaIntegracaoId(e.target.value)}
-                  placeholder="Ex: BRAND_123"
-                  className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
-                />
+                <input type="text" value={formMarcaIntegracaoId} onChange={(e) => setFormMarcaIntegracaoId(e.target.value)} placeholder="Ex: BRAND_123" className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
               </div>
             </div>
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-surface-muted/30">
@@ -1217,7 +1630,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
       )}
 
       {/* ============================================================================ */}
-      {/* MODAL MODIFICAR TIMES (PRINT 5 MARCA) */}
+      {/* MODAL MODIFICAR TIMES MARCA */}
       {/* ============================================================================ */}
       {updatingTeamsMarca && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
