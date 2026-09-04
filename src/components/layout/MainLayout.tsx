@@ -12,13 +12,14 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { HomePage } from '../../pages/Home/HomePage';
+import { GestaoPage } from '../../pages/Gestao/GestaoPage';
+import type { MarcaSummary } from '../../types/auth';
 import { 
   Kanban, 
   BarChart3, 
   LogOut, 
   Bell, 
-  ChevronDown,
-  FolderKanban
+  ChevronDown
 } from 'lucide-react';
 
 /**
@@ -29,6 +30,15 @@ export const MainLayout: React.FC = () => {
   
   // Estado da Aba Principal de Navegação (Início, Gestão, Relatórios, Kanban)
   const [activeTab, setActiveTab] = useState<'inicio' | 'gestao' | 'relatorios' | 'kanban'>('inicio');
+  
+  // NAVEGAÇÃO INTERNA DA GESTÃO PARA COLEÇÕES DA MARCA SELECIONADA
+  const handleOpenColecoesFromGestao = (marca: MarcaSummary) => {
+    localStorage.setItem('modaflow_selected_marca_id', marca.id);
+    setActiveTab('inicio');
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('modaflow_open_marca_colecoes', { detail: marca.id }));
+    }, 50);
+  };
   
   // Estado do Dropdown de Perfil
   const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
@@ -172,13 +182,7 @@ export const MainLayout: React.FC = () => {
         )}
 
         {activeTab === 'gestao' && (
-          <div className="max-w-7xl mx-auto p-8">
-            <div className="p-12 rounded-xl bg-fabric-pattern border border-border shadow-2xs text-center space-y-3">
-              <FolderKanban className="w-12 h-12 text-accent-camel mx-auto opacity-80" />
-              <h3 className="text-xl font-bold font-editorial text-primary">Módulo de Gestão & Cadastros Base</h3>
-              <p className="text-xs text-muted-foreground max-w-md mx-auto">Gerenciamento centralizado de marcas, linhas de produto, fichas técnicas de tecidos, aviamentos, estamparia e tabelas de precificação da holding AKR BRANDS.</p>
-            </div>
-          </div>
+          <GestaoPage onOpenColecoes={handleOpenColecoesFromGestao} />
         )}
 
         {activeTab === 'relatorios' && (

@@ -62,7 +62,7 @@ export const HomePage: React.FC = () => {
     }
   }, [selectedMarcaForView]);
 
-  // Escutar evento de reset disparado ao clicar no logo "AKR BRANDS" no topo
+  // Escutar eventos de reset e de abertura de marca disparados pela navegação
   useEffect(() => {
     const handleReset = () => {
       setSubTab('marcas');
@@ -72,8 +72,22 @@ export const HomePage: React.FC = () => {
       localStorage.removeItem('modaflow_selected_colecao_id');
     };
 
+    const handleOpenMarca = (e: Event) => {
+      const customEvt = e as CustomEvent;
+      const marcaId = customEvt.detail;
+      const found = MOCK_MARCAS.find(m => m.id === marcaId);
+      if (found) {
+        setSelectedMarcaForView(found);
+        setSubTab('marcas');
+      }
+    };
+
     window.addEventListener('modaflow_reset_to_home', handleReset);
-    return () => window.removeEventListener('modaflow_reset_to_home', handleReset);
+    window.addEventListener('modaflow_open_marca_colecoes', handleOpenMarca);
+    return () => {
+      window.removeEventListener('modaflow_reset_to_home', handleReset);
+      window.removeEventListener('modaflow_open_marca_colecoes', handleOpenMarca);
+    };
   }, []);
 
   // Índice da Marca atualmente focada no Carrossel Suspenso

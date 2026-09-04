@@ -31,6 +31,12 @@ export interface MarcaSummary {
   pecasCount: number;
   /** URL da imagem editorial de fundo do carrossel da home */
   heroImageUrl: string;
+  /** URL opcional do logotipo da marca */
+  logoUrl?: string;
+  /** Quantidade de usuários associados */
+  totalUsuarios?: number;
+  /** Alias para total de coleções */
+  totalColecoes?: number;
   /** Descrição resumida do conceito da marca */
   description: string;
   /** Tag de classificação (ex: 'Linha Principal', 'Linha Premium') */
