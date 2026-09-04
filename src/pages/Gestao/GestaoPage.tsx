@@ -188,6 +188,48 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   const [insumoConstrucao, setInsumoConstrucao] = useState('');
   const [insumoObservacoes, setInsumoObservacoes] = useState('');
 
+  // ESTADOS DE EDIÇÃO / AÇÕES DE TECIDOS
+  const [openMenuTecidoId, setOpenMenuTecidoId] = useState<string | null>(null);
+  const [editingTecido, setEditingTecido] = useState<TecidoInsumoItem | null>(null);
+  const [showInformacoesTecidoModal, setShowInformacoesTecidoModal] = useState(false);
+
+  // ============================================================================
+  // ESTADOS DA SEÇÃO DE AVIAMENTOS (PRINTS 2 E 3)
+  // ============================================================================
+  const [searchAviamentoInsumo, setSearchAviamentoInsumo] = useState('');
+  const [searchAviamentoCor, setSearchAviamentoCor] = useState('');
+  const [searchAviamentoFornecedor, setSearchAviamentoFornecedor] = useState('');
+  const [aviamentosList, setAviamentosList] = useState<TecidoInsumoItem[]>([]);
+  const [openMenuAviamentoId, setOpenMenuAviamentoId] = useState<string | null>(null);
+  const [showOpcoesAviamentoMenu, setShowOpcoesAviamentoMenu] = useState(false);
+  const [opcoesAviamentoSubMenu, setOpcoesAviamentoSubMenu] = useState<'main' | 'exportar'>('main');
+  const [showCriandoAviamentoModal, setShowCriandoAviamentoModal] = useState(false);
+  const [showInformacoesAviamentoModal, setShowInformacoesAviamentoModal] = useState(false);
+  const [editingAviamento, setEditingAviamento] = useState<TecidoInsumoItem | null>(null);
+  const [aviamentoNome, setAviamentoNome] = useState('');
+  const [aviamentoCodigo, setAviamentoCodigo] = useState('');
+  const [aviamentoPreco, setAviamentoPreco] = useState('0');
+  const [aviamentoUnidade, setAviamentoUnidade] = useState<'Unidade' | 'Metros'>('Unidade');
+  const [aviamentoObservacoes, setAviamentoObservacoes] = useState('');
+
+  // ============================================================================
+  // ESTADOS DA SEÇÃO DE CARACTERÍSTICAS (PRINTS 4 E 5)
+  // ============================================================================
+  const [caracteristicaFilterMarca, setCaracteristicaFilterMarca] = useState<'K&J Black' | 'King & Joe' | 'King & Joe Play'>('K&J Black');
+  const [caracteristicaSearchQuery, setCaracteristicaSearchQuery] = useState('');
+  const [caracteristicasList, setCaracteristicasList] = useState<{
+    id: string;
+    nome: string;
+    marca: string;
+    tabelasMedidas: { id: string; nomeTabela: string; medidas: string }[];
+  }[]>([]);
+  const [openMenuCaracteristicaId, setOpenMenuCaracteristicaId] = useState<string | null>(null);
+  const [showCriarCaracteristicaModal, setShowCriarCaracteristicaModal] = useState(false);
+  const [caracteristicaFormNome, setCaracteristicaFormNome] = useState('');
+  const [caracteristicaFormTabelas, setCaracteristicaFormTabelas] = useState<
+    { id: string; nomeTabela: string; medidas: string }[]
+  >([{ id: 'tab-1', nomeTabela: '', medidas: '' }]);
+
   // Marcas filtradas
   const filteredMarcas = MOCK_MARCAS.filter(m => 
     m.nome.toLowerCase().includes(searchMarca.toLowerCase())
@@ -345,6 +387,114 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
     setInsumoCodigo('');
     setInsumoPreco('0');
     setInsumoObservacoes('');
+  };
+
+  // Handlers para Edição/Exclusão de Tecidos
+  const handleOpenEditarTecido = (tecido: TecidoInsumoItem) => {
+    setOpenMenuTecidoId(null);
+    setEditingTecido(tecido);
+    setInsumoNome(tecido.nome);
+    setInsumoCodigo(tecido.codigo);
+    setInsumoPreco(tecido.custo.split(' ')[1]?.split(',')[0] || '0');
+    setInsumoUnidade(tecido.unidade === 'Kg' ? 'Kg' : 'Metros');
+    setShowInformacoesTecidoModal(true);
+  };
+
+  const handleSaveEditTecido = () => {
+    if (!editingTecido) return;
+    setTecidosList(prev => prev.map(t => t.id === editingTecido.id ? {
+      ...t,
+      nome: insumoNome,
+      codigo: insumoCodigo,
+      custo: `R$ ${insumoPreco || '0'},0000 /${insumoUnidade === 'Metros' ? 'M' : 'Kg'}`,
+      unidade: insumoUnidade
+    } : t));
+    setShowInformacoesTecidoModal(false);
+    setEditingTecido(null);
+  };
+
+  const handleDeleteTecido = (id: string) => {
+    setOpenMenuTecidoId(null);
+    setTecidosList(prev => prev.filter(t => t.id !== id));
+  };
+
+  // Handlers para Aviamentos
+  const handleCreateAviamento = () => {
+    if (!aviamentoNome.trim()) return;
+    const newAviamento: TecidoInsumoItem = {
+      id: `avi-${Date.now()}`,
+      nome: aviamentoNome.trim(),
+      codigo: aviamentoCodigo.trim() || '1234',
+      temErp: true,
+      fornecedores: 'FORNECEDOR PADRÃO',
+      custo: `R$ ${aviamentoPreco || '0'},0000 /${aviamentoUnidade === 'Metros' ? 'M' : 'UN'}`,
+      unidade: aviamentoUnidade as any
+    };
+    setAviamentosList(prev => [newAviamento, ...prev]);
+    setShowCriandoAviamentoModal(false);
+    setAviamentoNome('');
+    setAviamentoCodigo('');
+    setAviamentoPreco('0');
+    setAviamentoObservacoes('');
+  };
+
+  const handleOpenEditarAviamento = (aviamento: TecidoInsumoItem) => {
+    setOpenMenuAviamentoId(null);
+    setEditingAviamento(aviamento);
+    setAviamentoNome(aviamento.nome);
+    setAviamentoCodigo(aviamento.codigo);
+    setAviamentoPreco(aviamento.custo.split(' ')[1]?.split(',')[0] || '0');
+    setAviamentoUnidade(aviamento.unidade === 'Metros' ? 'Metros' : 'Unidade');
+    setShowInformacoesAviamentoModal(true);
+  };
+
+  const handleSaveEditAviamento = () => {
+    if (!editingAviamento) return;
+    setAviamentosList(prev => prev.map(a => a.id === editingAviamento.id ? {
+      ...a,
+      nome: aviamentoNome,
+      codigo: aviamentoCodigo,
+      custo: `R$ ${aviamentoPreco || '0'},0000 /${aviamentoUnidade === 'Metros' ? 'M' : 'UN'}`,
+      unidade: aviamentoUnidade as any
+    } : a));
+    setShowInformacoesAviamentoModal(false);
+    setEditingAviamento(null);
+  };
+
+  const handleDeleteAviamento = (id: string) => {
+    setOpenMenuAviamentoId(null);
+    setAviamentosList(prev => prev.filter(a => a.id !== id));
+  };
+
+  // Handlers para Características
+  const handleCreateCaracteristica = () => {
+    if (!caracteristicaFormNome.trim()) return;
+    const newCarac = {
+      id: `car-${Date.now()}`,
+      nome: caracteristicaFormNome.trim(),
+      marca: caracteristicaFilterMarca,
+      tabelasMedidas: [...caracteristicaFormTabelas]
+    };
+    setCaracteristicasList(prev => [newCarac, ...prev]);
+    setShowCriarCaracteristicaModal(false);
+    setCaracteristicaFormNome('');
+    setCaracteristicaFormTabelas([{ id: 'tab-1', nomeTabela: '', medidas: '' }]);
+  };
+
+  const handleAddFormTabela = () => {
+    setCaracteristicaFormTabelas(prev => [
+      ...prev,
+      { id: `tab-${Date.now()}`, nomeTabela: '', medidas: '' }
+    ]);
+  };
+
+  const handleRemoveFormTabela = (id: string) => {
+    setCaracteristicaFormTabelas(prev => prev.filter(t => t.id !== id));
+  };
+
+  const handleDeleteCaracteristica = (id: string) => {
+    setOpenMenuCaracteristicaId(null);
+    setCaracteristicasList(prev => prev.filter(c => c.id !== id));
   };
 
   return (
@@ -1202,13 +1352,365 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                             </td>
                             <td className="py-3 px-4 text-muted-foreground font-medium">{tecido.fornecedores}</td>
                             <td className="py-3 px-4 font-bold text-primary">{tecido.custo}</td>
-                            <td className="py-3 px-4 text-right">
+                            <td className="py-3 px-4 text-right relative">
                               <button
                                 type="button"
+                                onClick={() => setOpenMenuTecidoId(openMenuTecidoId === tecido.id ? null : tecido.id)}
                                 className="p-1.5 rounded-lg text-muted hover:text-primary hover:bg-surface-muted transition cursor-pointer"
                               >
                                 <MoreVertical className="w-4 h-4" strokeWidth={1.5} />
                               </button>
+                              {openMenuTecidoId === tecido.id && (
+                                <div className="absolute right-4 top-10 w-32 bg-surface border border-border rounded-xl shadow-xl z-50 p-1 text-left text-xs animate-in fade-in zoom-in-95 duration-150">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenEditarTecido(tecido)}
+                                    className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
+                                  >
+                                    <Pencil className="w-4 h-4 text-muted" strokeWidth={1.5} />
+                                    <span>Editar</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteTecido(tecido.id)}
+                                    className="w-full text-left px-3 py-2 text-rose-600 hover:bg-rose-50 font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
+                                  >
+                                    <Trash2 className="w-4 h-4 text-rose-600" strokeWidth={1.5} />
+                                    <span>Excluir</span>
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        ) : gestaoSubTab === 'aviamentos' ? (
+          /* ============================================================================ */
+          /* SEÇÃO AVIAMENTOS (PRINTS 2 E 3) */
+          /* ============================================================================ */
+          <>
+            <div className="p-6 rounded-xl bg-surface border border-border shadow-2xs space-y-4">
+              <div className="flex items-center gap-2 text-xs font-bold text-muted uppercase tracking-wider">
+                <Search className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                <span>Filtros</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <div className="space-y-1">
+                  <label className="font-semibold text-muted-foreground block">Insumo</label>
+                  <input
+                    type="text"
+                    value={searchAviamentoInsumo}
+                    onChange={(e) => setSearchAviamentoInsumo(e.target.value)}
+                    placeholder="Ex.: Crepe 2019..."
+                    className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="font-semibold text-muted-foreground block">Cor</label>
+                  <input
+                    type="text"
+                    value={searchAviamentoCor}
+                    onChange={(e) => setSearchAviamentoCor(e.target.value)}
+                    placeholder="Código ou Nome"
+                    className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="font-semibold text-muted-foreground block">Fornecedor</label>
+                  <input
+                    type="text"
+                    value={searchAviamentoFornecedor}
+                    onChange={(e) => setSearchAviamentoFornecedor(e.target.value)}
+                    placeholder="Código ou Nome"
+                    className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 rounded-xl bg-surface border border-border shadow-2xs space-y-6">
+              <div className="flex items-center justify-between border-b border-border-muted pb-4">
+                <h2 className="text-lg font-bold font-editorial text-primary">Insumos</h2>
+                <div className="flex items-center gap-3 relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowOpcoesAviamentoMenu(!showOpcoesAviamentoMenu);
+                      setOpcoesAviamentoSubMenu('main');
+                    }}
+                    className="px-4 py-2 border border-border hover:bg-surface-muted font-bold text-xs rounded-lg transition shadow-2xs flex items-center gap-1.5 text-primary cursor-pointer"
+                  >
+                    <span>Opções</span>
+                    <ChevronDown className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
+                  </button>
+
+                  {showOpcoesAviamentoMenu && (
+                    <div className="absolute right-32 top-11 w-44 bg-surface border border-border rounded-xl shadow-xl z-50 p-1 text-left text-xs animate-in fade-in zoom-in-95 duration-150">
+                      {opcoesAviamentoSubMenu === 'main' ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowOpcoesAviamentoMenu(false);
+                              setShowImportarInsumosModal(true);
+                            }}
+                            className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center justify-between transition cursor-pointer"
+                          >
+                            <span className="flex items-center gap-2">
+                              <UploadCloud className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                              <span>Importar</span>
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setOpcoesAviamentoSubMenu('exportar')}
+                            className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center justify-between transition cursor-pointer"
+                          >
+                            <span className="flex items-center gap-2">
+                              <Download className="w-4 h-4 text-muted" strokeWidth={1.5} />
+                              <span>Exportar</span>
+                            </span>
+                            <ChevronRight className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setOpcoesAviamentoSubMenu('main')}
+                            className="w-full text-left px-3 py-2 text-muted-foreground hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
+                          >
+                            <ChevronLeft className="w-4 h-4 text-muted" strokeWidth={1.5} />
+                            <span>Voltar</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowOpcoesAviamentoMenu(false)}
+                            className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
+                          >
+                            <FileSpreadsheet className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                            <span>Planilha</span>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAviamentoNome('');
+                      setAviamentoCodigo('');
+                      setAviamentoPreco('0');
+                      setAviamentoUnidade('Unidade');
+                      setShowCriandoAviamentoModal(true);
+                    }}
+                    className="px-4 py-2 bg-primary hover:bg-neutral-800 text-white font-bold text-xs rounded-lg transition shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" strokeWidth={1.5} />
+                    <span>Adicionar</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-border text-muted-foreground font-bold bg-surface-muted/50">
+                      <th className="py-3 px-4 w-10">
+                        <input type="checkbox" className="w-4 h-4 rounded border-border accent-accent-camel cursor-pointer" />
+                      </th>
+                      <th className="py-3 px-4">Nome</th>
+                      <th className="py-3 px-4">Código</th>
+                      <th className="py-3 px-4">Imagem</th>
+                      <th className="py-3 px-4">Fornecedores</th>
+                      <th className="py-3 px-4">Custo</th>
+                      <th className="py-3 px-4 text-right">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border-muted">
+                    {aviamentosList.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="py-12 text-center text-muted-foreground font-medium">
+                          Nenhum aviamento cadastrado. Clique em "+ Adicionar" ou "Importar" para cadastrar aviamentos.
+                        </td>
+                      </tr>
+                    ) : (
+                      aviamentosList
+                        .filter(a => {
+                          if (searchAviamentoInsumo.trim()) {
+                            const q = searchAviamentoInsumo.toLowerCase();
+                            if (!a.nome.toLowerCase().includes(q) && !a.codigo.toLowerCase().includes(q)) return false;
+                          }
+                          return true;
+                        })
+                        .map((aviamento) => (
+                          <tr key={aviamento.id} className="hover:bg-surface-muted/30 transition">
+                            <td className="py-3 px-4">
+                              <input type="checkbox" className="w-4 h-4 rounded border-border accent-accent-camel cursor-pointer" />
+                            </td>
+                            <td className="py-3 px-4 font-bold text-primary">{aviamento.nome}</td>
+                            <td className="py-3 px-4 font-mono text-muted-foreground">{aviamento.codigo}</td>
+                            <td className="py-3 px-4">
+                              <div className="w-10 h-10 rounded-lg bg-surface-muted border border-border flex items-center justify-center overflow-hidden">
+                                <ImageIcon className="w-5 h-5 text-muted opacity-50" strokeWidth={1.5} />
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-muted-foreground font-medium">{aviamento.fornecedores}</td>
+                            <td className="py-3 px-4 font-bold text-primary">{aviamento.custo}</td>
+                            <td className="py-3 px-4 text-right relative">
+                              <button
+                                type="button"
+                                onClick={() => setOpenMenuAviamentoId(openMenuAviamentoId === aviamento.id ? null : aviamento.id)}
+                                className="p-1.5 rounded-lg text-muted hover:text-primary hover:bg-surface-muted transition cursor-pointer"
+                              >
+                                <MoreVertical className="w-4 h-4" strokeWidth={1.5} />
+                              </button>
+                              {openMenuAviamentoId === aviamento.id && (
+                                <div className="absolute right-4 top-10 w-32 bg-surface border border-border rounded-xl shadow-xl z-50 p-1 text-left text-xs animate-in fade-in zoom-in-95 duration-150">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenEditarAviamento(aviamento)}
+                                    className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
+                                  >
+                                    <Pencil className="w-4 h-4 text-muted" strokeWidth={1.5} />
+                                    <span>Editar</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteAviamento(aviamento.id)}
+                                    className="w-full text-left px-3 py-2 text-rose-600 hover:bg-rose-50 font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
+                                  >
+                                    <Trash2 className="w-4 h-4 text-rose-600" strokeWidth={1.5} />
+                                    <span>Excluir</span>
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        ) : gestaoSubTab === 'caracteristicas' ? (
+          /* ============================================================================ */
+          /* SEÇÃO CARACTERÍSTICAS (PRINTS 4 E 5) */
+          /* ============================================================================ */
+          <>
+            <div className="p-6 rounded-xl bg-surface border border-border shadow-2xs space-y-4">
+              <div className="flex items-center gap-2 text-xs font-bold text-muted uppercase tracking-wider">
+                <Search className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                <span>Filtros</span>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="font-semibold text-muted-foreground w-16">Marcas</span>
+                  <div className="flex items-center gap-1.5">
+                    {(['K&J Black', 'King & Joe', 'King & Joe Play'] as const).map(m => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setCaracteristicaFilterMarca(m)}
+                        className={`px-3 py-1 rounded-md text-xs font-semibold transition cursor-pointer ${
+                          caracteristicaFilterMarca === m ? 'bg-primary text-white shadow-2xs' : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
+                        }`}
+                      >
+                        {m}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-1 max-w-xs pt-1">
+                  <label className="text-xs font-semibold text-muted-foreground block">Busca</label>
+                  <input
+                    type="text"
+                    value={caracteristicaSearchQuery}
+                    onChange={(e) => setCaracteristicaSearchQuery(e.target.value)}
+                    placeholder="Código ou Nome."
+                    className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 rounded-xl bg-surface border border-border shadow-2xs space-y-6">
+              <div className="flex items-center justify-between border-b border-border-muted pb-4">
+                <h2 className="text-lg font-bold font-editorial text-primary">Características de Marca</h2>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    className="px-4 py-2 border border-border hover:bg-surface-muted font-bold text-xs rounded-lg transition shadow-2xs flex items-center gap-1.5 text-primary cursor-pointer"
+                  >
+                    <span>Opções</span>
+                    <ChevronDown className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCaracteristicaFormNome('');
+                      setCaracteristicaFormTabelas([{ id: 'tab-1', nomeTabela: '', medidas: '' }]);
+                      setShowCriarCaracteristicaModal(true);
+                    }}
+                    className="px-4 py-2 bg-primary hover:bg-neutral-800 text-white font-bold text-xs rounded-lg transition shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span>Adicionar</span>
+                    <Plus className="w-4 h-4" strokeWidth={1.5} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-border text-muted-foreground font-bold bg-surface-muted/50">
+                      <th className="py-3 px-4">Nome</th>
+                      <th className="py-3 px-4">Tabelas de medidas</th>
+                      <th className="py-3 px-4 text-right">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border-muted">
+                    {caracteristicasList.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="py-12 text-center text-muted-foreground font-medium">
+                          Nenhum item listado
+                        </td>
+                      </tr>
+                    ) : (
+                      caracteristicasList
+                        .filter(c => c.marca === caracteristicaFilterMarca)
+                        .filter(c => !caracteristicaSearchQuery || c.nome.toLowerCase().includes(caracteristicaSearchQuery.toLowerCase()))
+                        .map((c) => (
+                          <tr key={c.id} className="hover:bg-surface-muted/30 transition">
+                            <td className="py-3 px-4 font-bold text-primary">{c.nome}</td>
+                            <td className="py-3 px-4 text-muted-foreground font-medium">{c.tabelasMedidas.length} tabela(s)</td>
+                            <td className="py-3 px-4 text-right relative">
+                              <button
+                                type="button"
+                                onClick={() => setOpenMenuCaracteristicaId(openMenuCaracteristicaId === c.id ? null : c.id)}
+                                className="p-1.5 rounded-lg text-muted hover:text-primary hover:bg-surface-muted transition cursor-pointer"
+                              >
+                                <MoreVertical className="w-4 h-4" strokeWidth={1.5} />
+                              </button>
+                              {openMenuCaracteristicaId === c.id && (
+                                <div className="absolute right-4 top-10 w-32 bg-surface border border-border rounded-xl shadow-xl z-50 p-1 text-left text-xs animate-in fade-in zoom-in-95 duration-150">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteCaracteristica(c.id)}
+                                    className="w-full text-left px-3 py-2 text-rose-600 hover:bg-rose-50 font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
+                                  >
+                                    <Trash2 className="w-4 h-4 text-rose-600" strokeWidth={1.5} />
+                                    <span>Excluir</span>
+                                  </button>
+                                </div>
+                              )}
                             </td>
                           </tr>
                         ))
@@ -1423,6 +1925,383 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
             </div>
             <div className="flex items-center justify-start px-6 py-4 border-t border-border bg-surface-muted/30">
               <button type="button" onClick={handleCreateInsumo} className="px-6 py-2.5 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs text-xs">Criar insumo</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================================ */}
+      {/* MODAL "INFORMAÇÕES" (EDIÇÃO DE TECIDO - PRINT 1) */}
+      {/* ============================================================================ */}
+      {showInformacoesTecidoModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-surface border border-border rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <h3 className="text-base font-bold font-editorial text-primary">Informações</h3>
+              <button type="button" onClick={() => setShowInformacoesTecidoModal(false)} className="text-muted hover:text-primary transition cursor-pointer">
+                <X className="w-5 h-5" strokeWidth={1.5} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-8 text-xs">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
+                <div>
+                  <h4 className="font-bold text-primary text-sm">Identificação</h4>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">Nome do insumo e código de referência</p>
+                </div>
+                <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground block">Nome <span className="text-accent-bordo">*</span></label>
+                    <input type="text" value={insumoNome} onChange={(e) => setInsumoNome(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground block">Código</label>
+                    <input type="text" value={insumoCodigo} onChange={(e) => setInsumoCodigo(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
+                <div>
+                  <h4 className="font-bold text-primary text-sm">Fornecedores</h4>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">Cadastre ou selecione quais são todos os fornecedores deste insumo.</p>
+                </div>
+                <div className="md:col-span-2">
+                  <button type="button" className="px-3 py-1.5 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer flex items-center gap-1"><Plus className="w-3.5 h-3.5" strokeWidth={1.5} /><span>Adicionar</span></button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
+                <div>
+                  <h4 className="font-bold text-primary text-sm">Imagens</h4>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">Imagens de referência</p>
+                </div>
+                <div className="md:col-span-2 flex items-center gap-3 flex-wrap">
+                  <div className="w-16 h-16 rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-surface-muted hover:border-accent-camel transition cursor-pointer text-muted">
+                    <ImageIcon className="w-6 h-6" strokeWidth={1.5} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
+                <div>
+                  <h4 className="font-bold text-primary text-sm">Composição</h4>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">Ex.: 97% Poliéster, 3% Elastano</p>
+                </div>
+                <div className="md:col-span-2 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input type="text" defaultValue="95" className="w-16 bg-surface-muted border border-border text-primary rounded-lg px-3 py-1.5 text-xs text-center" />
+                    <select defaultValue="Algodão" className="bg-surface-muted border border-border text-primary rounded-lg px-3 py-1.5 text-xs font-medium">
+                      <option value="Algodão">Algodão</option>
+                      <option value="Poliéster">Poliéster</option>
+                      <option value="Elastano">Elastano</option>
+                    </select>
+                    <button type="button" className="text-muted hover:text-rose-600"><X className="w-4 h-4" strokeWidth={1.5} /></button>
+                  </div>
+                  <button type="button" className="px-3 py-1.5 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer flex items-center gap-1"><Plus className="w-3.5 h-3.5" strokeWidth={1.5} /><span>Adicionar</span></button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
+                <div>
+                  <h4 className="font-bold text-primary text-sm">Cores</h4>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">Ex.: Azul 2369 C</p>
+                </div>
+                <div className="md:col-span-2 flex items-center gap-2 flex-wrap">
+                  <div className="w-10 h-10 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-surface-muted text-muted cursor-pointer hover:border-accent-camel transition">
+                    <Plus className="w-4 h-4" strokeWidth={1.5} />
+                  </div>
+                  <div className="px-3 py-2 bg-emerald-700 text-white font-bold rounded-lg text-[11px] uppercase">Verde</div>
+                  <div className="px-3 py-2 bg-stone-500 text-white font-bold rounded-lg text-[11px] uppercase">Cinza</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
+                <div>
+                  <h4 className="font-bold text-primary text-sm">Propriedades</h4>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">Definição das propriedades do tecido para cálculo de custos</p>
+                </div>
+                <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground block">Gramatura</label>
+                    <input type="text" value={insumoGramatura} onChange={(e) => setInsumoGramatura(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground block">Largura (em metros)</label>
+                    <input type="text" value={insumoLargura} onChange={(e) => setInsumoLargura(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground block">Rendimento</label>
+                    <input type="text" value={insumoRendimento1} onChange={(e) => setInsumoRendimento1(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground block">Rendimento</label>
+                    <input type="text" value={insumoRendimento2} onChange={(e) => setInsumoRendimento2(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground block">Encolhimento</label>
+                    <input type="text" value={insumoEncolhimento} onChange={(e) => setInsumoEncolhimento(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground block">Construção</label>
+                    <input type="text" value={insumoConstrucao} onChange={(e) => setInsumoConstrucao(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                <div>
+                  <h4 className="font-bold text-primary text-sm">Preço e observações</h4>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">Informações de preço e observações do insumo cadastrado.</p>
+                </div>
+                <div className="md:col-span-2 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="font-semibold text-muted-foreground block">Preço</label>
+                      <input type="text" value={insumoPreco} onChange={(e) => setInsumoPreco(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="font-semibold text-muted-foreground block">Unidade</label>
+                      <select value={insumoUnidade} onChange={(e) => setInsumoUnidade(e.target.value as any)} className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none cursor-pointer">
+                        <option value="Metros">Metros</option>
+                        <option value="Kg">Kg</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground block">Observações</label>
+                    <textarea rows={3} value={insumoObservacoes} onChange={(e) => setInsumoObservacoes(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-start px-6 py-4 border-t border-border bg-surface-muted/30">
+              <button type="button" onClick={handleSaveEditTecido} className="px-6 py-2.5 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs text-xs">Salvar alterações</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================================ */}
+      {/* MODAL "CRIANDO INSUMO" / "INFORMAÇÕES" (AVIAMENTOS - PRINTS 2 E 3) */}
+      {/* ============================================================================ */}
+      {(showCriandoAviamentoModal || showInformacoesAviamentoModal) && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-surface border border-border rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <h3 className="text-base font-bold font-editorial text-primary">
+                {showInformacoesAviamentoModal ? 'Informações' : 'Criando insumo'}
+              </h3>
+              <button type="button" onClick={() => { setShowCriandoAviamentoModal(false); setShowInformacoesAviamentoModal(false); }} className="text-muted hover:text-primary transition cursor-pointer">
+                <X className="w-5 h-5" strokeWidth={1.5} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-8 text-xs">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
+                <div>
+                  <h4 className="font-bold text-primary text-sm">Identificação</h4>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">Nome do insumo e código de referência</p>
+                </div>
+                <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground block">Nome <span className="text-accent-bordo">*</span></label>
+                    <input type="text" value={aviamentoNome} onChange={(e) => setAviamentoNome(e.target.value)} placeholder="Ex: Zíper Médio" className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground block">Código</label>
+                    <input type="text" value={aviamentoCodigo} onChange={(e) => setAviamentoCodigo(e.target.value)} placeholder="Ex: 1234" className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
+                <div>
+                  <h4 className="font-bold text-primary text-sm">Fornecedores</h4>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">Cadastre ou selecione quais são todos os fornecedores deste insumo.</p>
+                </div>
+                <div className="md:col-span-2">
+                  <button type="button" className="px-3 py-1.5 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer flex items-center gap-1"><Plus className="w-3.5 h-3.5" strokeWidth={1.5} /><span>Adicionar</span></button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
+                <div>
+                  <h4 className="font-bold text-primary text-sm">Imagens</h4>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">Imagens de referência</p>
+                </div>
+                <div className="md:col-span-2">
+                  <div className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-surface-muted hover:border-accent-camel transition cursor-pointer text-muted">
+                    <ImageIcon className="w-7 h-7" strokeWidth={1.5} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
+                <div>
+                  <h4 className="font-bold text-primary text-sm">Composição</h4>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">Ex.: 97% Poliéster, 3% Elastano</p>
+                </div>
+                <div className="md:col-span-2">
+                  <button type="button" className="px-3 py-1.5 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer flex items-center gap-1"><Plus className="w-3.5 h-3.5" strokeWidth={1.5} /><span>Adicionar</span></button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
+                <div>
+                  <h4 className="font-bold text-primary text-sm">Cores</h4>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">Ex.: Azul 2369 C</p>
+                </div>
+                <div className="md:col-span-2">
+                  <div className="w-12 h-12 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-surface-muted text-muted cursor-pointer hover:border-accent-camel transition">
+                    <Plus className="w-4 h-4" strokeWidth={1.5} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                <div>
+                  <h4 className="font-bold text-primary text-sm">Preço e observações</h4>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">Informações de preço e observações do insumo cadastrado.</p>
+                </div>
+                <div className="md:col-span-2 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="font-semibold text-muted-foreground block">Preço</label>
+                      <input type="text" value={aviamentoPreco} onChange={(e) => setAviamentoPreco(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="font-semibold text-muted-foreground block">Unidade</label>
+                      <select value={aviamentoUnidade} onChange={(e) => setAviamentoUnidade(e.target.value as any)} className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none cursor-pointer">
+                        <option value="Unidade">Unidade</option>
+                        <option value="Metros">Metros</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground block">Observações</label>
+                    <textarea rows={3} value={aviamentoObservacoes} onChange={(e) => setAviamentoObservacoes(e.target.value)} placeholder="Ex.: Lembrar de adicionar uma versão sintética" className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-start px-6 py-4 border-t border-border bg-surface-muted/30">
+              <button
+                type="button"
+                onClick={showInformacoesAviamentoModal ? handleSaveEditAviamento : handleCreateAviamento}
+                className="px-6 py-2.5 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs text-xs"
+              >
+                {showInformacoesAviamentoModal ? 'Salvar alterações' : 'Criar insumo'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================================ */}
+      {/* MODAL "CRIAR CARACTERÍSTICA DE MARCA" (PRINT 4) */}
+      {/* ============================================================================ */}
+      {showCriarCaracteristicaModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-surface border border-border rounded-xl shadow-xl w-full max-w-4xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <h3 className="text-base font-bold font-editorial text-primary">Criar característica de marca</h3>
+              <button type="button" onClick={() => setShowCriarCaracteristicaModal(false)} className="text-muted hover:text-primary transition cursor-pointer">
+                <X className="w-5 h-5" strokeWidth={1.5} />
+              </button>
+            </div>
+            <div className="p-6 space-y-6 text-xs">
+              <div className="space-y-1">
+                <label className="font-semibold text-muted-foreground block">Nome</label>
+                <input
+                  type="text"
+                  value={caracteristicaFormNome}
+                  onChange={(e) => setCaracteristicaFormNome(e.target.value)}
+                  placeholder="Ex.: Blusa V"
+                  className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <div className="overflow-x-auto border border-border rounded-lg">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-border text-muted-foreground font-bold bg-surface-muted/50">
+                        <th className="py-2.5 px-3">Nome da tabela</th>
+                        <th className="py-2.5 px-3">Medidas</th>
+                        <th className="py-2.5 px-3 w-20 text-center">Imagem</th>
+                        <th className="py-2.5 px-3 w-16 text-center">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border-muted">
+                      {caracteristicaFormTabelas.map((tab) => (
+                        <tr key={tab.id}>
+                          <td className="py-2 px-3">
+                            <input
+                              type="text"
+                              value={tab.nomeTabela}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setCaracteristicaFormTabelas(prev => prev.map(t => t.id === tab.id ? { ...t, nomeTabela: val } : t));
+                              }}
+                              placeholder="Ex.: Top, Bottom, ..."
+                              className="w-full bg-surface-muted border border-border text-primary rounded-md px-2.5 py-1.5 text-xs outline-none"
+                            />
+                          </td>
+                          <td className="py-2 px-3">
+                            <input
+                              type="text"
+                              value={tab.medidas}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setCaracteristicaFormTabelas(prev => prev.map(t => t.id === tab.id ? { ...t, medidas: val } : t));
+                              }}
+                              placeholder="Ex.: Gola V, Manga, ..."
+                              className="w-full bg-surface-muted border border-border text-primary rounded-md px-2.5 py-1.5 text-xs outline-none"
+                            />
+                          </td>
+                          <td className="py-2 px-3 text-center">
+                            <span className="px-2 py-1 bg-surface-muted border border-border rounded text-[11px] text-muted-foreground">Sim</span>
+                          </td>
+                          <td className="py-2 px-3 text-center">
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveFormTabela(tab.id)}
+                              className="p-1 rounded text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                            >
+                              <Trash2 className="w-4 h-4" strokeWidth={1.5} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleAddFormTabela}
+                  className="px-3 py-1.5 bg-primary text-white font-bold rounded-md hover:bg-neutral-800 transition cursor-pointer text-xs inline-flex items-center gap-1"
+                >
+                  <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
+                  <span>Tabela</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-surface-muted/30">
+              <button
+                type="button"
+                onClick={() => setShowCriarCaracteristicaModal(false)}
+                className="px-4 py-2 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer text-xs"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleCreateCaracteristica}
+                className="px-5 py-2 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs text-xs"
+              >
+                Criar
+              </button>
             </div>
           </div>
         </div>
