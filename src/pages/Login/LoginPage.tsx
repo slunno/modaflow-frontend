@@ -10,6 +10,7 @@
  */
 
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Eye, EyeOff, RefreshCw, ArrowRight } from 'lucide-react';
 
@@ -23,6 +24,9 @@ interface LoginPageProps {
  */
 export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as { from?: { pathname?: string } })?.from?.pathname || '/';
 
   // Estados do Formulário
   const [email, setEmail] = useState('nathanhlima10@gmail.com');
@@ -55,6 +59,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       if (onLoginSuccess) {
         onLoginSuccess();
       }
+      navigate(from, { replace: true });
     } catch {
       setError('Falha ao realizar login. Verifique suas credenciais.');
     } finally {
