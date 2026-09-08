@@ -98,7 +98,7 @@ interface TecidoInsumoItem {
   imagemUrl?: string;
   fornecedores: string;
   custo: string;
-  unidade: 'M' | 'Kg' | 'Metros';
+  unidade: 'M' | 'Kg' | 'Metros' | 'Unidade';
 }
 
 const INITIAL_TECIDOS_DATA: TecidoInsumoItem[] = [];
@@ -317,7 +317,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   const handleOpenEditarUsuarios = (marca: MarcaSummary) => {
     setOpenMenuMarcaId(null);
     if (marca.nome === 'King & Joe' || marca.nome === 'King & Joe Play' || marca.nome === 'K&J Black') {
-      setUserFilterMarca(marca.nome as any);
+      setUserFilterMarca(marca.nome);
     } else {
       setUserFilterMarca('Todas');
     }
@@ -428,7 +428,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
       temErp: true,
       fornecedores: 'FORNECEDOR PADRÃO',
       custo: `R$ ${aviamentoPreco || '0'},0000 /${aviamentoUnidade === 'Metros' ? 'M' : 'UN'}`,
-      unidade: aviamentoUnidade as any
+      unidade: aviamentoUnidade
     };
     setAviamentosList(prev => [newAviamento, ...prev]);
     setShowCriandoAviamentoModal(false);
@@ -455,7 +455,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
       nome: aviamentoNome,
       codigo: aviamentoCodigo,
       custo: `R$ ${aviamentoPreco || '0'},0000 /${aviamentoUnidade === 'Metros' ? 'M' : 'UN'}`,
-      unidade: aviamentoUnidade as any
+      unidade: aviamentoUnidade
     } : a));
     setShowInformacoesAviamentoModal(false);
     setEditingAviamento(null);
@@ -1910,7 +1910,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                     </div>
                     <div className="space-y-1">
                       <label className="font-semibold text-muted-foreground block">Unidade</label>
-                      <select value={insumoUnidade} onChange={(e) => setInsumoUnidade(e.target.value as any)} className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none cursor-pointer">
+                      <select value={insumoUnidade} onChange={(e) => setInsumoUnidade(e.target.value as 'Metros' | 'Kg')} className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none cursor-pointer">
                         <option value="Metros">Metros</option>
                         <option value="Kg">Kg</option>
                       </select>
@@ -2061,7 +2061,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                     </div>
                     <div className="space-y-1">
                       <label className="font-semibold text-muted-foreground block">Unidade</label>
-                      <select value={insumoUnidade} onChange={(e) => setInsumoUnidade(e.target.value as any)} className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none cursor-pointer">
+                      <select value={insumoUnidade} onChange={(e) => setInsumoUnidade(e.target.value as 'Metros' | 'Kg')} className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none cursor-pointer">
                         <option value="Metros">Metros</option>
                         <option value="Kg">Kg</option>
                       </select>
@@ -2170,7 +2170,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                     </div>
                     <div className="space-y-1">
                       <label className="font-semibold text-muted-foreground block">Unidade</label>
-                      <select value={aviamentoUnidade} onChange={(e) => setAviamentoUnidade(e.target.value as any)} className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none cursor-pointer">
+                      <select value={aviamentoUnidade} onChange={(e) => setAviamentoUnidade(e.target.value as 'Unidade' | 'Metros')} className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none cursor-pointer">
                         <option value="Unidade">Unidade</option>
                         <option value="Metros">Metros</option>
                       </select>

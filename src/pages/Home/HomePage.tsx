@@ -96,7 +96,7 @@ export const HomePage: React.FC = () => {
     return found !== -1 ? found : 0;
   });
 
-  const currentMarca: MarcaSummary = MOCK_MARCAS[currentIndex];
+  const currentMarca: MarcaSummary = MOCK_MARCAS[currentIndex] ?? MOCK_MARCAS[0]!;
 
   /** Avança para a próxima marca no carrossel */
   const handleNext = () => {

@@ -105,7 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     setUser(loggedUser);
-    setActiveMarcaState(loggedUser.marcas[0]);
+    setActiveMarcaState(loggedUser.marcas[0] ?? null);
     localStorage.setItem('modaflow_user', JSON.stringify(loggedUser));
     localStorage.setItem('modaflow_active_marca', JSON.stringify(loggedUser.marcas[0]));
     return true;

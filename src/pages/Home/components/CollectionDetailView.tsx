@@ -517,21 +517,23 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
       {/* 3. AS 10 SUB-ABAS HORIZONTAIS INTERATIVAS */}
       <div className="border-b border-border bg-surface px-4 sm:px-6 rounded-xl shadow-2xs overflow-x-auto">
         <div className="flex items-center gap-6 text-xs font-bold whitespace-nowrap min-w-max">
-          {[
-            { id: 'pecas', label: 'Peças' },
-            { id: 'temas', label: 'Temas' },
-            { id: 'cores', label: 'Cores' },
-            { id: 'paineis', label: 'Painéis' },
-            { id: 'estampas', label: 'Estampas' },
-            { id: 'reserva_tecidos', label: 'Reserva de Tecidos' },
-            { id: 'reserva_aviamentos', label: 'Reserva de Aviamentos' },
-            { id: 'mix', label: 'Mix' },
-            { id: 'metas', label: 'Metas' },
-            { id: 'cronograma', label: 'Cronograma' },
-          ].map((tab) => (
+          {(
+            [
+              { id: 'pecas', label: 'Peças' },
+              { id: 'temas', label: 'Temas' },
+              { id: 'cores', label: 'Cores' },
+              { id: 'paineis', label: 'Painéis' },
+              { id: 'estampas', label: 'Estampas' },
+              { id: 'reserva_tecidos', label: 'Reserva de Tecidos' },
+              { id: 'reserva_aviamentos', label: 'Reserva de Aviamentos' },
+              { id: 'mix', label: 'Mix' },
+              { id: 'metas', label: 'Metas' },
+              { id: 'cronograma', label: 'Cronograma' },
+            ] as const
+          ).map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id)}
               className={`py-3.5 border-b-2 transition-all duration-200 cursor-pointer ${
                 activeTab === tab.id
                   ? 'border-accent-camel text-accent-camel font-bold'
