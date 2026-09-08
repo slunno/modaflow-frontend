@@ -1,83 +1,97 @@
 /**
  * ============================================================================
- * COMPONENTE WRAPPER: Carrossel 3D de Coleções em Destaque
+ * COMPONENTE WRAPPER: Carrossel 3D de Marcas da AKR BRANDS
  * ARQUIVO: src/pages/Home/components/ColecoesDestaqueCarousel.tsx
  * PROJETO: ModaFlow PLM — AKR BRANDS
- * DESCRIÇÃO: Encapsula o componente de UI reutilizável CoverFlowCarousel e
- *            injeta os dados reais das coleções e marcas da AKR BRANDS.
+ * DESCRIÇÃO: Encapsula o CoverFlowCarousel 3D e exibe as marcas da King & Joe / AKR BRANDS
+ *            em tela cheia com fundo escuro ambiente e navegação direta para coleções.
  * ============================================================================
  */
 
 import React from 'react';
 import { CoverFlowCarousel, type CarouselItem } from '@/components/ui/3-d-coverflow-carousel';
+import { MOCK_MARCAS } from '@/constants/mockData';
+import type { MarcaSummary } from '@/types/auth';
 
 interface ColecoesDestaqueCarouselProps {
-  onSelectColecao?: (colecaoTitle: string) => void;
+  onSelectMarca?: (marca: MarcaSummary) => void;
 }
 
-/** Dados Reais de Domínio do ModaFlow PLM — AKR BRANDS */
-const COLECOES_PLM_ITEMS: CarouselItem[] = [
+interface MarcaCarouselItem extends CarouselItem {
+  marcaObj: MarcaSummary;
+}
+
+/** Dados Reais das Marcas da AKR BRANDS / King & Joe */
+const MARCAS_PLM_ITEMS: MarcaCarouselItem[] = [
   {
     tag: '#LinhaPrincipal',
-    titleLine1: 'VERÃO 2028',
-    titleLine2: '– KING & JOE',
-    desc: 'Alfaiataria desconstruída, linho puro e tons terracota contemporâneos.',
+    titleLine1: 'KING & JOE',
+    titleLine2: '– MAIN COLLECTION',
+    desc: 'Moda masculina contemporânea com foco em conforto, estilo casual sofisticado e alfaiataria desconstruída.',
     img: 'https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?q=80&w=1600&auto=format&fit=crop',
-    ctaText: 'Explorar Coleção',
+    ctaText: 'ABRIR COLEÇÕES',
     ctaUrl: '#',
+    marcaObj: MOCK_MARCAS[0]!,
   },
   {
     tag: '#LinhaPremium',
-    titleLine1: 'INVERNO 2027',
-    titleLine2: '– K&J BLACK',
-    desc: 'Peças sartoriais em tecidos nobres, blazers estruturados e alfaiataria noitiva.',
+    titleLine1: 'K&J BLACK',
+    titleLine2: '– SARTORIAL & NIGHT',
+    desc: 'Coleção premium e sartorial. Peças exclusivas em tecidos nobres, blazers estruturados e alfaiataria noitiva.',
     img: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=1600&auto=format&fit=crop',
-    ctaText: 'Explorar Coleção',
+    ctaText: 'ABRIR COLEÇÕES',
     ctaUrl: '#',
+    marcaObj: MOCK_MARCAS[1]!,
   },
   {
     tag: '#Sportwear',
-    titleLine1: 'ALTO VERÃO 26',
-    titleLine2: '– KING & JOE PLAY',
-    desc: 'Estilo urbano dinâmico, bermudas aquáticas e camisetas de toque macio.',
+    titleLine1: 'KING & JOE PLAY',
+    titleLine2: '– URBAN & SPORT',
+    desc: 'Estilo urbano, esportivo e jovem. Camisetas exclusivas, bermudas funcionais e moda casual dinâmica.',
     img: 'https://images.unsplash.com/photo-1516257984-b1b4d707412e?q=80&w=1600&auto=format&fit=crop',
-    ctaText: 'Explorar Coleção',
+    ctaText: 'ABRIR COLEÇÕES',
     ctaUrl: '#',
+    marcaObj: MOCK_MARCAS[2]!,
   },
   {
-    tag: '#PreviewInverno',
-    titleLine1: 'PREVIEW 2028',
-    titleLine2: '– URBAN HERITAGE',
+    tag: '#Preview2028',
+    titleLine1: 'URBAN HERITAGE',
+    titleLine2: '– PREVIEW INVERNO',
     desc: 'Tricots texturizados, overshirts em sarja pesada e paleta militar minimalista.',
     img: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?q=80&w=1600&auto=format&fit=crop',
-    ctaText: 'Explorar Coleção',
+    ctaText: 'ABRIR COLEÇÕES',
     ctaUrl: '#',
+    marcaObj: MOCK_MARCAS[0]!,
   },
   {
     tag: '#EdicaoLimitada',
-    titleLine1: 'CÁPSULA ATEMPORAL',
-    titleLine2: '– AKR SELECTION',
-    desc: 'Edição limitada em algodão egípcio orgânico com tingimento artesanal.',
+    titleLine1: 'AKR SELECTION',
+    titleLine2: '– CÁPSULA ATEMPORAL',
+    desc: 'Edição limitada em algodão egípcio orgânico com tingimento artesanal de alfaiataria.',
     img: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=1600&auto=format&fit=crop',
-    ctaText: 'Explorar Coleção',
+    ctaText: 'ABRIR COLEÇÕES',
     ctaUrl: '#',
+    marcaObj: MOCK_MARCAS[0]!,
   },
 ];
 
 export const ColecoesDestaqueCarousel: React.FC<ColecoesDestaqueCarouselProps> = ({
-  onSelectColecao,
+  onSelectMarca,
 }) => {
   const handleCtaClick = (item: CarouselItem) => {
-    if (onSelectColecao) {
-      onSelectColecao(`${item.titleLine1} ${item.titleLine2 ?? ''}`);
+    const matched = MARCAS_PLM_ITEMS.find((m) => m.titleLine1 === item.titleLine1);
+    if (onSelectMarca && matched) {
+      onSelectMarca(matched.marcaObj);
+    } else if (onSelectMarca) {
+      onSelectMarca(MOCK_MARCAS[0]!);
     }
   };
 
   return (
-    <div className="w-full rounded-2xl overflow-hidden shadow-2xl my-6 border border-border/40">
+    <div className="w-full bg-[#0c0a09]">
       <CoverFlowCarousel
-        items={COLECOES_PLM_ITEMS}
-        sectionLabel="COLEÇÕES EM DESTAQUE — AKR BRANDS"
+        items={MARCAS_PLM_ITEMS}
+        sectionLabel="MARCAS DA ORGANIZAÇÃO — AKR BRANDS"
         autoplay={true}
         autoplayDelay={6000}
         onCtaClick={handleCtaClick}
