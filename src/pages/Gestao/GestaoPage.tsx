@@ -14,15 +14,15 @@
 import React, { useState } from 'react';
 import type { MarcaSummary } from '../../types/auth';
 import { MOCK_MARCAS } from '../../contexts/AuthContext';
-import { 
-  Search, 
-  Plus, 
-  MoreVertical, 
-  FolderOpen, 
-  Pencil, 
-  UserCog, 
-  Users2, 
-  X, 
+import {
+  Search,
+  Plus,
+  MoreVertical,
+  FolderOpen,
+  Pencil,
+  UserCog,
+  Users2,
+  X,
   Image as ImageIcon,
   AlertTriangle,
   ChevronLeft,
@@ -34,7 +34,7 @@ import {
   Download,
   RotateCcw,
   Trash2,
-  FileSpreadsheet
+  FileSpreadsheet,
 } from 'lucide-react';
 
 interface GestaoPageProps {
@@ -48,7 +48,7 @@ const CARGOS_OPCOES = [
   'Assistente',
   'Coordenador',
   'Observador',
-  'Estilista'
+  'Estilista',
 ];
 
 // ESTRUTURAS DE DADOS DE USUÁRIOS
@@ -86,7 +86,7 @@ const INITIAL_TEAMS: TeamItem[] = [
   { id: 't-3', nome: 'Coordenador', descricao: '--', designadoProduto: false },
   { id: 't-4', nome: 'Espectador', descricao: '--', designadoProduto: false },
   { id: 't-5', nome: 'Estilista', descricao: '--', designadoProduto: false },
-  { id: 't-6', nome: 'Modelista', descricao: '--', designadoProduto: false }
+  { id: 't-6', nome: 'Modelista', descricao: '--', designadoProduto: false },
 ];
 
 // ESTRUTURA DE TECIDOS / INSUMOS
@@ -109,8 +109,19 @@ const INITIAL_USERS_DATA: UserRecord[] = [];
 export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   // Aba de Gestão Ativa
   const [gestaoSubTab, setGestaoSubTab] = useState<
-    'marcas' | 'usuarios' | 'times' | 'tecidos' | 'aviamentos' | 'caracteristicas' |
-    'custos_fixos' | 'precificacao' | 'tipos_peca' | 'fornecedores' | 'tags' | 'fluxos' | 'campos_custom'
+    | 'marcas'
+    | 'usuarios'
+    | 'times'
+    | 'tecidos'
+    | 'aviamentos'
+    | 'caracteristicas'
+    | 'custos_fixos'
+    | 'precificacao'
+    | 'tipos_peca'
+    | 'fornecedores'
+    | 'tags'
+    | 'fluxos'
+    | 'campos_custom'
   >('marcas');
 
   // ============================================================================
@@ -128,8 +139,12 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   // ESTADOS DA SEÇÃO DE USUÁRIOS
   // ============================================================================
   const [usersList, setUsersList] = useState<UserRecord[]>(INITIAL_USERS_DATA);
-  const [userFilterMarca, setUserFilterMarca] = useState<'Todas' | 'King & Joe' | 'King & Joe Play' | 'K&J Black'>('Todas');
-  const [userFilterStatus, setUserFilterStatus] = useState<'Ativos' | 'Todos' | 'Inativos'>('Ativos');
+  const [userFilterMarca, setUserFilterMarca] = useState<
+    'Todas' | 'King & Joe' | 'King & Joe Play' | 'K&J Black'
+  >('Todas');
+  const [userFilterStatus, setUserFilterStatus] = useState<'Ativos' | 'Todos' | 'Inativos'>(
+    'Ativos'
+  );
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [openMenuUserId, setOpenMenuUserId] = useState<string | null>(null);
 
@@ -166,7 +181,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   const [searchTecidoCor, setSearchTecidoCor] = useState('');
   const [searchTecidoFornecedor, setSearchTecidoFornecedor] = useState('');
   const [tecidosList, setTecidosList] = useState<TecidoInsumoItem[]>(INITIAL_TECIDOS_DATA);
-  
+
   // MENU DE OPÇÕES (IMPORTAR, EXPORTAR SUB-MENU, RESTAURAR, EXCLUIR)
   const [showOpcoesTecidoMenu, setShowOpcoesTecidoMenu] = useState(false);
   const [opcoesTecidoSubMenu, setOpcoesTecidoSubMenu] = useState<'main' | 'exportar'>('main');
@@ -215,14 +230,18 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   // ============================================================================
   // ESTADOS DA SEÇÃO DE CARACTERÍSTICAS (PRINTS 4 E 5)
   // ============================================================================
-  const [caracteristicaFilterMarca, setCaracteristicaFilterMarca] = useState<'K&J Black' | 'King & Joe' | 'King & Joe Play'>('K&J Black');
+  const [caracteristicaFilterMarca, setCaracteristicaFilterMarca] = useState<
+    'K&J Black' | 'King & Joe' | 'King & Joe Play'
+  >('K&J Black');
   const [caracteristicaSearchQuery, setCaracteristicaSearchQuery] = useState('');
-  const [caracteristicasList, setCaracteristicasList] = useState<{
-    id: string;
-    nome: string;
-    marca: string;
-    tabelasMedidas: { id: string; nomeTabela: string; medidas: string }[];
-  }[]>([]);
+  const [caracteristicasList, setCaracteristicasList] = useState<
+    {
+      id: string;
+      nome: string;
+      marca: string;
+      tabelasMedidas: { id: string; nomeTabela: string; medidas: string }[];
+    }[]
+  >([]);
   const [openMenuCaracteristicaId, setOpenMenuCaracteristicaId] = useState<string | null>(null);
   const [showCriarCaracteristicaModal, setShowCriarCaracteristicaModal] = useState(false);
   const [caracteristicaFormNome, setCaracteristicaFormNome] = useState('');
@@ -231,12 +250,12 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   >([{ id: 'tab-1', nomeTabela: '', medidas: '' }]);
 
   // Marcas filtradas
-  const filteredMarcas = MOCK_MARCAS.filter(m => 
+  const filteredMarcas = MOCK_MARCAS.filter((m) =>
     m.nome.toLowerCase().includes(searchMarca.toLowerCase())
   );
 
   // Usuários filtrados
-  const filteredUsers = usersList.filter(u => {
+  const filteredUsers = usersList.filter((u) => {
     if (userFilterMarca !== 'Todas' && !u.marcas.includes(userFilterMarca)) return false;
     if (userFilterStatus === 'Ativos' && u.status !== 'Ativo') return false;
     if (userFilterStatus === 'Inativos' && u.status !== 'Inativo') return false;
@@ -266,11 +285,11 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
       brandRoles: [
         { marcaId: '2', marcaNome: 'K&J Black', cargo: 'Administrador', times: [] },
         { marcaId: '1', marcaNome: 'King & Joe', cargo: 'Administrador', times: [] },
-        { marcaId: '3', marcaNome: 'King & Joe Play', cargo: 'Administrador', times: [] }
-      ]
+        { marcaId: '3', marcaNome: 'King & Joe Play', cargo: 'Administrador', times: [] },
+      ],
     };
 
-    setUsersList(prev => [newUser, ...prev]);
+    setUsersList((prev) => [newUser, ...prev]);
     setShowCriarUsuarioModal(false);
     setNewUserName('');
     setNewUserCodigo('');
@@ -289,16 +308,18 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   // Salvar Alterações de Editar Perfil
   const handleSaveUserProfile = () => {
     if (!editingUserProfile) return;
-    setUsersList(prev => prev.map(u => u.id === editingUserProfile.id ? editingUserProfile : u));
+    setUsersList((prev) =>
+      prev.map((u) => (u.id === editingUserProfile.id ? editingUserProfile : u))
+    );
     setEditingUserProfile(null);
   };
 
   // Atualizar Cargo de Marca na Tela Editar Perfil
   const handleUpdateUserBrandRole = (marcaId: string, newCargo: string) => {
     if (!editingUserProfile) return;
-    setEditingUserProfile(prev => {
+    setEditingUserProfile((prev) => {
       if (!prev) return null;
-      const updatedRoles = prev.brandRoles.map(r => 
+      const updatedRoles = prev.brandRoles.map((r) =>
         r.marcaId === marcaId ? { ...r, cargo: newCargo } : r
       );
       return { ...prev, brandRoles: updatedRoles };
@@ -316,7 +337,11 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   // Abrir Lista de Usuários Filtrada pela Marca
   const handleOpenEditarUsuarios = (marca: MarcaSummary) => {
     setOpenMenuMarcaId(null);
-    if (marca.nome === 'King & Joe' || marca.nome === 'King & Joe Play' || marca.nome === 'K&J Black') {
+    if (
+      marca.nome === 'King & Joe' ||
+      marca.nome === 'King & Joe Play' ||
+      marca.nome === 'K&J Black'
+    ) {
       setUserFilterMarca(marca.nome);
     } else {
       setUserFilterMarca('Todas');
@@ -332,7 +357,9 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
 
   // Toggle checkbox em Modificar Times
   const handleToggleTeamProductDesignated = (teamId: string) => {
-    setTeamsList(prev => prev.map(t => t.id === teamId ? { ...t, designadoProduto: !t.designadoProduto } : t));
+    setTeamsList((prev) =>
+      prev.map((t) => (t.id === teamId ? { ...t, designadoProduto: !t.designadoProduto } : t))
+    );
   };
 
   // Abrir Modal de Editar/Atualizar Time na tela Times (Print 1)
@@ -348,20 +375,26 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   // Salvar Time
   const handleSaveTeam = () => {
     if (editingTeam) {
-      setTeamsList(prev => prev.map(t => t.id === editingTeam.id ? { 
-        ...t, 
-        nome: teamFormNome, 
-        designadoProduto: teamFormDesignado, 
-        descricao: teamFormDescricao || '--' 
-      } : t));
+      setTeamsList((prev) =>
+        prev.map((t) =>
+          t.id === editingTeam.id
+            ? {
+                ...t,
+                nome: teamFormNome,
+                designadoProduto: teamFormDesignado,
+                descricao: teamFormDescricao || '--',
+              }
+            : t
+        )
+      );
     } else {
       const newT: TeamItem = {
         id: `t-${Date.now()}`,
         nome: teamFormNome || 'Novo Time',
         descricao: teamFormDescricao || '--',
-        designadoProduto: teamFormDesignado
+        designadoProduto: teamFormDesignado,
       };
-      setTeamsList(prev => [...prev, newT]);
+      setTeamsList((prev) => [...prev, newT]);
     }
     setShowAtualizarTimeModal(false);
     setEditingTeam(null);
@@ -378,10 +411,10 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
       temErp: true,
       fornecedores: 'VICUNHA - MARACANAÚ 010020',
       custo: `R$ ${insumoPreco || '0'},0000 /${insumoUnidade === 'Metros' ? 'M' : 'Kg'}`,
-      unidade: insumoUnidade
+      unidade: insumoUnidade,
     };
 
-    setTecidosList(prev => [newInsumo, ...prev]);
+    setTecidosList((prev) => [newInsumo, ...prev]);
     setShowCriandoInsumoModal(false);
     setInsumoNome('');
     setInsumoCodigo('');
@@ -402,20 +435,26 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
 
   const handleSaveEditTecido = () => {
     if (!editingTecido) return;
-    setTecidosList(prev => prev.map(t => t.id === editingTecido.id ? {
-      ...t,
-      nome: insumoNome,
-      codigo: insumoCodigo,
-      custo: `R$ ${insumoPreco || '0'},0000 /${insumoUnidade === 'Metros' ? 'M' : 'Kg'}`,
-      unidade: insumoUnidade
-    } : t));
+    setTecidosList((prev) =>
+      prev.map((t) =>
+        t.id === editingTecido.id
+          ? {
+              ...t,
+              nome: insumoNome,
+              codigo: insumoCodigo,
+              custo: `R$ ${insumoPreco || '0'},0000 /${insumoUnidade === 'Metros' ? 'M' : 'Kg'}`,
+              unidade: insumoUnidade,
+            }
+          : t
+      )
+    );
     setShowInformacoesTecidoModal(false);
     setEditingTecido(null);
   };
 
   const handleDeleteTecido = (id: string) => {
     setOpenMenuTecidoId(null);
-    setTecidosList(prev => prev.filter(t => t.id !== id));
+    setTecidosList((prev) => prev.filter((t) => t.id !== id));
   };
 
   // Handlers para Aviamentos
@@ -428,9 +467,9 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
       temErp: true,
       fornecedores: 'FORNECEDOR PADRÃO',
       custo: `R$ ${aviamentoPreco || '0'},0000 /${aviamentoUnidade === 'Metros' ? 'M' : 'UN'}`,
-      unidade: aviamentoUnidade
+      unidade: aviamentoUnidade,
     };
-    setAviamentosList(prev => [newAviamento, ...prev]);
+    setAviamentosList((prev) => [newAviamento, ...prev]);
     setShowCriandoAviamentoModal(false);
     setAviamentoNome('');
     setAviamentoCodigo('');
@@ -450,20 +489,26 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
 
   const handleSaveEditAviamento = () => {
     if (!editingAviamento) return;
-    setAviamentosList(prev => prev.map(a => a.id === editingAviamento.id ? {
-      ...a,
-      nome: aviamentoNome,
-      codigo: aviamentoCodigo,
-      custo: `R$ ${aviamentoPreco || '0'},0000 /${aviamentoUnidade === 'Metros' ? 'M' : 'UN'}`,
-      unidade: aviamentoUnidade
-    } : a));
+    setAviamentosList((prev) =>
+      prev.map((a) =>
+        a.id === editingAviamento.id
+          ? {
+              ...a,
+              nome: aviamentoNome,
+              codigo: aviamentoCodigo,
+              custo: `R$ ${aviamentoPreco || '0'},0000 /${aviamentoUnidade === 'Metros' ? 'M' : 'UN'}`,
+              unidade: aviamentoUnidade,
+            }
+          : a
+      )
+    );
     setShowInformacoesAviamentoModal(false);
     setEditingAviamento(null);
   };
 
   const handleDeleteAviamento = (id: string) => {
     setOpenMenuAviamentoId(null);
-    setAviamentosList(prev => prev.filter(a => a.id !== id));
+    setAviamentosList((prev) => prev.filter((a) => a.id !== id));
   };
 
   // Handlers para Características
@@ -473,33 +518,32 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
       id: `car-${Date.now()}`,
       nome: caracteristicaFormNome.trim(),
       marca: caracteristicaFilterMarca,
-      tabelasMedidas: [...caracteristicaFormTabelas]
+      tabelasMedidas: [...caracteristicaFormTabelas],
     };
-    setCaracteristicasList(prev => [newCarac, ...prev]);
+    setCaracteristicasList((prev) => [newCarac, ...prev]);
     setShowCriarCaracteristicaModal(false);
     setCaracteristicaFormNome('');
     setCaracteristicaFormTabelas([{ id: 'tab-1', nomeTabela: '', medidas: '' }]);
   };
 
   const handleAddFormTabela = () => {
-    setCaracteristicaFormTabelas(prev => [
+    setCaracteristicaFormTabelas((prev) => [
       ...prev,
-      { id: `tab-${Date.now()}`, nomeTabela: '', medidas: '' }
+      { id: `tab-${Date.now()}`, nomeTabela: '', medidas: '' },
     ]);
   };
 
   const handleRemoveFormTabela = (id: string) => {
-    setCaracteristicaFormTabelas(prev => prev.filter(t => t.id !== id));
+    setCaracteristicaFormTabelas((prev) => prev.filter((t) => t.id !== id));
   };
 
   const handleDeleteCaracteristica = (id: string) => {
     setOpenMenuCaracteristicaId(null);
-    setCaracteristicasList(prev => prev.filter(c => c.id !== id));
+    setCaracteristicasList((prev) => prev.filter((c) => c.id !== id));
   };
 
   return (
     <div className="w-full min-h-screen bg-bg text-primary pb-16 font-sans">
-      
       {/* 1. SUB-NAVEGAÇÃO DE GESTÃO & CADASTROS BASE */}
       <div className="bg-surface border-b border-border shadow-2xs sticky top-16 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -652,7 +696,6 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
 
       {/* 2. CONTEÚDO PRINCIPAL DAS ABAS */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-in fade-in duration-200">
-        
         {/* ============================================================================ */}
         {/* SEÇÃO 1: MARCAS */}
         {/* ============================================================================ */}
@@ -709,19 +752,32 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                         <td className="py-3 px-4">
                           <div className="w-10 h-10 rounded-lg bg-surface-muted border border-border flex items-center justify-center overflow-hidden">
                             {marca.heroImageUrl ? (
-                              <img src={marca.heroImageUrl} alt={marca.nome} className="w-full h-full object-cover img-brand-treated" />
+                              <img
+                                src={marca.heroImageUrl}
+                                alt={marca.nome}
+                                className="w-full h-full object-cover img-brand-treated"
+                              />
                             ) : (
-                              <ImageIcon className="w-5 h-5 text-muted opacity-50" strokeWidth={1.5} />
+                              <ImageIcon
+                                className="w-5 h-5 text-muted opacity-50"
+                                strokeWidth={1.5}
+                              />
                             )}
                           </div>
                         </td>
                         <td className="py-3 px-4 font-bold text-primary">{marca.nome}</td>
-                        <td className="py-3 px-4 text-muted-foreground font-medium">{marca.totalColecoes || marca.colecoesCount}</td>
-                        <td className="py-3 px-4 text-muted-foreground font-medium">{marca.totalUsuarios || 16}</td>
+                        <td className="py-3 px-4 text-muted-foreground font-medium">
+                          {marca.totalColecoes || marca.colecoesCount}
+                        </td>
+                        <td className="py-3 px-4 text-muted-foreground font-medium">
+                          {marca.totalUsuarios || 16}
+                        </td>
                         <td className="py-3 px-4 text-right relative">
                           <button
                             type="button"
-                            onClick={() => setOpenMenuMarcaId(openMenuMarcaId === marca.id ? null : marca.id)}
+                            onClick={() =>
+                              setOpenMenuMarcaId(openMenuMarcaId === marca.id ? null : marca.id)
+                            }
                             className="p-1.5 rounded-lg text-muted hover:text-primary hover:bg-surface-muted transition cursor-pointer"
                           >
                             <MoreVertical className="w-4 h-4" strokeWidth={1.5} />
@@ -736,7 +792,10 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                                 }}
                                 className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
                               >
-                                <FolderOpen className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                                <FolderOpen
+                                  className="w-4 h-4 text-accent-camel"
+                                  strokeWidth={1.5}
+                                />
                                 <span>Abrir</span>
                               </button>
                               <button
@@ -799,23 +858,33 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
             </div>
 
             <div className="p-6 rounded-xl bg-surface border border-border shadow-2xs space-y-4">
-              <div className="text-xs font-bold text-muted uppercase tracking-wider">Informações do usuário</div>
+              <div className="text-xs font-bold text-muted uppercase tracking-wider">
+                Informações do usuário
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground block">Nome <span className="text-accent-bordo">*</span></label>
+                  <label className="font-semibold text-muted-foreground block">
+                    Nome <span className="text-accent-bordo">*</span>
+                  </label>
                   <input
                     type="text"
                     value={editingUserProfile.nome}
-                    onChange={(e) => setEditingUserProfile({ ...editingUserProfile, nome: e.target.value })}
+                    onChange={(e) =>
+                      setEditingUserProfile({ ...editingUserProfile, nome: e.target.value })
+                    }
                     className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground block">E-mail <span className="text-accent-bordo">*</span></label>
+                  <label className="font-semibold text-muted-foreground block">
+                    E-mail <span className="text-accent-bordo">*</span>
+                  </label>
                   <input
                     type="email"
                     value={editingUserProfile.email}
-                    onChange={(e) => setEditingUserProfile({ ...editingUserProfile, email: e.target.value })}
+                    onChange={(e) =>
+                      setEditingUserProfile({ ...editingUserProfile, email: e.target.value })
+                    }
                     className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
                   />
                 </div>
@@ -827,7 +896,9 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                   <input
                     type="text"
                     value={editingUserProfile.codigo || ''}
-                    onChange={(e) => setEditingUserProfile({ ...editingUserProfile, codigo: e.target.value })}
+                    onChange={(e) =>
+                      setEditingUserProfile({ ...editingUserProfile, codigo: e.target.value })
+                    }
                     className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
                   />
                 </div>
@@ -835,17 +906,23 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
-                      onClick={() => setEditingUserProfile({ 
-                        ...editingUserProfile, 
-                        status: editingUserProfile.status === 'Ativo' ? 'Inativo' : 'Ativo' 
-                      })}
+                      onClick={() =>
+                        setEditingUserProfile({
+                          ...editingUserProfile,
+                          status: editingUserProfile.status === 'Ativo' ? 'Inativo' : 'Ativo',
+                        })
+                      }
                       className={`w-10 h-5 rounded-full p-0.5 transition cursor-pointer ${
-                        editingUserProfile.status === 'Ativo' ? 'bg-accent-camel' : 'bg-surface-muted border border-border'
+                        editingUserProfile.status === 'Ativo'
+                          ? 'bg-accent-camel'
+                          : 'bg-surface-muted border border-border'
                       }`}
                     >
-                      <div className={`w-4 h-4 rounded-full bg-white shadow-2xs transition-transform ${
-                        editingUserProfile.status === 'Ativo' ? 'translate-x-5' : 'translate-x-0'
-                      }`} />
+                      <div
+                        className={`w-4 h-4 rounded-full bg-white shadow-2xs transition-transform ${
+                          editingUserProfile.status === 'Ativo' ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
                     </button>
                     <span className="text-xs font-semibold text-primary">Ativo</span>
                   </div>
@@ -868,12 +945,16 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                     type="button"
                     onClick={() => setFiltrarCargosToggle(!filtrarCargosToggle)}
                     className={`w-10 h-5 rounded-full p-0.5 transition cursor-pointer ${
-                      filtrarCargosToggle ? 'bg-accent-camel' : 'bg-surface-muted border border-border'
+                      filtrarCargosToggle
+                        ? 'bg-accent-camel'
+                        : 'bg-surface-muted border border-border'
                     }`}
                   >
-                    <div className={`w-4 h-4 rounded-full bg-white shadow-2xs transition-transform ${
-                      filtrarCargosToggle ? 'translate-x-5' : 'translate-x-0'
-                    }`} />
+                    <div
+                      className={`w-4 h-4 rounded-full bg-white shadow-2xs transition-transform ${
+                        filtrarCargosToggle ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
                   </button>
                   <span className="text-xs font-semibold text-primary">Filtrar Cargos</span>
                 </div>
@@ -894,17 +975,22 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                   </thead>
                   <tbody className="divide-y divide-border-muted">
                     {MOCK_MARCAS.map((marca) => {
-                      const roleEntry = editingUserProfile.brandRoles.find(r => r.marcaId === marca.id) || {
+                      const roleEntry = editingUserProfile.brandRoles.find(
+                        (r) => r.marcaId === marca.id
+                      ) || {
                         marcaId: marca.id,
                         marcaNome: marca.nome,
                         cargo: 'Nenhum',
-                        times: []
+                        times: [],
                       };
                       return (
                         <tr key={marca.id} className="hover:bg-surface-muted/30 transition">
                           <td className="py-3 px-4">
                             <div className="w-10 h-10 rounded-lg bg-surface-muted border border-border flex items-center justify-center overflow-hidden">
-                              <ImageIcon className="w-5 h-5 text-muted opacity-50" strokeWidth={1.5} />
+                              <ImageIcon
+                                className="w-5 h-5 text-muted opacity-50"
+                                strokeWidth={1.5}
+                              />
                             </div>
                           </td>
                           <td className="py-3 px-4 font-bold text-primary">{marca.nome}</td>
@@ -914,8 +1000,10 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                               onChange={(e) => handleUpdateUserBrandRole(marca.id, e.target.value)}
                               className="bg-surface border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none cursor-pointer w-48"
                             >
-                              {CARGOS_OPCOES.map(cargo => (
-                                <option key={cargo} value={cargo}>{cargo}</option>
+                              {CARGOS_OPCOES.map((cargo) => (
+                                <option key={cargo} value={cargo}>
+                                  {cargo}
+                                </option>
                               ))}
                             </select>
                           </td>
@@ -945,13 +1033,15 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                 <div className="flex items-center gap-2 text-xs">
                   <span className="font-semibold text-muted-foreground w-16">Marcas</span>
                   <div className="flex items-center gap-1.5">
-                    {(['Todas', 'King & Joe', 'King & Joe Play', 'K&J Black'] as const).map(m => (
+                    {(['Todas', 'King & Joe', 'King & Joe Play', 'K&J Black'] as const).map((m) => (
                       <button
                         key={m}
                         type="button"
                         onClick={() => setUserFilterMarca(m)}
                         className={`px-3 py-1 rounded-md text-xs font-semibold transition cursor-pointer ${
-                          userFilterMarca === m ? 'bg-primary text-white shadow-2xs' : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
+                          userFilterMarca === m
+                            ? 'bg-primary text-white shadow-2xs'
+                            : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
                         }`}
                       >
                         {m}
@@ -963,13 +1053,15 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                 <div className="flex items-center gap-2 text-xs">
                   <span className="font-semibold text-muted-foreground w-16">Status</span>
                   <div className="flex items-center gap-1.5">
-                    {(['Ativos', 'Todos', 'Inativos'] as const).map(s => (
+                    {(['Ativos', 'Todos', 'Inativos'] as const).map((s) => (
                       <button
                         key={s}
                         type="button"
                         onClick={() => setUserFilterStatus(s)}
                         className={`px-3 py-1 rounded-md text-xs font-semibold transition cursor-pointer ${
-                          userFilterStatus === s ? 'bg-primary text-white shadow-2xs' : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
+                          userFilterStatus === s
+                            ? 'bg-primary text-white shadow-2xs'
+                            : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
                         }`}
                       >
                         {s}
@@ -1020,8 +1112,12 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                   <tbody className="divide-y divide-border-muted">
                     {filteredUsers.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="py-12 text-center text-muted-foreground font-medium">
-                          Nenhum usuário cadastrado. Clique em "+ Criar usuário" para cadastrar um novo perfil.
+                        <td
+                          colSpan={7}
+                          className="py-12 text-center text-muted-foreground font-medium"
+                        >
+                          Nenhum usuário cadastrado. Clique em "+ Criar usuário" para cadastrar um
+                          novo perfil.
                         </td>
                       </tr>
                     ) : (
@@ -1032,25 +1128,36 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                           <td className="py-3 px-4 text-muted">{u.codigo || '--'}</td>
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              {u.marcas.map(m => (
-                                <span key={m} className="px-2 py-0.5 rounded-md bg-accent-camel/10 text-accent-camel font-semibold text-[11px]">{m}</span>
+                              {u.marcas.map((m) => (
+                                <span
+                                  key={m}
+                                  className="px-2 py-0.5 rounded-md bg-accent-camel/10 text-accent-camel font-semibold text-[11px]"
+                                >
+                                  {m}
+                                </span>
                               ))}
                             </div>
                           </td>
                           <td className="py-3 px-4">
-                            <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${u.status === 'Ativo' ? 'bg-emerald-500/10 text-emerald-700' : 'bg-rose-500/10 text-rose-700'}`}>
+                            <span
+                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${u.status === 'Ativo' ? 'bg-emerald-500/10 text-emerald-700' : 'bg-rose-500/10 text-rose-700'}`}
+                            >
                               {u.status}
                             </span>
                           </td>
                           <td className="py-3 px-4">
-                            <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${u.acesso === 'Permitido' ? 'bg-emerald-500/10 text-emerald-700' : 'bg-rose-500/10 text-rose-700'}`}>
+                            <span
+                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${u.acesso === 'Permitido' ? 'bg-emerald-500/10 text-emerald-700' : 'bg-rose-500/10 text-rose-700'}`}
+                            >
                               {u.acesso}
                             </span>
                           </td>
                           <td className="py-3 px-4 text-right relative">
                             <button
                               type="button"
-                              onClick={() => setOpenMenuUserId(openMenuUserId === u.id ? null : u.id)}
+                              onClick={() =>
+                                setOpenMenuUserId(openMenuUserId === u.id ? null : u.id)
+                              }
                               className="p-1.5 rounded-lg text-muted hover:text-primary hover:bg-surface-muted transition cursor-pointer"
                             >
                               <MoreVertical className="w-4 h-4" strokeWidth={1.5} />
@@ -1062,7 +1169,10 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                                   onClick={() => handleOpenEditarPerfil(u)}
                                   className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
                                 >
-                                  <UserCog className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                                  <UserCog
+                                    className="w-4 h-4 text-accent-camel"
+                                    strokeWidth={1.5}
+                                  />
                                   <span>Editar perfil</span>
                                 </button>
                               </div>
@@ -1132,11 +1242,15 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                     {teamsList.map((team) => (
                       <tr key={team.id} className="hover:bg-surface-muted/30 transition">
                         <td className="py-3 px-4 font-bold text-primary">{team.nome}</td>
-                        <td className="py-3 px-4 text-muted-foreground font-medium">{team.descricao || '--'}</td>
+                        <td className="py-3 px-4 text-muted-foreground font-medium">
+                          {team.descricao || '--'}
+                        </td>
                         <td className="py-3 px-4 text-right relative">
                           <button
                             type="button"
-                            onClick={() => setOpenMenuTeamId(openMenuTeamId === team.id ? null : team.id)}
+                            onClick={() =>
+                              setOpenMenuTeamId(openMenuTeamId === team.id ? null : team.id)
+                            }
                             className="p-1.5 rounded-lg text-muted hover:text-primary hover:bg-surface-muted transition cursor-pointer"
                           >
                             <MoreVertical className="w-4 h-4" strokeWidth={1.5} />
@@ -1234,7 +1348,10 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                             className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center justify-between transition cursor-pointer"
                           >
                             <span className="flex items-center gap-2">
-                              <UploadCloud className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                              <UploadCloud
+                                className="w-4 h-4 text-accent-camel"
+                                strokeWidth={1.5}
+                              />
                               <span>Importar</span>
                             </span>
                           </button>
@@ -1281,7 +1398,10 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                             onClick={() => setShowOpcoesTecidoMenu(false)}
                             className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
                           >
-                            <FileSpreadsheet className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                            <FileSpreadsheet
+                              className="w-4 h-4 text-accent-camel"
+                              strokeWidth={1.5}
+                            />
                             <span>Planilha</span>
                           </button>
                         </>
@@ -1305,7 +1425,10 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                   <thead>
                     <tr className="border-b border-border text-muted-foreground font-bold bg-surface-muted/50">
                       <th className="py-3 px-4 w-10">
-                        <input type="checkbox" className="w-4 h-4 rounded border-border accent-accent-camel cursor-pointer" />
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 rounded border-border accent-accent-camel cursor-pointer"
+                        />
                       </th>
                       <th className="py-3 px-4">Nome</th>
                       <th className="py-3 px-4">Código</th>
@@ -1318,44 +1441,75 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                   <tbody className="divide-y divide-border-muted">
                     {tecidosList.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="py-12 text-center text-muted-foreground font-medium">
-                          Nenhum insumo cadastrado. Clique em "+ Adicionar" ou "Importar" para cadastrar insumos.
+                        <td
+                          colSpan={7}
+                          className="py-12 text-center text-muted-foreground font-medium"
+                        >
+                          Nenhum insumo cadastrado. Clique em "+ Adicionar" ou "Importar" para
+                          cadastrar insumos.
                         </td>
                       </tr>
                     ) : (
                       tecidosList
-                        .filter(t => {
+                        .filter((t) => {
                           if (searchTecidoInsumo.trim()) {
                             const q = searchTecidoInsumo.toLowerCase();
-                            if (!t.nome.toLowerCase().includes(q) && !t.codigo.toLowerCase().includes(q)) return false;
+                            if (
+                              !t.nome.toLowerCase().includes(q) &&
+                              !t.codigo.toLowerCase().includes(q)
+                            )
+                              return false;
                           }
                           if (searchTecidoFornecedor.trim()) {
-                            if (!t.fornecedores.toLowerCase().includes(searchTecidoFornecedor.toLowerCase())) return false;
+                            if (
+                              !t.fornecedores
+                                .toLowerCase()
+                                .includes(searchTecidoFornecedor.toLowerCase())
+                            )
+                              return false;
                           }
                           return true;
                         })
                         .map((tecido) => (
                           <tr key={tecido.id} className="hover:bg-surface-muted/30 transition">
                             <td className="py-3 px-4">
-                              <input type="checkbox" className="w-4 h-4 rounded border-border accent-accent-camel cursor-pointer" />
+                              <input
+                                type="checkbox"
+                                className="w-4 h-4 rounded border-border accent-accent-camel cursor-pointer"
+                              />
                             </td>
                             <td className="py-3 px-4 font-bold text-primary">{tecido.nome}</td>
-                            <td className="py-3 px-4 font-mono text-muted-foreground">{tecido.codigo}</td>
+                            <td className="py-3 px-4 font-mono text-muted-foreground">
+                              {tecido.codigo}
+                            </td>
                             <td className="py-3 px-4">
                               <div className="w-10 h-10 rounded-lg bg-surface-muted border border-border flex items-center justify-center overflow-hidden">
                                 {tecido.imagemUrl ? (
-                                  <img src={tecido.imagemUrl} alt={tecido.nome} className="w-full h-full object-cover" />
+                                  <img
+                                    src={tecido.imagemUrl}
+                                    alt={tecido.nome}
+                                    className="w-full h-full object-cover"
+                                  />
                                 ) : (
-                                  <ImageIcon className="w-5 h-5 text-muted opacity-50" strokeWidth={1.5} />
+                                  <ImageIcon
+                                    className="w-5 h-5 text-muted opacity-50"
+                                    strokeWidth={1.5}
+                                  />
                                 )}
                               </div>
                             </td>
-                            <td className="py-3 px-4 text-muted-foreground font-medium">{tecido.fornecedores}</td>
+                            <td className="py-3 px-4 text-muted-foreground font-medium">
+                              {tecido.fornecedores}
+                            </td>
                             <td className="py-3 px-4 font-bold text-primary">{tecido.custo}</td>
                             <td className="py-3 px-4 text-right relative">
                               <button
                                 type="button"
-                                onClick={() => setOpenMenuTecidoId(openMenuTecidoId === tecido.id ? null : tecido.id)}
+                                onClick={() =>
+                                  setOpenMenuTecidoId(
+                                    openMenuTecidoId === tecido.id ? null : tecido.id
+                                  )
+                                }
                                 className="p-1.5 rounded-lg text-muted hover:text-primary hover:bg-surface-muted transition cursor-pointer"
                               >
                                 <MoreVertical className="w-4 h-4" strokeWidth={1.5} />
@@ -1462,7 +1616,10 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                             className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center justify-between transition cursor-pointer"
                           >
                             <span className="flex items-center gap-2">
-                              <UploadCloud className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                              <UploadCloud
+                                className="w-4 h-4 text-accent-camel"
+                                strokeWidth={1.5}
+                              />
                               <span>Importar</span>
                             </span>
                           </button>
@@ -1493,7 +1650,10 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                             onClick={() => setShowOpcoesAviamentoMenu(false)}
                             className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
                           >
-                            <FileSpreadsheet className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                            <FileSpreadsheet
+                              className="w-4 h-4 text-accent-camel"
+                              strokeWidth={1.5}
+                            />
                             <span>Planilha</span>
                           </button>
                         </>
@@ -1523,7 +1683,10 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                   <thead>
                     <tr className="border-b border-border text-muted-foreground font-bold bg-surface-muted/50">
                       <th className="py-3 px-4 w-10">
-                        <input type="checkbox" className="w-4 h-4 rounded border-border accent-accent-camel cursor-pointer" />
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 rounded border-border accent-accent-camel cursor-pointer"
+                        />
                       </th>
                       <th className="py-3 px-4">Nome</th>
                       <th className="py-3 px-4">Código</th>
@@ -1536,37 +1699,59 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                   <tbody className="divide-y divide-border-muted">
                     {aviamentosList.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="py-12 text-center text-muted-foreground font-medium">
-                          Nenhum aviamento cadastrado. Clique em "+ Adicionar" ou "Importar" para cadastrar aviamentos.
+                        <td
+                          colSpan={7}
+                          className="py-12 text-center text-muted-foreground font-medium"
+                        >
+                          Nenhum aviamento cadastrado. Clique em "+ Adicionar" ou "Importar" para
+                          cadastrar aviamentos.
                         </td>
                       </tr>
                     ) : (
                       aviamentosList
-                        .filter(a => {
+                        .filter((a) => {
                           if (searchAviamentoInsumo.trim()) {
                             const q = searchAviamentoInsumo.toLowerCase();
-                            if (!a.nome.toLowerCase().includes(q) && !a.codigo.toLowerCase().includes(q)) return false;
+                            if (
+                              !a.nome.toLowerCase().includes(q) &&
+                              !a.codigo.toLowerCase().includes(q)
+                            )
+                              return false;
                           }
                           return true;
                         })
                         .map((aviamento) => (
                           <tr key={aviamento.id} className="hover:bg-surface-muted/30 transition">
                             <td className="py-3 px-4">
-                              <input type="checkbox" className="w-4 h-4 rounded border-border accent-accent-camel cursor-pointer" />
+                              <input
+                                type="checkbox"
+                                className="w-4 h-4 rounded border-border accent-accent-camel cursor-pointer"
+                              />
                             </td>
                             <td className="py-3 px-4 font-bold text-primary">{aviamento.nome}</td>
-                            <td className="py-3 px-4 font-mono text-muted-foreground">{aviamento.codigo}</td>
+                            <td className="py-3 px-4 font-mono text-muted-foreground">
+                              {aviamento.codigo}
+                            </td>
                             <td className="py-3 px-4">
                               <div className="w-10 h-10 rounded-lg bg-surface-muted border border-border flex items-center justify-center overflow-hidden">
-                                <ImageIcon className="w-5 h-5 text-muted opacity-50" strokeWidth={1.5} />
+                                <ImageIcon
+                                  className="w-5 h-5 text-muted opacity-50"
+                                  strokeWidth={1.5}
+                                />
                               </div>
                             </td>
-                            <td className="py-3 px-4 text-muted-foreground font-medium">{aviamento.fornecedores}</td>
+                            <td className="py-3 px-4 text-muted-foreground font-medium">
+                              {aviamento.fornecedores}
+                            </td>
                             <td className="py-3 px-4 font-bold text-primary">{aviamento.custo}</td>
                             <td className="py-3 px-4 text-right relative">
                               <button
                                 type="button"
-                                onClick={() => setOpenMenuAviamentoId(openMenuAviamentoId === aviamento.id ? null : aviamento.id)}
+                                onClick={() =>
+                                  setOpenMenuAviamentoId(
+                                    openMenuAviamentoId === aviamento.id ? null : aviamento.id
+                                  )
+                                }
                                 className="p-1.5 rounded-lg text-muted hover:text-primary hover:bg-surface-muted transition cursor-pointer"
                               >
                                 <MoreVertical className="w-4 h-4" strokeWidth={1.5} />
@@ -1614,13 +1799,15 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                 <div className="flex items-center gap-2 text-xs">
                   <span className="font-semibold text-muted-foreground w-16">Marcas</span>
                   <div className="flex items-center gap-1.5">
-                    {(['K&J Black', 'King & Joe', 'King & Joe Play'] as const).map(m => (
+                    {(['K&J Black', 'King & Joe', 'King & Joe Play'] as const).map((m) => (
                       <button
                         key={m}
                         type="button"
                         onClick={() => setCaracteristicaFilterMarca(m)}
                         className={`px-3 py-1 rounded-md text-xs font-semibold transition cursor-pointer ${
-                          caracteristicaFilterMarca === m ? 'bg-primary text-white shadow-2xs' : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
+                          caracteristicaFilterMarca === m
+                            ? 'bg-primary text-white shadow-2xs'
+                            : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
                         }`}
                       >
                         {m}
@@ -1643,7 +1830,9 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
 
             <div className="p-6 rounded-xl bg-surface border border-border shadow-2xs space-y-6">
               <div className="flex items-center justify-between border-b border-border-muted pb-4">
-                <h2 className="text-lg font-bold font-editorial text-primary">Características de Marca</h2>
+                <h2 className="text-lg font-bold font-editorial text-primary">
+                  Características de Marca
+                </h2>
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
@@ -1679,22 +1868,35 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                   <tbody className="divide-y divide-border-muted">
                     {caracteristicasList.length === 0 ? (
                       <tr>
-                        <td colSpan={3} className="py-12 text-center text-muted-foreground font-medium">
+                        <td
+                          colSpan={3}
+                          className="py-12 text-center text-muted-foreground font-medium"
+                        >
                           Nenhum item listado
                         </td>
                       </tr>
                     ) : (
                       caracteristicasList
-                        .filter(c => c.marca === caracteristicaFilterMarca)
-                        .filter(c => !caracteristicaSearchQuery || c.nome.toLowerCase().includes(caracteristicaSearchQuery.toLowerCase()))
+                        .filter((c) => c.marca === caracteristicaFilterMarca)
+                        .filter(
+                          (c) =>
+                            !caracteristicaSearchQuery ||
+                            c.nome.toLowerCase().includes(caracteristicaSearchQuery.toLowerCase())
+                        )
                         .map((c) => (
                           <tr key={c.id} className="hover:bg-surface-muted/30 transition">
                             <td className="py-3 px-4 font-bold text-primary">{c.nome}</td>
-                            <td className="py-3 px-4 text-muted-foreground font-medium">{c.tabelasMedidas.length} tabela(s)</td>
+                            <td className="py-3 px-4 text-muted-foreground font-medium">
+                              {c.tabelasMedidas.length} tabela(s)
+                            </td>
                             <td className="py-3 px-4 text-right relative">
                               <button
                                 type="button"
-                                onClick={() => setOpenMenuCaracteristicaId(openMenuCaracteristicaId === c.id ? null : c.id)}
+                                onClick={() =>
+                                  setOpenMenuCaracteristicaId(
+                                    openMenuCaracteristicaId === c.id ? null : c.id
+                                  )
+                                }
                                 className="p-1.5 rounded-lg text-muted hover:text-primary hover:bg-surface-muted transition cursor-pointer"
                               >
                                 <MoreVertical className="w-4 h-4" strokeWidth={1.5} />
@@ -1731,7 +1933,6 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
             </p>
           </div>
         )}
-
       </div>
 
       {/* ============================================================================ */}
@@ -1744,13 +1945,19 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               <h3 className="text-base font-bold font-editorial text-primary">
                 {editingTeam ? 'Atualizar time' : 'Criar time'}
               </h3>
-              <button type="button" onClick={() => setShowAtualizarTimeModal(false)} className="text-muted hover:text-primary transition cursor-pointer">
+              <button
+                type="button"
+                onClick={() => setShowAtualizarTimeModal(false)}
+                className="text-muted hover:text-primary transition cursor-pointer"
+              >
                 <X className="w-5 h-5" strokeWidth={1.5} />
               </button>
             </div>
             <div className="p-6 space-y-4 text-xs">
               <div className="space-y-1">
-                <label className="font-semibold text-muted-foreground block">Nome <span className="text-accent-bordo">*</span></label>
+                <label className="font-semibold text-muted-foreground block">
+                  Nome <span className="text-accent-bordo">*</span>
+                </label>
                 <input
                   type="text"
                   value={teamFormNome}
@@ -1767,7 +1974,10 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                   onChange={(e) => setTeamFormDesignado(e.target.checked)}
                   className="w-4 h-4 rounded border-border text-primary accent-accent-camel cursor-pointer"
                 />
-                <label htmlFor="designadoProdutoCheck" className="font-semibold text-muted-foreground cursor-pointer flex items-center gap-1">
+                <label
+                  htmlFor="designadoProdutoCheck"
+                  className="font-semibold text-muted-foreground cursor-pointer flex items-center gap-1"
+                >
                   <span>Designado de Produto</span>
                   <Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
                 </label>
@@ -1783,8 +1993,20 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               </div>
             </div>
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-surface-muted/30 text-xs">
-              <button type="button" onClick={() => setShowAtualizarTimeModal(false)} className="px-4 py-2 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer">Cancelar</button>
-              <button type="button" onClick={handleSaveTeam} className="px-5 py-2 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs">{editingTeam ? 'Atualizar' : 'Criar'}</button>
+              <button
+                type="button"
+                onClick={() => setShowAtualizarTimeModal(false)}
+                className="px-4 py-2 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveTeam}
+                className="px-5 py-2 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs"
+              >
+                {editingTeam ? 'Atualizar' : 'Criar'}
+              </button>
             </div>
           </div>
         </div>
@@ -1798,7 +2020,11 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
           <div className="bg-surface border border-border rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <h3 className="text-base font-bold font-editorial text-primary">Criando insumo</h3>
-              <button type="button" onClick={() => setShowCriandoInsumoModal(false)} className="text-muted hover:text-primary transition cursor-pointer">
+              <button
+                type="button"
+                onClick={() => setShowCriandoInsumoModal(false)}
+                className="text-muted hover:text-primary transition cursor-pointer"
+              >
                 <X className="w-5 h-5" strokeWidth={1.5} />
               </button>
             </div>
@@ -1806,16 +2032,32 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
                 <div>
                   <h4 className="font-bold text-primary text-sm">Identificação</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">Nome do insumo e código de referência</p>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">
+                    Nome do insumo e código de referência
+                  </p>
                 </div>
                 <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground block">Nome <span className="text-accent-bordo">*</span></label>
-                    <input type="text" value={insumoNome} onChange={(e) => setInsumoNome(e.target.value)} placeholder="Ex: Carmuça" className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    <label className="font-semibold text-muted-foreground block">
+                      Nome <span className="text-accent-bordo">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={insumoNome}
+                      onChange={(e) => setInsumoNome(e.target.value)}
+                      placeholder="Ex: Carmuça"
+                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                    />
                   </div>
                   <div className="space-y-1">
                     <label className="font-semibold text-muted-foreground block">Código</label>
-                    <input type="text" value={insumoCodigo} onChange={(e) => setInsumoCodigo(e.target.value)} placeholder="Ex: 3141592" className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    <input
+                      type="text"
+                      value={insumoCodigo}
+                      onChange={(e) => setInsumoCodigo(e.target.value)}
+                      placeholder="Ex: 3141592"
+                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                    />
                   </div>
                 </div>
               </div>
@@ -1823,17 +2065,27 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
                 <div>
                   <h4 className="font-bold text-primary text-sm">Fornecedores</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">Cadastre ou selecione quais são todos os fornecedores deste insumo.</p>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">
+                    Cadastre ou selecione quais são todos os fornecedores deste insumo.
+                  </p>
                 </div>
                 <div className="md:col-span-2">
-                  <button type="button" className="px-3 py-1.5 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer flex items-center gap-1"><Plus className="w-3.5 h-3.5" strokeWidth={1.5} /><span>Adicionar</span></button>
+                  <button
+                    type="button"
+                    className="px-3 py-1.5 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer flex items-center gap-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
+                    <span>Adicionar</span>
+                  </button>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
                 <div>
                   <h4 className="font-bold text-primary text-sm">Imagens</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">Imagens de referência</p>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">
+                    Imagens de referência
+                  </p>
                 </div>
                 <div className="md:col-span-2">
                   <div className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-surface-muted hover:border-accent-camel transition cursor-pointer text-muted">
@@ -1845,10 +2097,18 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
                 <div>
                   <h4 className="font-bold text-primary text-sm">Composição</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">Ex.: 97% Poliéster, 3% Elastano</p>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">
+                    Ex.: 97% Poliéster, 3% Elastano
+                  </p>
                 </div>
                 <div className="md:col-span-2">
-                  <button type="button" className="px-3 py-1.5 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer flex items-center gap-1"><Plus className="w-3.5 h-3.5" strokeWidth={1.5} /><span>Adicionar</span></button>
+                  <button
+                    type="button"
+                    className="px-3 py-1.5 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer flex items-center gap-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
+                    <span>Adicionar</span>
+                  </button>
                 </div>
               </div>
 
@@ -1867,32 +2127,70 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
                 <div>
                   <h4 className="font-bold text-primary text-sm">Propriedades</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">Definição das propriedades do tecido para cálculo de custos</p>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">
+                    Definição das propriedades do tecido para cálculo de custos
+                  </p>
                 </div>
                 <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="font-semibold text-muted-foreground block">Gramatura</label>
-                    <input type="text" value={insumoGramatura} onChange={(e) => setInsumoGramatura(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    <input
+                      type="text"
+                      value={insumoGramatura}
+                      onChange={(e) => setInsumoGramatura(e.target.value)}
+                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                    />
                   </div>
                   <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground block">Largura (em metros)</label>
-                    <input type="text" value={insumoLargura} onChange={(e) => setInsumoLargura(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    <label className="font-semibold text-muted-foreground block">
+                      Largura (em metros)
+                    </label>
+                    <input
+                      type="text"
+                      value={insumoLargura}
+                      onChange={(e) => setInsumoLargura(e.target.value)}
+                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                    />
                   </div>
                   <div className="space-y-1">
                     <label className="font-semibold text-muted-foreground block">Rendimento</label>
-                    <input type="text" value={insumoRendimento1} onChange={(e) => setInsumoRendimento1(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    <input
+                      type="text"
+                      value={insumoRendimento1}
+                      onChange={(e) => setInsumoRendimento1(e.target.value)}
+                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                    />
                   </div>
                   <div className="space-y-1">
                     <label className="font-semibold text-muted-foreground block">Rendimento</label>
-                    <input type="text" value={insumoRendimento2} onChange={(e) => setInsumoRendimento2(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    <input
+                      type="text"
+                      value={insumoRendimento2}
+                      onChange={(e) => setInsumoRendimento2(e.target.value)}
+                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                    />
                   </div>
                   <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground block">Encolhimento</label>
-                    <input type="text" value={insumoEncolhimento} onChange={(e) => setInsumoEncolhimento(e.target.value)} placeholder="Ex.: Urdume 2 Trama 9" className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    <label className="font-semibold text-muted-foreground block">
+                      Encolhimento
+                    </label>
+                    <input
+                      type="text"
+                      value={insumoEncolhimento}
+                      onChange={(e) => setInsumoEncolhimento(e.target.value)}
+                      placeholder="Ex.: Urdume 2 Trama 9"
+                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                    />
                   </div>
                   <div className="space-y-1">
                     <label className="font-semibold text-muted-foreground block">Construção</label>
-                    <input type="text" value={insumoConstrucao} onChange={(e) => setInsumoConstrucao(e.target.value)} placeholder="Ex.: Sarja 2x1 z" className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    <input
+                      type="text"
+                      value={insumoConstrucao}
+                      onChange={(e) => setInsumoConstrucao(e.target.value)}
+                      placeholder="Ex.: Sarja 2x1 z"
+                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                    />
                   </div>
                 </div>
               </div>
@@ -1900,17 +2198,28 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
                 <div>
                   <h4 className="font-bold text-primary text-sm">Preço e observações</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">Informações de preço e observações do insumo cadastrado.</p>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">
+                    Informações de preço e observações do insumo cadastrado.
+                  </p>
                 </div>
                 <div className="md:col-span-2 space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="font-semibold text-muted-foreground block">Preço</label>
-                      <input type="text" value={insumoPreco} onChange={(e) => setInsumoPreco(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                      <input
+                        type="text"
+                        value={insumoPreco}
+                        onChange={(e) => setInsumoPreco(e.target.value)}
+                        className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                      />
                     </div>
                     <div className="space-y-1">
                       <label className="font-semibold text-muted-foreground block">Unidade</label>
-                      <select value={insumoUnidade} onChange={(e) => setInsumoUnidade(e.target.value as 'Metros' | 'Kg')} className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none cursor-pointer">
+                      <select
+                        value={insumoUnidade}
+                        onChange={(e) => setInsumoUnidade(e.target.value as 'Metros' | 'Kg')}
+                        className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none cursor-pointer"
+                      >
                         <option value="Metros">Metros</option>
                         <option value="Kg">Kg</option>
                       </select>
@@ -1918,13 +2227,25 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                   </div>
                   <div className="space-y-1">
                     <label className="font-semibold text-muted-foreground block">Observações</label>
-                    <textarea rows={3} value={insumoObservacoes} onChange={(e) => setInsumoObservacoes(e.target.value)} placeholder="Ex.: Lembrar de adicionar uma versão..." className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    <textarea
+                      rows={3}
+                      value={insumoObservacoes}
+                      onChange={(e) => setInsumoObservacoes(e.target.value)}
+                      placeholder="Ex.: Lembrar de adicionar uma versão..."
+                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                    />
                   </div>
                 </div>
               </div>
             </div>
             <div className="flex items-center justify-start px-6 py-4 border-t border-border bg-surface-muted/30">
-              <button type="button" onClick={handleCreateInsumo} className="px-6 py-2.5 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs text-xs">Criar insumo</button>
+              <button
+                type="button"
+                onClick={handleCreateInsumo}
+                className="px-6 py-2.5 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs text-xs"
+              >
+                Criar insumo
+              </button>
             </div>
           </div>
         </div>
@@ -1938,7 +2259,11 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
           <div className="bg-surface border border-border rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <h3 className="text-base font-bold font-editorial text-primary">Informações</h3>
-              <button type="button" onClick={() => setShowInformacoesTecidoModal(false)} className="text-muted hover:text-primary transition cursor-pointer">
+              <button
+                type="button"
+                onClick={() => setShowInformacoesTecidoModal(false)}
+                className="text-muted hover:text-primary transition cursor-pointer"
+              >
                 <X className="w-5 h-5" strokeWidth={1.5} />
               </button>
             </div>
@@ -1946,16 +2271,30 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
                 <div>
                   <h4 className="font-bold text-primary text-sm">Identificação</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">Nome do insumo e código de referência</p>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">
+                    Nome do insumo e código de referência
+                  </p>
                 </div>
                 <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground block">Nome <span className="text-accent-bordo">*</span></label>
-                    <input type="text" value={insumoNome} onChange={(e) => setInsumoNome(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    <label className="font-semibold text-muted-foreground block">
+                      Nome <span className="text-accent-bordo">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={insumoNome}
+                      onChange={(e) => setInsumoNome(e.target.value)}
+                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                    />
                   </div>
                   <div className="space-y-1">
                     <label className="font-semibold text-muted-foreground block">Código</label>
-                    <input type="text" value={insumoCodigo} onChange={(e) => setInsumoCodigo(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    <input
+                      type="text"
+                      value={insumoCodigo}
+                      onChange={(e) => setInsumoCodigo(e.target.value)}
+                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                    />
                   </div>
                 </div>
               </div>
@@ -1963,17 +2302,27 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
                 <div>
                   <h4 className="font-bold text-primary text-sm">Fornecedores</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">Cadastre ou selecione quais são todos os fornecedores deste insumo.</p>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">
+                    Cadastre ou selecione quais são todos os fornecedores deste insumo.
+                  </p>
                 </div>
                 <div className="md:col-span-2">
-                  <button type="button" className="px-3 py-1.5 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer flex items-center gap-1"><Plus className="w-3.5 h-3.5" strokeWidth={1.5} /><span>Adicionar</span></button>
+                  <button
+                    type="button"
+                    className="px-3 py-1.5 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer flex items-center gap-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
+                    <span>Adicionar</span>
+                  </button>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
                 <div>
                   <h4 className="font-bold text-primary text-sm">Imagens</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">Imagens de referência</p>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">
+                    Imagens de referência
+                  </p>
                 </div>
                 <div className="md:col-span-2 flex items-center gap-3 flex-wrap">
                   <div className="w-16 h-16 rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-surface-muted hover:border-accent-camel transition cursor-pointer text-muted">
@@ -1985,19 +2334,36 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
                 <div>
                   <h4 className="font-bold text-primary text-sm">Composição</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">Ex.: 97% Poliéster, 3% Elastano</p>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">
+                    Ex.: 97% Poliéster, 3% Elastano
+                  </p>
                 </div>
                 <div className="md:col-span-2 space-y-2">
                   <div className="flex items-center gap-2">
-                    <input type="text" defaultValue="95" className="w-16 bg-surface-muted border border-border text-primary rounded-lg px-3 py-1.5 text-xs text-center" />
-                    <select defaultValue="Algodão" className="bg-surface-muted border border-border text-primary rounded-lg px-3 py-1.5 text-xs font-medium">
+                    <input
+                      type="text"
+                      defaultValue="95"
+                      className="w-16 bg-surface-muted border border-border text-primary rounded-lg px-3 py-1.5 text-xs text-center"
+                    />
+                    <select
+                      defaultValue="Algodão"
+                      className="bg-surface-muted border border-border text-primary rounded-lg px-3 py-1.5 text-xs font-medium"
+                    >
                       <option value="Algodão">Algodão</option>
                       <option value="Poliéster">Poliéster</option>
                       <option value="Elastano">Elastano</option>
                     </select>
-                    <button type="button" className="text-muted hover:text-rose-600"><X className="w-4 h-4" strokeWidth={1.5} /></button>
+                    <button type="button" className="text-muted hover:text-rose-600">
+                      <X className="w-4 h-4" strokeWidth={1.5} />
+                    </button>
                   </div>
-                  <button type="button" className="px-3 py-1.5 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer flex items-center gap-1"><Plus className="w-3.5 h-3.5" strokeWidth={1.5} /><span>Adicionar</span></button>
+                  <button
+                    type="button"
+                    className="px-3 py-1.5 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer flex items-center gap-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
+                    <span>Adicionar</span>
+                  </button>
                 </div>
               </div>
 
@@ -2010,40 +2376,80 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                   <div className="w-10 h-10 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-surface-muted text-muted cursor-pointer hover:border-accent-camel transition">
                     <Plus className="w-4 h-4" strokeWidth={1.5} />
                   </div>
-                  <div className="px-3 py-2 bg-emerald-700 text-white font-bold rounded-lg text-[11px] uppercase">Verde</div>
-                  <div className="px-3 py-2 bg-stone-500 text-white font-bold rounded-lg text-[11px] uppercase">Cinza</div>
+                  <div className="px-3 py-2 bg-emerald-700 text-white font-bold rounded-lg text-[11px] uppercase">
+                    Verde
+                  </div>
+                  <div className="px-3 py-2 bg-stone-500 text-white font-bold rounded-lg text-[11px] uppercase">
+                    Cinza
+                  </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
                 <div>
                   <h4 className="font-bold text-primary text-sm">Propriedades</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">Definição das propriedades do tecido para cálculo de custos</p>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">
+                    Definição das propriedades do tecido para cálculo de custos
+                  </p>
                 </div>
                 <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="font-semibold text-muted-foreground block">Gramatura</label>
-                    <input type="text" value={insumoGramatura} onChange={(e) => setInsumoGramatura(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    <input
+                      type="text"
+                      value={insumoGramatura}
+                      onChange={(e) => setInsumoGramatura(e.target.value)}
+                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                    />
                   </div>
                   <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground block">Largura (em metros)</label>
-                    <input type="text" value={insumoLargura} onChange={(e) => setInsumoLargura(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    <label className="font-semibold text-muted-foreground block">
+                      Largura (em metros)
+                    </label>
+                    <input
+                      type="text"
+                      value={insumoLargura}
+                      onChange={(e) => setInsumoLargura(e.target.value)}
+                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                    />
                   </div>
                   <div className="space-y-1">
                     <label className="font-semibold text-muted-foreground block">Rendimento</label>
-                    <input type="text" value={insumoRendimento1} onChange={(e) => setInsumoRendimento1(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    <input
+                      type="text"
+                      value={insumoRendimento1}
+                      onChange={(e) => setInsumoRendimento1(e.target.value)}
+                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                    />
                   </div>
                   <div className="space-y-1">
                     <label className="font-semibold text-muted-foreground block">Rendimento</label>
-                    <input type="text" value={insumoRendimento2} onChange={(e) => setInsumoRendimento2(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    <input
+                      type="text"
+                      value={insumoRendimento2}
+                      onChange={(e) => setInsumoRendimento2(e.target.value)}
+                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                    />
                   </div>
                   <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground block">Encolhimento</label>
-                    <input type="text" value={insumoEncolhimento} onChange={(e) => setInsumoEncolhimento(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    <label className="font-semibold text-muted-foreground block">
+                      Encolhimento
+                    </label>
+                    <input
+                      type="text"
+                      value={insumoEncolhimento}
+                      onChange={(e) => setInsumoEncolhimento(e.target.value)}
+                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                    />
                   </div>
                   <div className="space-y-1">
                     <label className="font-semibold text-muted-foreground block">Construção</label>
-                    <input type="text" value={insumoConstrucao} onChange={(e) => setInsumoConstrucao(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    <input
+                      type="text"
+                      value={insumoConstrucao}
+                      onChange={(e) => setInsumoConstrucao(e.target.value)}
+                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                    />
                   </div>
                 </div>
               </div>
@@ -2051,17 +2457,28 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
                 <div>
                   <h4 className="font-bold text-primary text-sm">Preço e observações</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">Informações de preço e observações do insumo cadastrado.</p>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">
+                    Informações de preço e observações do insumo cadastrado.
+                  </p>
                 </div>
                 <div className="md:col-span-2 space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="font-semibold text-muted-foreground block">Preço</label>
-                      <input type="text" value={insumoPreco} onChange={(e) => setInsumoPreco(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                      <input
+                        type="text"
+                        value={insumoPreco}
+                        onChange={(e) => setInsumoPreco(e.target.value)}
+                        className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                      />
                     </div>
                     <div className="space-y-1">
                       <label className="font-semibold text-muted-foreground block">Unidade</label>
-                      <select value={insumoUnidade} onChange={(e) => setInsumoUnidade(e.target.value as 'Metros' | 'Kg')} className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none cursor-pointer">
+                      <select
+                        value={insumoUnidade}
+                        onChange={(e) => setInsumoUnidade(e.target.value as 'Metros' | 'Kg')}
+                        className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none cursor-pointer"
+                      >
                         <option value="Metros">Metros</option>
                         <option value="Kg">Kg</option>
                       </select>
@@ -2069,13 +2486,24 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                   </div>
                   <div className="space-y-1">
                     <label className="font-semibold text-muted-foreground block">Observações</label>
-                    <textarea rows={3} value={insumoObservacoes} onChange={(e) => setInsumoObservacoes(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    <textarea
+                      rows={3}
+                      value={insumoObservacoes}
+                      onChange={(e) => setInsumoObservacoes(e.target.value)}
+                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                    />
                   </div>
                 </div>
               </div>
             </div>
             <div className="flex items-center justify-start px-6 py-4 border-t border-border bg-surface-muted/30">
-              <button type="button" onClick={handleSaveEditTecido} className="px-6 py-2.5 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs text-xs">Salvar alterações</button>
+              <button
+                type="button"
+                onClick={handleSaveEditTecido}
+                className="px-6 py-2.5 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs text-xs"
+              >
+                Salvar alterações
+              </button>
             </div>
           </div>
         </div>
@@ -2091,7 +2519,14 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               <h3 className="text-base font-bold font-editorial text-primary">
                 {showInformacoesAviamentoModal ? 'Informações' : 'Criando insumo'}
               </h3>
-              <button type="button" onClick={() => { setShowCriandoAviamentoModal(false); setShowInformacoesAviamentoModal(false); }} className="text-muted hover:text-primary transition cursor-pointer">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCriandoAviamentoModal(false);
+                  setShowInformacoesAviamentoModal(false);
+                }}
+                className="text-muted hover:text-primary transition cursor-pointer"
+              >
                 <X className="w-5 h-5" strokeWidth={1.5} />
               </button>
             </div>
@@ -2099,16 +2534,32 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
                 <div>
                   <h4 className="font-bold text-primary text-sm">Identificação</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">Nome do insumo e código de referência</p>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">
+                    Nome do insumo e código de referência
+                  </p>
                 </div>
                 <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground block">Nome <span className="text-accent-bordo">*</span></label>
-                    <input type="text" value={aviamentoNome} onChange={(e) => setAviamentoNome(e.target.value)} placeholder="Ex: Zíper Médio" className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    <label className="font-semibold text-muted-foreground block">
+                      Nome <span className="text-accent-bordo">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={aviamentoNome}
+                      onChange={(e) => setAviamentoNome(e.target.value)}
+                      placeholder="Ex: Zíper Médio"
+                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                    />
                   </div>
                   <div className="space-y-1">
                     <label className="font-semibold text-muted-foreground block">Código</label>
-                    <input type="text" value={aviamentoCodigo} onChange={(e) => setAviamentoCodigo(e.target.value)} placeholder="Ex: 1234" className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    <input
+                      type="text"
+                      value={aviamentoCodigo}
+                      onChange={(e) => setAviamentoCodigo(e.target.value)}
+                      placeholder="Ex: 1234"
+                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                    />
                   </div>
                 </div>
               </div>
@@ -2116,17 +2567,27 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
                 <div>
                   <h4 className="font-bold text-primary text-sm">Fornecedores</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">Cadastre ou selecione quais são todos os fornecedores deste insumo.</p>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">
+                    Cadastre ou selecione quais são todos os fornecedores deste insumo.
+                  </p>
                 </div>
                 <div className="md:col-span-2">
-                  <button type="button" className="px-3 py-1.5 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer flex items-center gap-1"><Plus className="w-3.5 h-3.5" strokeWidth={1.5} /><span>Adicionar</span></button>
+                  <button
+                    type="button"
+                    className="px-3 py-1.5 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer flex items-center gap-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
+                    <span>Adicionar</span>
+                  </button>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
                 <div>
                   <h4 className="font-bold text-primary text-sm">Imagens</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">Imagens de referência</p>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">
+                    Imagens de referência
+                  </p>
                 </div>
                 <div className="md:col-span-2">
                   <div className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-surface-muted hover:border-accent-camel transition cursor-pointer text-muted">
@@ -2138,10 +2599,18 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
                 <div>
                   <h4 className="font-bold text-primary text-sm">Composição</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">Ex.: 97% Poliéster, 3% Elastano</p>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">
+                    Ex.: 97% Poliéster, 3% Elastano
+                  </p>
                 </div>
                 <div className="md:col-span-2">
-                  <button type="button" className="px-3 py-1.5 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer flex items-center gap-1"><Plus className="w-3.5 h-3.5" strokeWidth={1.5} /><span>Adicionar</span></button>
+                  <button
+                    type="button"
+                    className="px-3 py-1.5 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer flex items-center gap-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
+                    <span>Adicionar</span>
+                  </button>
                 </div>
               </div>
 
@@ -2160,17 +2629,30 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
                 <div>
                   <h4 className="font-bold text-primary text-sm">Preço e observações</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">Informações de preço e observações do insumo cadastrado.</p>
+                  <p className="text-[11px] text-muted leading-tight mt-0.5">
+                    Informações de preço e observações do insumo cadastrado.
+                  </p>
                 </div>
                 <div className="md:col-span-2 space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="font-semibold text-muted-foreground block">Preço</label>
-                      <input type="text" value={aviamentoPreco} onChange={(e) => setAviamentoPreco(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                      <input
+                        type="text"
+                        value={aviamentoPreco}
+                        onChange={(e) => setAviamentoPreco(e.target.value)}
+                        className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                      />
                     </div>
                     <div className="space-y-1">
                       <label className="font-semibold text-muted-foreground block">Unidade</label>
-                      <select value={aviamentoUnidade} onChange={(e) => setAviamentoUnidade(e.target.value as 'Unidade' | 'Metros')} className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none cursor-pointer">
+                      <select
+                        value={aviamentoUnidade}
+                        onChange={(e) =>
+                          setAviamentoUnidade(e.target.value as 'Unidade' | 'Metros')
+                        }
+                        className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none cursor-pointer"
+                      >
                         <option value="Unidade">Unidade</option>
                         <option value="Metros">Metros</option>
                       </select>
@@ -2178,7 +2660,13 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                   </div>
                   <div className="space-y-1">
                     <label className="font-semibold text-muted-foreground block">Observações</label>
-                    <textarea rows={3} value={aviamentoObservacoes} onChange={(e) => setAviamentoObservacoes(e.target.value)} placeholder="Ex.: Lembrar de adicionar uma versão sintética" className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                    <textarea
+                      rows={3}
+                      value={aviamentoObservacoes}
+                      onChange={(e) => setAviamentoObservacoes(e.target.value)}
+                      placeholder="Ex.: Lembrar de adicionar uma versão sintética"
+                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                    />
                   </div>
                 </div>
               </div>
@@ -2186,7 +2674,9 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
             <div className="flex items-center justify-start px-6 py-4 border-t border-border bg-surface-muted/30">
               <button
                 type="button"
-                onClick={showInformacoesAviamentoModal ? handleSaveEditAviamento : handleCreateAviamento}
+                onClick={
+                  showInformacoesAviamentoModal ? handleSaveEditAviamento : handleCreateAviamento
+                }
                 className="px-6 py-2.5 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs text-xs"
               >
                 {showInformacoesAviamentoModal ? 'Salvar alterações' : 'Criar insumo'}
@@ -2203,8 +2693,14 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-surface border border-border rounded-xl shadow-xl w-full max-w-4xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h3 className="text-base font-bold font-editorial text-primary">Criar característica de marca</h3>
-              <button type="button" onClick={() => setShowCriarCaracteristicaModal(false)} className="text-muted hover:text-primary transition cursor-pointer">
+              <h3 className="text-base font-bold font-editorial text-primary">
+                Criar característica de marca
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowCriarCaracteristicaModal(false)}
+                className="text-muted hover:text-primary transition cursor-pointer"
+              >
                 <X className="w-5 h-5" strokeWidth={1.5} />
               </button>
             </div>
@@ -2240,7 +2736,9 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                               value={tab.nomeTabela}
                               onChange={(e) => {
                                 const val = e.target.value;
-                                setCaracteristicaFormTabelas(prev => prev.map(t => t.id === tab.id ? { ...t, nomeTabela: val } : t));
+                                setCaracteristicaFormTabelas((prev) =>
+                                  prev.map((t) => (t.id === tab.id ? { ...t, nomeTabela: val } : t))
+                                );
                               }}
                               placeholder="Ex.: Top, Bottom, ..."
                               className="w-full bg-surface-muted border border-border text-primary rounded-md px-2.5 py-1.5 text-xs outline-none"
@@ -2252,14 +2750,18 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                               value={tab.medidas}
                               onChange={(e) => {
                                 const val = e.target.value;
-                                setCaracteristicaFormTabelas(prev => prev.map(t => t.id === tab.id ? { ...t, medidas: val } : t));
+                                setCaracteristicaFormTabelas((prev) =>
+                                  prev.map((t) => (t.id === tab.id ? { ...t, medidas: val } : t))
+                                );
                               }}
                               placeholder="Ex.: Gola V, Manga, ..."
                               className="w-full bg-surface-muted border border-border text-primary rounded-md px-2.5 py-1.5 text-xs outline-none"
                             />
                           </td>
                           <td className="py-2 px-3 text-center">
-                            <span className="px-2 py-1 bg-surface-muted border border-border rounded text-[11px] text-muted-foreground">Sim</span>
+                            <span className="px-2 py-1 bg-surface-muted border border-border rounded text-[11px] text-muted-foreground">
+                              Sim
+                            </span>
                           </td>
                           <td className="py-2 px-3 text-center">
                             <button
@@ -2314,8 +2816,14 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-surface border border-border rounded-xl shadow-xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h3 className="text-base font-bold font-editorial text-primary">Importação de Insumos</h3>
-              <button type="button" onClick={() => setShowImportarInsumosModal(false)} className="text-muted hover:text-primary transition cursor-pointer">
+              <h3 className="text-base font-bold font-editorial text-primary">
+                Importação de Insumos
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowImportarInsumosModal(false)}
+                className="text-muted hover:text-primary transition cursor-pointer"
+              >
                 <X className="w-5 h-5" strokeWidth={1.5} />
               </button>
             </div>
@@ -2323,13 +2831,21 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               <div className="space-y-2 text-primary font-medium">
                 <p>Para realizar a importação siga os passos:</p>
                 <ol className="list-decimal list-inside space-y-1.5 text-muted-foreground pl-1">
-                  <li><a href="#modelo" className="text-accent-camel hover:underline font-semibold">Baixe a planilha modelo clicando aqui.</a></li>
+                  <li>
+                    <a href="#modelo" className="text-accent-camel hover:underline font-semibold">
+                      Baixe a planilha modelo clicando aqui.
+                    </a>
+                  </li>
                   <li>Preencha com seus insumos seguindo o formato modelo.</li>
                   <li>Importe o arquivo .CSV clicando no botão importar abaixo.</li>
                 </ol>
               </div>
               <div className="flex justify-center py-2">
-                <button type="button" onClick={() => setShowImportarInsumosModal(false)} className="px-5 py-2.5 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer flex items-center gap-2 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setShowImportarInsumosModal(false)}
+                  className="px-5 py-2.5 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer flex items-center gap-2 shadow-2xs"
+                >
                   <span>Importar</span>
                   <UploadCloud className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
                 </button>
@@ -2342,7 +2858,10 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                 <div className="text-muted-foreground space-y-2 text-[11px] leading-relaxed">
                   <p>A planilha deve seguir o padrão abaixo:</p>
                   <ul className="list-disc list-inside space-y-1 pl-1">
-                    <li><strong className="text-primary">Nome do insumo:</strong> preenchimento obrigatório</li>
+                    <li>
+                      <strong className="text-primary">Nome do insumo:</strong> preenchimento
+                      obrigatório
+                    </li>
                     <li>
                       <strong className="text-primary">Tipo do preço:</strong>
                       <ul className="list-square list-inside pl-4 font-normal">
@@ -2351,12 +2870,17 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
                       </ul>
                     </li>
                     <li>
-                      <strong className="text-primary">composição:</strong> No formato _%Material + _%Material
+                      <strong className="text-primary">composição:</strong> No formato _%Material +
+                      _%Material
                       <span className="block italic pl-4">Ex.: 90% Poliamida + 10% Elastano.</span>
                     </li>
                     <li>
-                      <strong className="text-primary">Fornecedor:</strong> Se já existir no CM informe o Código exatamente como está cadastrado
-                      <span className="block italic text-muted pl-4">(Caso Preenchido na planilha com código diferente ou em branco será criado novo fornecedor com o mesmo nome.)</span>
+                      <strong className="text-primary">Fornecedor:</strong> Se já existir no CM
+                      informe o Código exatamente como está cadastrado
+                      <span className="block italic text-muted pl-4">
+                        (Caso Preenchido na planilha com código diferente ou em branco será criado
+                        novo fornecedor com o mesmo nome.)
+                      </span>
                     </li>
                   </ul>
                 </div>
@@ -2373,50 +2897,116 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-surface border border-border rounded-xl shadow-xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h3 className="text-base font-bold font-editorial text-primary">Criação de Usuário</h3>
-              <button type="button" onClick={() => setShowCriarUsuarioModal(false)} className="text-muted hover:text-primary transition cursor-pointer">
+              <h3 className="text-base font-bold font-editorial text-primary">
+                Criação de Usuário
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowCriarUsuarioModal(false)}
+                className="text-muted hover:text-primary transition cursor-pointer"
+              >
                 <X className="w-5 h-5" strokeWidth={1.5} />
               </button>
             </div>
             <div className="px-6 pt-4 text-xs text-muted-foreground leading-relaxed">
-              Ao criar um usuário, é necessário definir quais serão os Cargos em cada uma das Marcas que você deseja que ele tenha acesso.
+              Ao criar um usuário, é necessário definir quais serão os Cargos em cada uma das Marcas
+              que você deseja que ele tenha acesso.
             </div>
             <div className="p-6 space-y-4 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground block">Nome <span className="text-accent-bordo">*</span></label>
-                  <input type="text" value={newUserName} onChange={(e) => setNewUserName(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  <label className="font-semibold text-muted-foreground block">
+                    Nome <span className="text-accent-bordo">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newUserName}
+                    onChange={(e) => setNewUserName(e.target.value)}
+                    className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                  />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground flex items-center gap-1"><span>Código</span><Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} /></label>
-                  <input type="text" value={newUserCodigo} onChange={(e) => setNewUserCodigo(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  <label className="font-semibold text-muted-foreground flex items-center gap-1">
+                    <span>Código</span>
+                    <Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
+                  </label>
+                  <input
+                    type="text"
+                    value={newUserCodigo}
+                    onChange={(e) => setNewUserCodigo(e.target.value)}
+                    className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                  />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground block">E-mail <span className="text-accent-bordo">*</span></label>
-                  <input type="email" value={newUserEmail} onChange={(e) => setNewUserEmail(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  <label className="font-semibold text-muted-foreground block">
+                    E-mail <span className="text-accent-bordo">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    value={newUserEmail}
+                    onChange={(e) => setNewUserEmail(e.target.value)}
+                    className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                  />
                 </div>
                 <div className="space-y-1 flex flex-col justify-end">
-                  <label className="font-semibold text-muted-foreground flex items-center gap-1 mb-1"><span>Usuário fantasma</span><Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} /></label>
+                  <label className="font-semibold text-muted-foreground flex items-center gap-1 mb-1">
+                    <span>Usuário fantasma</span>
+                    <Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
+                  </label>
                   <div className="flex items-center gap-3">
-                    <button type="button" onClick={() => setNewUserIsFantasma(!newUserIsFantasma)} className={`w-10 h-5 rounded-full p-0.5 transition cursor-pointer ${newUserIsFantasma ? 'bg-accent-camel' : 'bg-surface-muted border border-border'}`}>
-                      <div className={`w-4 h-4 rounded-full bg-white shadow-2xs transition-transform ${newUserIsFantasma ? 'translate-x-5' : 'translate-x-0'}`} />
+                    <button
+                      type="button"
+                      onClick={() => setNewUserIsFantasma(!newUserIsFantasma)}
+                      className={`w-10 h-5 rounded-full p-0.5 transition cursor-pointer ${newUserIsFantasma ? 'bg-accent-camel' : 'bg-surface-muted border border-border'}`}
+                    >
+                      <div
+                        className={`w-4 h-4 rounded-full bg-white shadow-2xs transition-transform ${newUserIsFantasma ? 'translate-x-5' : 'translate-x-0'}`}
+                      />
                     </button>
-                    <span className="text-xs font-semibold text-primary">{newUserIsFantasma ? 'Sim' : 'Não'}</span>
+                    <span className="text-xs font-semibold text-primary">
+                      {newUserIsFantasma ? 'Sim' : 'Não'}
+                    </span>
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground block">Nova Senha <span className="text-accent-bordo">*</span></label>
-                  <input type="password" value={newUserSenha} onChange={(e) => setNewUserSenha(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  <label className="font-semibold text-muted-foreground block">
+                    Nova Senha <span className="text-accent-bordo">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    value={newUserSenha}
+                    onChange={(e) => setNewUserSenha(e.target.value)}
+                    className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                  />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground block">Confirmação de Senha <span className="text-accent-bordo">*</span></label>
-                  <input type="password" value={newUserConfirmarSenha} onChange={(e) => setNewUserConfirmarSenha(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                  <label className="font-semibold text-muted-foreground block">
+                    Confirmação de Senha <span className="text-accent-bordo">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    value={newUserConfirmarSenha}
+                    onChange={(e) => setNewUserConfirmarSenha(e.target.value)}
+                    className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                  />
                 </div>
               </div>
             </div>
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-surface-muted/30">
-              <button type="button" onClick={() => setShowCriarUsuarioModal(false)} className="px-4 py-2 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer text-xs">Cancelar</button>
-              <button type="button" onClick={handleCreateUser} className="px-5 py-2 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs text-xs">Criar</button>
+              <button
+                type="button"
+                onClick={() => setShowCriarUsuarioModal(false)}
+                className="px-4 py-2 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer text-xs"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleCreateUser}
+                className="px-5 py-2 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs text-xs"
+              >
+                Criar
+              </button>
             </div>
           </div>
         </div>
@@ -2430,7 +3020,11 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
           <div className="bg-surface border border-border rounded-xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <h3 className="text-base font-bold font-editorial text-primary">Edição de marca</h3>
-              <button type="button" onClick={() => setEditingMarca(null)} className="text-muted hover:text-primary transition cursor-pointer">
+              <button
+                type="button"
+                onClick={() => setEditingMarca(null)}
+                className="text-muted hover:text-primary transition cursor-pointer"
+              >
                 <X className="w-5 h-5" strokeWidth={1.5} />
               </button>
             </div>
@@ -2443,16 +3037,40 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               </div>
               <div className="space-y-1.5">
                 <label className="font-bold text-muted-foreground block">Nome *</label>
-                <input type="text" value={formMarcaNome} onChange={(e) => setFormMarcaNome(e.target.value)} className="w-full bg-surface-muted border border-border text-primary font-semibold rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                <input
+                  type="text"
+                  value={formMarcaNome}
+                  onChange={(e) => setFormMarcaNome(e.target.value)}
+                  className="w-full bg-surface-muted border border-border text-primary font-semibold rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                />
               </div>
               <div className="space-y-1.5">
-                <label className="font-bold text-muted-foreground block">ID de integração da marca</label>
-                <input type="text" value={formMarcaIntegracaoId} onChange={(e) => setFormMarcaIntegracaoId(e.target.value)} className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                <label className="font-bold text-muted-foreground block">
+                  ID de integração da marca
+                </label>
+                <input
+                  type="text"
+                  value={formMarcaIntegracaoId}
+                  onChange={(e) => setFormMarcaIntegracaoId(e.target.value)}
+                  className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                />
               </div>
             </div>
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-surface-muted/30">
-              <button type="button" onClick={() => setEditingMarca(null)} className="px-4 py-2 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer text-xs">Cancelar</button>
-              <button type="button" onClick={() => setEditingMarca(null)} className="px-4 py-2 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs text-xs">Atualizar</button>
+              <button
+                type="button"
+                onClick={() => setEditingMarca(null)}
+                className="px-4 py-2 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer text-xs"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditingMarca(null)}
+                className="px-4 py-2 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs text-xs"
+              >
+                Atualizar
+              </button>
             </div>
           </div>
         </div>
@@ -2466,15 +3084,27 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
           <div className="bg-surface border border-border rounded-xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <h3 className="text-base font-bold font-editorial text-primary">Criação de marca</h3>
-              <button type="button" onClick={() => setShowCriarMarcaModal(false)} className="text-muted hover:text-primary transition cursor-pointer">
+              <button
+                type="button"
+                onClick={() => setShowCriarMarcaModal(false)}
+                className="text-muted hover:text-primary transition cursor-pointer"
+              >
                 <X className="w-5 h-5" strokeWidth={1.5} />
               </button>
             </div>
             <div className="p-6 space-y-5 text-xs">
               <div className="p-3.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-900 font-medium leading-relaxed flex items-start gap-2.5">
-                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" strokeWidth={1.5} />
+                <AlertTriangle
+                  className="w-5 h-5 text-amber-600 shrink-0 mt-0.5"
+                  strokeWidth={1.5}
+                />
                 <div>
-                  <strong>Atenção!</strong> Ao criar uma nova marca, solicite a replicação da customização enviando um e-mail para <span className="font-bold underline text-amber-950">customizacoes@colecao.moda</span> detalhando sua demanda. Em caso de dúvidas, acione o Suporte.
+                  <strong>Atenção!</strong> Ao criar uma nova marca, solicite a replicação da
+                  customização enviando um e-mail para{' '}
+                  <span className="font-bold underline text-amber-950">
+                    customizacoes@colecao.moda
+                  </span>{' '}
+                  detalhando sua demanda. Em caso de dúvidas, acione o Suporte.
                 </div>
               </div>
               <div className="space-y-1.5">
@@ -2485,16 +3115,42 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
               </div>
               <div className="space-y-1.5">
                 <label className="font-bold text-muted-foreground block">Nome *</label>
-                <input type="text" value={formMarcaNome} onChange={(e) => setFormMarcaNome(e.target.value)} placeholder="Ex: Majestoso Brocado, Anos 80, Pegada CoolVibe" className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                <input
+                  type="text"
+                  value={formMarcaNome}
+                  onChange={(e) => setFormMarcaNome(e.target.value)}
+                  placeholder="Ex: Majestoso Brocado, Anos 80, Pegada CoolVibe"
+                  className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                />
               </div>
               <div className="space-y-1.5">
-                <label className="font-bold text-muted-foreground block">ID de integração da marca</label>
-                <input type="text" value={formMarcaIntegracaoId} onChange={(e) => setFormMarcaIntegracaoId(e.target.value)} placeholder="Ex: BRAND_123" className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none" />
+                <label className="font-bold text-muted-foreground block">
+                  ID de integração da marca
+                </label>
+                <input
+                  type="text"
+                  value={formMarcaIntegracaoId}
+                  onChange={(e) => setFormMarcaIntegracaoId(e.target.value)}
+                  placeholder="Ex: BRAND_123"
+                  className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                />
               </div>
             </div>
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-surface-muted/30">
-              <button type="button" onClick={() => setShowCriarMarcaModal(false)} className="px-4 py-2 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer text-xs">Cancelar</button>
-              <button type="button" onClick={() => setShowCriarMarcaModal(false)} className="px-4 py-2 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs text-xs">Criar Marca</button>
+              <button
+                type="button"
+                onClick={() => setShowCriarMarcaModal(false)}
+                className="px-4 py-2 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer text-xs"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowCriarMarcaModal(false)}
+                className="px-4 py-2 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs text-xs"
+              >
+                Criar Marca
+              </button>
             </div>
           </div>
         </div>
@@ -2508,7 +3164,11 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
           <div className="bg-surface border border-border rounded-xl shadow-xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <h3 className="text-base font-bold font-editorial text-primary">Modificar times</h3>
-              <button type="button" onClick={() => setUpdatingTeamsMarca(null)} className="text-muted hover:text-primary transition cursor-pointer">
+              <button
+                type="button"
+                onClick={() => setUpdatingTeamsMarca(null)}
+                className="text-muted hover:text-primary transition cursor-pointer"
+              >
                 <X className="w-5 h-5" strokeWidth={1.5} />
               </button>
             </div>
@@ -2540,14 +3200,17 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
             <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-surface-muted/30 text-xs text-muted">
               <span>1-4 de 4</span>
               <div className="flex items-center gap-1">
-                <button className="p-1 rounded border border-border text-muted hover:text-primary transition cursor-pointer disabled:opacity-50"><ChevronLeft className="w-4 h-4" strokeWidth={1.5} /></button>
-                <button className="p-1 rounded border border-border text-muted hover:text-primary transition cursor-pointer disabled:opacity-50"><ChevronRight className="w-4 h-4" strokeWidth={1.5} /></button>
+                <button className="p-1 rounded border border-border text-muted hover:text-primary transition cursor-pointer disabled:opacity-50">
+                  <ChevronLeft className="w-4 h-4" strokeWidth={1.5} />
+                </button>
+                <button className="p-1 rounded border border-border text-muted hover:text-primary transition cursor-pointer disabled:opacity-50">
+                  <ChevronRight className="w-4 h-4" strokeWidth={1.5} />
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 };

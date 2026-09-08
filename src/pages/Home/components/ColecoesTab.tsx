@@ -24,7 +24,7 @@ const MOCK_COLECOES: ColecaoItem[] = [
     pecasTotal: 214,
     concluidoEmDate: '22/07/2025',
     dataEntrega: '23/07/2025',
-    diasAtraso: -406
+    diasAtraso: -406,
   },
   {
     id: 'c2',
@@ -36,7 +36,7 @@ const MOCK_COLECOES: ColecaoItem[] = [
     pecasTotal: 28,
     concluidoEmDate: '18/07/2025',
     dataEntrega: '18/07/2025',
-    diasAtraso: -411
+    diasAtraso: -411,
   },
   {
     id: 'c3',
@@ -48,7 +48,7 @@ const MOCK_COLECOES: ColecaoItem[] = [
     pecasTotal: 259,
     concluidoEmDate: '26/08/2026',
     dataEntrega: '26/08/2026',
-    diasAtraso: 0
+    diasAtraso: 0,
   },
   {
     id: 'c4',
@@ -60,7 +60,7 @@ const MOCK_COLECOES: ColecaoItem[] = [
     pecasTotal: 151,
     concluidoEmDate: '07/07/2025',
     dataEntrega: '10/01/2025',
-    diasAtraso: 0
+    diasAtraso: 0,
   },
   {
     id: 'c5',
@@ -72,7 +72,7 @@ const MOCK_COLECOES: ColecaoItem[] = [
     pecasTotal: 34,
     concluidoEmDate: '07/07/2025',
     dataEntrega: '10/01/2025',
-    diasAtraso: -600
+    diasAtraso: -600,
   },
   {
     id: 'c6',
@@ -84,18 +84,19 @@ const MOCK_COLECOES: ColecaoItem[] = [
     pecasTotal: 228,
     concluidoEmDate: '26/08/2026',
     dataEntrega: '26/08/2026',
-    diasAtraso: 0
-  }
+    diasAtraso: 0,
+  },
 ];
 
 export const ColecoesTab: React.FC = () => {
-  const [statusFiltro, setStatusFiltro] = useState<'Em andamento' | 'Completas' | 'Arquivadas'>('Completas');
+  const [statusFiltro, setStatusFiltro] = useState<'Em andamento' | 'Completas' | 'Arquivadas'>(
+    'Completas'
+  );
 
-  const colecoesFiltradas = MOCK_COLECOES.filter(c => c.status === statusFiltro);
+  const colecoesFiltradas = MOCK_COLECOES.filter((c) => c.status === statusFiltro);
 
   return (
     <div className="space-y-4 font-sans animate-in fade-in duration-200">
-      
       {/* 1. NAVEGAÇÃO DE SUB-STATUS */}
       <div className="flex items-center justify-between border-b border-border pb-3">
         <div className="flex gap-6 text-xs font-semibold">
@@ -166,7 +167,9 @@ export const ColecoesTab: React.FC = () => {
 
                 <div className="flex justify-between items-center text-muted-foreground">
                   <span>Peças concluídas</span>
-                  <strong className="text-primary font-bold">{c.pecasConcluidas} de {c.pecasTotal}</strong>
+                  <strong className="text-primary font-bold">
+                    {c.pecasConcluidas} de {c.pecasTotal}
+                  </strong>
                 </div>
 
                 {c.concluidoEmDate && (
@@ -202,7 +205,6 @@ export const ColecoesTab: React.FC = () => {
           );
         })}
       </div>
-
     </div>
   );
 };

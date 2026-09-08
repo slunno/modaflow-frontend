@@ -55,28 +55,31 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
 
   const toggleItem = (val: string) => {
     if (selectedValues.includes(val)) {
-      onChange(selectedValues.filter(item => item !== val));
+      onChange(selectedValues.filter((item) => item !== val));
     } else {
       onChange([...selectedValues, val]);
     }
   };
 
-  const displayText = selectedValues.length === 0 
-    ? placeholder 
-    : selectedValues.length === 1 
-      ? selectedValues[0] 
-      : `${selectedValues.length} selecionados`;
+  const displayText =
+    selectedValues.length === 0
+      ? placeholder
+      : selectedValues.length === 1
+        ? selectedValues[0]
+        : `${selectedValues.length} selecionados`;
 
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
       <label className="block text-xs font-semibold text-primary mb-1">{label}</label>
-      
+
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="w-full px-3.5 py-2.5 bg-surface border border-border rounded-lg text-xs font-medium text-primary flex items-center justify-between shadow-2xs hover:border-accent-camel focus:outline-none focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 transition-all duration-200 cursor-pointer"
       >
-        <span className={`truncate ${selectedValues.length === 0 ? 'text-muted' : 'text-primary font-semibold'}`}>
+        <span
+          className={`truncate ${selectedValues.length === 0 ? 'text-muted' : 'text-primary font-semibold'}`}
+        >
           {displayText}
         </span>
         <ChevronDown className="w-4 h-4 text-muted shrink-0 ml-1" strokeWidth={1.5} />
@@ -84,14 +87,17 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
 
       {isOpen && (
         <div className="absolute top-full left-0 mt-1 w-full bg-surface border border-border rounded-xl shadow-xl z-50 py-2 max-h-72 overflow-y-auto text-xs animate-in fade-in duration-200">
-          
           <div
             onClick={toggleSelectAll}
             className="px-3.5 py-2 hover:bg-surface-muted flex items-center gap-2.5 cursor-pointer font-bold border-b border-border-muted text-primary transition-colors duration-200"
           >
-            <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors duration-200 ${
-              isAllSelected ? 'bg-accent-camel border-accent-camel text-white' : 'border-border bg-surface'
-            }`}>
+            <div
+              className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors duration-200 ${
+                isAllSelected
+                  ? 'bg-accent-camel border-accent-camel text-white'
+                  : 'border-border bg-surface'
+              }`}
+            >
               {isAllSelected && <Check className="w-3 h-3" strokeWidth={2} />}
             </div>
             <span>Selecionar todos</span>
@@ -107,16 +113,19 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
                   checked ? 'bg-surface-muted/80 font-bold text-primary' : ''
                 }`}
               >
-                <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors duration-200 ${
-                  checked ? 'bg-accent-camel border-accent-camel text-white' : 'border-border bg-surface'
-                }`}>
+                <div
+                  className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors duration-200 ${
+                    checked
+                      ? 'bg-accent-camel border-accent-camel text-white'
+                      : 'border-border bg-surface'
+                  }`}
+                >
                   {checked && <Check className="w-3 h-3" strokeWidth={2} />}
                 </div>
                 <span className="truncate">{opt}</span>
               </div>
             );
           })}
-
         </div>
       )}
     </div>

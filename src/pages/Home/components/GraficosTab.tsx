@@ -58,9 +58,7 @@ export const GraficosTab: React.FC = () => {
     { rotulo: 'Suporte', quantidade: 1 },
   ];
 
-  const dadosFornecedor: GraficoDimensaoMetric[] = [
-    { rotulo: 'Interno', quantidade: 2 },
-  ];
+  const dadosFornecedor: GraficoDimensaoMetric[] = [{ rotulo: 'Interno', quantidade: 2 }];
 
   const dadosTipo: GraficoDimensaoMetric[] = [
     { rotulo: 'Camisa', quantidade: 1250 },
@@ -100,7 +98,7 @@ export const GraficosTab: React.FC = () => {
       default:
         return dadosMarca;
     }
-  }, [agrupamento]);
+  }, [agrupamento, dadosMarca, dadosCriador, dadosEstilista, dadosFornecedor, dadosTipo, dadosTag]);
 
   // VALOR MÁXIMO PARA A RÉGUA DE ESCALA DO GRÁFICO
   const maxVal = Math.max(...currentData.map((d: GraficoDimensaoMetric) => d.quantidade), 10);
@@ -108,10 +106,8 @@ export const GraficosTab: React.FC = () => {
 
   return (
     <div className="space-y-6 font-sans animate-in fade-in duration-200">
-      
       {/* 1. PAINEL DE FILTROS & CONTEXTOS (CARD NÍVEL 2) */}
       <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-5 transition-all duration-300">
-        
         <div className="border-b border-border-muted pb-3">
           <h4 className="text-sm font-bold font-editorial text-primary">Filtros</h4>
         </div>
@@ -123,7 +119,18 @@ export const GraficosTab: React.FC = () => {
             <Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
           </label>
           <div className="flex flex-wrap gap-2">
-            {(['Campo', 'Criador', 'Fornecedor', 'Marca', 'Estilista', 'Time', 'Tipo', 'Tag'] as const).map((item) => {
+            {(
+              [
+                'Campo',
+                'Criador',
+                'Fornecedor',
+                'Marca',
+                'Estilista',
+                'Time',
+                'Tipo',
+                'Tag',
+              ] as const
+            ).map((item) => {
               const isSelected = agrupamento === item;
               return (
                 <button
@@ -145,7 +152,9 @@ export const GraficosTab: React.FC = () => {
           {/* Campo específico se agrupamento === 'Campo' */}
           {agrupamento === 'Campo' && (
             <div className="pt-2 max-w-sm">
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">Campo</label>
+              <label className="block text-xs font-semibold text-muted-foreground mb-1">
+                Campo
+              </label>
               <select
                 value={selectedCampo}
                 onChange={(e) => setSelectedCampo(e.target.value)}
@@ -190,99 +199,105 @@ export const GraficosTab: React.FC = () => {
 
         {/* 1.2 CONTEXTO GERAL (Marcas, Coleções, Times ⓘ) */}
         {agrupamento !== 'Marca' && (
-        <div className="space-y-2 border-b border-border-muted pb-4">
-          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider">
-            Contexto Geral
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Marcas</label>
-              <select
-                value={selectedMarca}
-                onChange={(e) => setSelectedMarca(e.target.value)}
-                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
-              >
-                <option value="">Selecione marcas</option>
-                <option value="King & Joe">King & Joe</option>
-                <option value="K&J Black">K&J Black</option>
-                <option value="King & Joe Play">King & Joe Play</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Coleções</label>
-              <select
-                value={selectedColecao}
-                onChange={(e) => setSelectedColecao(e.target.value)}
-                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
-              >
-                <option value="">Selecione marcas</option>
-                {COLECOES_OPTIONS.map(c => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </div>
-
-            {agrupamento !== 'Time' && (
+          <div className="space-y-2 border-b border-border-muted pb-4">
+            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider">
+              Contexto Geral
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
-                  <span>Times</span>
-                  <Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
+                <label className="block text-xs font-medium text-muted-foreground mb-1">
+                  Marcas
                 </label>
                 <select
-                  value={selectedTime}
-                  onChange={(e) => setSelectedTime(e.target.value)}
+                  value={selectedMarca}
+                  onChange={(e) => setSelectedMarca(e.target.value)}
                   className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
                 >
                   <option value="">Selecione marcas</option>
-                  <option value="time_estilo">Time de Estilo</option>
-                  <option value="time_modelagem">Time de Modelagem</option>
-                  <option value="time_producao">Time de Produção</option>
+                  <option value="King & Joe">King & Joe</option>
+                  <option value="K&J Black">K&J Black</option>
+                  <option value="King & Joe Play">King & Joe Play</option>
                 </select>
               </div>
-            )}
+
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">
+                  Coleções
+                </label>
+                <select
+                  value={selectedColecao}
+                  onChange={(e) => setSelectedColecao(e.target.value)}
+                  className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
+                >
+                  <option value="">Selecione marcas</option>
+                  {COLECOES_OPTIONS.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {agrupamento !== 'Time' && (
+                <div>
+                  <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
+                    <span>Times</span>
+                    <Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
+                  </label>
+                  <select
+                    value={selectedTime}
+                    onChange={(e) => setSelectedTime(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
+                  >
+                    <option value="">Selecione marcas</option>
+                    <option value="time_estilo">Time de Estilo</option>
+                    <option value="time_modelagem">Time de Modelagem</option>
+                    <option value="time_producao">Time de Produção</option>
+                  </select>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
         )}
 
         {/* 1.3 CONTEXTO DE TAGS (Tags ⓘ, Item de Tag ⓘ) */}
         {agrupamento !== 'Marca' && agrupamento !== 'Tag' && (
-        <div className="space-y-2 border-b border-border-muted pb-4">
-          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider">
-            Contexto de Tags
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
-                <span>Tags</span>
-                <Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
-              </label>
-              <select
-                value={selectedTag}
-                onChange={(e) => setSelectedTag(e.target.value)}
-                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
-              >
-                <option value="">Selecione marcas</option>
-                <option value="linha_nobre">Linha Nobre</option>
-                <option value="bestseller">Best Seller</option>
-              </select>
-            </div>
+          <div className="space-y-2 border-b border-border-muted pb-4">
+            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider">
+              Contexto de Tags
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
+                  <span>Tags</span>
+                  <Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
+                </label>
+                <select
+                  value={selectedTag}
+                  onChange={(e) => setSelectedTag(e.target.value)}
+                  className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
+                >
+                  <option value="">Selecione marcas</option>
+                  <option value="linha_nobre">Linha Nobre</option>
+                  <option value="bestseller">Best Seller</option>
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
-                <span>Item de Tag</span>
-                <Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
-              </label>
-              <select
-                value={selectedItemTag}
-                onChange={(e) => setSelectedItemTag(e.target.value)}
-                className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
-              >
-                <option value="">Selecione tags</option>
-              </select>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
+                  <span>Item de Tag</span>
+                  <Info className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
+                </label>
+                <select
+                  value={selectedItemTag}
+                  onChange={(e) => setSelectedItemTag(e.target.value)}
+                  className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
+                >
+                  <option value="">Selecione tags</option>
+                </select>
+              </div>
             </div>
           </div>
-        </div>
         )}
 
         {/* 1.4 CONTEXTO DE CAMPOS */}
@@ -292,7 +307,9 @@ export const GraficosTab: React.FC = () => {
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Campos Customizados</label>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">
+                Campos Customizados
+              </label>
               <select
                 value={selectedCampoCust}
                 onChange={(e) => setSelectedCampoCust(e.target.value)}
@@ -303,7 +320,9 @@ export const GraficosTab: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Valores</label>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">
+                Valores
+              </label>
               <select
                 value={selectedValor}
                 onChange={(e) => setSelectedValor(e.target.value)}
@@ -336,7 +355,9 @@ export const GraficosTab: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Percurso de Etapas</label>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">
+                Percurso de Etapas
+              </label>
               <div className="flex gap-2">
                 <select
                   value={selectedPercurso1}
@@ -344,7 +365,11 @@ export const GraficosTab: React.FC = () => {
                   className="w-1/2 px-2 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
                 >
                   <option value="">Selecione...</option>
-                  {ETAPAS_OPTIONS.slice(0, 5).map(e => <option key={e} value={e}>{e}</option>)}
+                  {ETAPAS_OPTIONS.slice(0, 5).map((e) => (
+                    <option key={e} value={e}>
+                      {e}
+                    </option>
+                  ))}
                 </select>
 
                 <select
@@ -353,7 +378,11 @@ export const GraficosTab: React.FC = () => {
                   className="w-1/2 px-2 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
                 >
                   <option value="">Selecione...</option>
-                  {ETAPAS_OPTIONS.slice(5, 10).map(e => <option key={e} value={e}>{e}</option>)}
+                  {ETAPAS_OPTIONS.slice(5, 10).map((e) => (
+                    <option key={e} value={e}>
+                      {e}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -382,15 +411,14 @@ export const GraficosTab: React.FC = () => {
             </div>
           </div>
         </div>
-
       </div>
 
       {/* 2. GRÁFICO DE BARRAS (CARD NÍVEL 2) */}
       <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-4 transition-all duration-300">
-        
         <div className="flex items-center justify-between border-b border-border-muted pb-3">
           <h4 className="text-sm font-bold font-editorial text-primary flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-accent-camel" /> Gráficos — Agrupado por {agrupamento}
+            <BarChart3 className="w-4 h-4 text-accent-camel" /> Gráficos — Agrupado por{' '}
+            {agrupamento}
           </h4>
           <span className="text-xs font-semibold text-muted italic">Quantidade de Produtos</span>
         </div>
@@ -482,9 +510,7 @@ export const GraficosTab: React.FC = () => {
             );
           })}
         </div>
-
       </div>
-
     </div>
   );
 };

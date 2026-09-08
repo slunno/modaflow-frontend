@@ -11,12 +11,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth, MOCK_MARCAS } from '../../contexts/AuthContext';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  ArrowRight, 
-  Sparkles
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowRight, Sparkles } from 'lucide-react';
 import type { MarcaSummary } from '../../types/auth';
 import { PecasTab } from './components/PecasTab';
 import { DashboardTab } from './components/DashboardTab';
@@ -28,7 +23,7 @@ import { BrandCollectionsView } from './components/BrandCollectionsView';
  */
 export const HomePage: React.FC = () => {
   const { activeMarca, setActiveMarca } = useAuth();
-  
+
   // Estado da Sub-aba ativa na Home com persistência no localStorage
   const [subTab, setSubTab] = useState<'marcas' | 'pecas' | 'dashboard' | 'graficos'>(() => {
     const saved = localStorage.getItem('modaflow_sub_tab');
@@ -37,12 +32,12 @@ export const HomePage: React.FC = () => {
     }
     return 'marcas';
   });
-  
+
   // Marca selecionada recuperada do localStorage
   const [selectedMarcaForView, setSelectedMarcaForView] = useState<MarcaSummary | null>(() => {
     const savedMarcaId = localStorage.getItem('modaflow_selected_marca_id');
     if (savedMarcaId) {
-      return MOCK_MARCAS.find(m => m.id === savedMarcaId) || null;
+      return MOCK_MARCAS.find((m) => m.id === savedMarcaId) || null;
     }
     return null;
   });
@@ -75,7 +70,7 @@ export const HomePage: React.FC = () => {
     const handleOpenMarca = (e: Event) => {
       const customEvt = e as CustomEvent;
       const marcaId = customEvt.detail;
-      const found = MOCK_MARCAS.find(m => m.id === marcaId);
+      const found = MOCK_MARCAS.find((m) => m.id === marcaId);
       if (found) {
         setSelectedMarcaForView(found);
         setSubTab('marcas');
@@ -92,7 +87,7 @@ export const HomePage: React.FC = () => {
 
   // Índice da Marca atualmente focada no Carrossel Suspenso
   const [currentIndex, setCurrentIndex] = useState(() => {
-    const found = MOCK_MARCAS.findIndex(m => m.id === activeMarca?.id);
+    const found = MOCK_MARCAS.findIndex((m) => m.id === activeMarca?.id);
     return found !== -1 ? found : 0;
   });
 
@@ -122,7 +117,6 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="w-full flex flex-col font-sans">
-      
       {/* 1. NAVEGAÇÃO DE SUB-ABAS (Marcas | Peças | Dashboard | Gráficos) */}
       <div className="border-b border-border bg-surface px-4 sm:px-8 pt-4">
         <div className="max-w-7xl mx-auto flex items-center gap-8 text-sm font-semibold">
@@ -173,15 +167,16 @@ export const HomePage: React.FC = () => {
       </div>
 
       {/* 2. CONTEÚDO REATIVO POR ABA SELECIONADA COM FADE SUTIL */}
-      <div className={`w-full ${subTab === 'marcas' && !selectedMarcaForView ? 'p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto' : 'max-w-7xl mx-auto p-4 sm:p-6 lg:p-8'}`}>
-        
+      <div
+        className={`w-full ${subTab === 'marcas' && !selectedMarcaForView ? 'p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto' : 'max-w-7xl mx-auto p-4 sm:p-6 lg:p-8'}`}
+      >
         {/* ABA 1: MARCAS (CARROSSEL SUSPENSO E DETALHAMENTO DE COLEÇÕES) */}
-        {subTab === 'marcas' && (
-          selectedMarcaForView ? (
+        {subTab === 'marcas' &&
+          (selectedMarcaForView ? (
             <div className="animate-in fade-in duration-200">
-              <BrandCollectionsView 
-                marca={selectedMarcaForView} 
-                onBack={() => setSelectedMarcaForView(null)} 
+              <BrandCollectionsView
+                marca={selectedMarcaForView}
+                onBack={() => setSelectedMarcaForView(null)}
                 onSelectMarca={(m) => setSelectedMarcaForView(m)}
               />
             </div>
@@ -195,13 +190,12 @@ export const HomePage: React.FC = () => {
 
               {/* HERO CARROSSEL SUSPENSO DAS MARCAS AKR BRANDS */}
               <div className="relative w-full rounded-3xl overflow-hidden shadow-xl min-h-[480px] sm:min-h-[520px] flex flex-col justify-between p-6 sm:p-10 text-white transition-all duration-500 bg-neutral-950">
-                
                 {/* IMAGEM DE FUNDO DA MARCA ATIVA NO CARROSSEL */}
-                <div 
+                <div
                   className="absolute inset-0 bg-cover bg-center transition-all duration-500 transform scale-105 img-brand-treated"
                   style={{ backgroundImage: `url(${currentMarca.heroImageUrl})` }}
                 />
-                
+
                 {/* OVERLAY DE DEGRADÊ PARA LEITURA PERFEITA */}
                 <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-neutral-950/30" />
 
@@ -275,19 +269,25 @@ export const HomePage: React.FC = () => {
                               : 'bg-black/40 text-white border-white/20 hover:bg-black/60 hover:border-white/40'
                           }`}
                         >
-                          <div className={`px-3 py-2.5 rounded-lg font-extrabold text-xs tracking-wider border shrink-0 ${
-                            isSelected 
-                              ? 'bg-accent-camel/10 text-accent-camel border-accent-camel/30' 
-                              : 'bg-white/10 text-white border-white/20'
-                          }`}>
+                          <div
+                            className={`px-3 py-2.5 rounded-lg font-extrabold text-xs tracking-wider border shrink-0 ${
+                              isSelected
+                                ? 'bg-accent-camel/10 text-accent-camel border-accent-camel/30'
+                                : 'bg-white/10 text-white border-white/20'
+                            }`}
+                          >
                             {m.initials}
                           </div>
 
                           <div className="overflow-hidden">
-                            <h4 className={`text-sm font-bold truncate ${isSelected ? 'text-primary' : 'text-white'}`}>
+                            <h4
+                              className={`text-sm font-bold truncate ${isSelected ? 'text-primary' : 'text-white'}`}
+                            >
                               {m.nome}
                             </h4>
-                            <span className={`text-[11px] font-semibold block ${isSelected ? 'text-muted-foreground' : 'text-neutral-300'}`}>
+                            <span
+                              className={`text-[11px] font-semibold block ${isSelected ? 'text-muted-foreground' : 'text-neutral-300'}`}
+                            >
                               {m.colecoesCount} Coleções • {m.pecasCount} Peças
                             </span>
                           </div>
@@ -296,11 +296,9 @@ export const HomePage: React.FC = () => {
                     })}
                   </div>
                 </div>
-
               </div>
             </div>
-          )
-        )}
+          ))}
 
         {/* ABA 2: PEÇAS (CATÁLOGO & FILTROS) */}
         {subTab === 'pecas' && <PecasTab />}
@@ -310,9 +308,7 @@ export const HomePage: React.FC = () => {
 
         {/* ABA 4: GRÁFICOS (ANALYTICS & BI) */}
         {subTab === 'graficos' && <GraficosTab />}
-
       </div>
-
     </div>
   );
 };

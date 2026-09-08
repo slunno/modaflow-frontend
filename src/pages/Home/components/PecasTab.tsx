@@ -38,7 +38,7 @@ export const ETAPAS_OPTIONS = [
   'Final',
   'Inicial',
   'Integração linx',
-  'Revisar ficha técnica (liberar mostruário)'
+  'Revisar ficha técnica (liberar mostruário)',
 ];
 
 /** Lista Completa de Tipos de Peças (Incluindo Regata, Short, Sunga e Tricot) */
@@ -64,7 +64,7 @@ export const TIPOS_PECAS_OPTIONS = [
   'Regata',
   'Short',
   'Sunga',
-  'Tricot'
+  'Tricot',
 ];
 
 /** Lista Completa de Estações extraída dos Prints Oficiais */
@@ -82,7 +82,7 @@ export const ESTACOES_OPTIONS = [
   'Preview Verão',
   'Primavera',
   'Primavera/Verão',
-  'Verão'
+  'Verão',
 ];
 
 /** Lista de Coleções de Exemplo */
@@ -92,7 +92,7 @@ export const COLECOES_OPTIONS = [
   'TESTES VERÃO 28 - KING&JOE PLAY',
   'INVERNO 26 - KING&JOE PLAY COLLECTION',
   'INVERNO 26 - KING&JOE PLAY PERENES',
-  'VERÃO 26 - King&Joe Play Collection'
+  'VERÃO 26 - King&Joe Play Collection',
 ];
 
 /** Mock Data de Peças inspiradas no sistema Coleção Moda */
@@ -109,10 +109,11 @@ const MOCK_PECAS: PecaItem[] = [
     marcaNome: 'K&J Black',
     estilista: 'Mariana Barbosa',
     tecidos: ['Linho Misto Fios Nobres'],
-    custo: 42.50,
-    preco: 149.90,
+    custo: 42.5,
+    preco: 149.9,
     previsaoEntrega: '23/07/2026',
-    imagemCroquiUrl: 'https://images.unsplash.com/photo-1542272604-780c96856592?q=80&w=600&auto=format&fit=crop'
+    imagemCroquiUrl:
+      'https://images.unsplash.com/photo-1542272604-780c96856592?q=80&w=600&auto=format&fit=crop',
   },
   {
     id: 'p2',
@@ -126,10 +127,11 @@ const MOCK_PECAS: PecaItem[] = [
     marcaNome: 'K&J Black',
     estilista: 'Mariana Barbosa',
     tecidos: ['Algodão Egípcio 80 fios'],
-    custo: 38.00,
-    preco: 129.90,
+    custo: 38.0,
+    preco: 129.9,
     previsaoEntrega: '18/07/2026',
-    imagemCroquiUrl: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?q=80&w=600&auto=format&fit=crop'
+    imagemCroquiUrl:
+      'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?q=80&w=600&auto=format&fit=crop',
   },
   {
     id: 'p3',
@@ -143,10 +145,11 @@ const MOCK_PECAS: PecaItem[] = [
     marcaNome: 'K&J Black',
     estilista: 'Juliano',
     tecidos: ['Tricoline Premium'],
-    custo: 35.00,
-    preco: 119.90,
+    custo: 35.0,
+    preco: 119.9,
     previsaoEntrega: '26/08/2026',
-    imagemCroquiUrl: 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=600&auto=format&fit=crop'
+    imagemCroquiUrl:
+      'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=600&auto=format&fit=crop',
   },
   {
     id: 'p4',
@@ -160,10 +163,11 @@ const MOCK_PECAS: PecaItem[] = [
     marcaNome: 'King & Joe',
     estilista: 'Mariana Barbosa',
     tecidos: ['Sarja com Elastano'],
-    custo: 48.00,
-    preco: 169.90,
+    custo: 48.0,
+    preco: 169.9,
     previsaoEntrega: '10/01/2026',
-    imagemCroquiUrl: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?q=80&w=600&auto=format&fit=crop'
+    imagemCroquiUrl:
+      'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?q=80&w=600&auto=format&fit=crop',
   },
   {
     id: 'p5',
@@ -177,11 +181,12 @@ const MOCK_PECAS: PecaItem[] = [
     marcaNome: 'King & Joe Play',
     estilista: 'Juliano',
     tecidos: ['Moletom Fleece Light'],
-    custo: 40.00,
-    preco: 139.90,
+    custo: 40.0,
+    preco: 139.9,
     previsaoEntrega: '10/01/2026',
-    imagemCroquiUrl: 'https://images.unsplash.com/photo-1552902865-b72c031ac5ea?q=80&w=600&auto=format&fit=crop'
-  }
+    imagemCroquiUrl:
+      'https://images.unsplash.com/photo-1552902865-b72c031ac5ea?q=80&w=600&auto=format&fit=crop',
+  },
 ];
 
 export const PecasTab: React.FC = () => {
@@ -199,35 +204,54 @@ export const PecasTab: React.FC = () => {
   // FILTRAGEM REATIVA DE PEÇAS
   const filteredPecas = useMemo(() => {
     return MOCK_PECAS.filter((peca) => {
-      const matchSearch = searchTerm === '' || 
-        peca.nome.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      const matchSearch =
+        searchTerm === '' ||
+        peca.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
         peca.codigo.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchMarca = filterMarca === '' || peca.marcaNome === filterMarca;
-      
-      const matchEtapa = selectedEtapas.length === 0 || 
-        selectedEtapas.some(e => e.toLowerCase() === peca.etapaAtual.toLowerCase());
 
-      const matchTipo = selectedTipos.length === 0 || 
-        selectedTipos.some(t => t.toLowerCase() === peca.tipo.toLowerCase());
+      const matchMarca = filterMarca === '' || peca.marcaNome === filterMarca;
+
+      const matchEtapa =
+        selectedEtapas.length === 0 ||
+        selectedEtapas.some((e) => e.toLowerCase() === peca.etapaAtual.toLowerCase());
+
+      const matchTipo =
+        selectedTipos.length === 0 ||
+        selectedTipos.some((t) => t.toLowerCase() === peca.tipo.toLowerCase());
 
       const matchStatusPeca = filterStatusPeca === '' || peca.status === filterStatusPeca;
-      
-      const matchColecao = selectedColecoes.length === 0 || 
-        selectedColecoes.includes(peca.colecaoNome);
 
-      const matchTecido = filterTecido === '' || peca.tecidos.some(t => t.toLowerCase().includes(filterTecido.toLowerCase()));
+      const matchColecao =
+        selectedColecoes.length === 0 || selectedColecoes.includes(peca.colecaoNome);
 
-      return matchSearch && matchMarca && matchEtapa && matchTipo && matchStatusPeca && matchColecao && matchTecido;
+      const matchTecido =
+        filterTecido === '' ||
+        peca.tecidos.some((t) => t.toLowerCase().includes(filterTecido.toLowerCase()));
+
+      return (
+        matchSearch &&
+        matchMarca &&
+        matchEtapa &&
+        matchTipo &&
+        matchStatusPeca &&
+        matchColecao &&
+        matchTecido
+      );
     });
-  }, [searchTerm, filterMarca, selectedEtapas, selectedTipos, filterStatusPeca, selectedColecoes, filterTecido]);
+  }, [
+    searchTerm,
+    filterMarca,
+    selectedEtapas,
+    selectedTipos,
+    filterStatusPeca,
+    selectedColecoes,
+    filterTecido,
+  ]);
 
   return (
     <div className="space-y-6 font-sans animate-in fade-in duration-200">
-      
       {/* 1. PAINEL DE FILTROS AVANÇADOS (CARD NÍVEL 2) */}
       <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-4 transition-all duration-300">
-        
         <div className="flex items-center justify-between border-b border-border-muted pb-3">
           <h4 className="text-sm font-bold font-editorial text-primary flex items-center gap-2">
             <Filter className="w-4 h-4 text-accent-camel" strokeWidth={1.5} /> Filtros
@@ -270,7 +294,9 @@ export const PecasTab: React.FC = () => {
           />
 
           <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-1">Status da Peça</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              Status da Peça
+            </label>
             <select
               value={filterStatusPeca}
               onChange={(e) => setFilterStatusPeca(e.target.value)}
@@ -287,7 +313,9 @@ export const PecasTab: React.FC = () => {
         {/* LINHA 2 DE FILTROS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
           <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-1">Status da Coleção</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              Status da Coleção
+            </label>
             <select
               value={filterStatusColecao}
               onChange={(e) => setFilterStatusColecao(e.target.value)}
@@ -331,7 +359,9 @@ export const PecasTab: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-1">Aviamento</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              Aviamento
+            </label>
             <input
               type="text"
               placeholder="Buscar Aviamento"
@@ -340,7 +370,9 @@ export const PecasTab: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-1">Terceiro</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              Terceiro
+            </label>
             <input
               type="text"
               placeholder="Buscar Terceiro"
@@ -351,7 +383,9 @@ export const PecasTab: React.FC = () => {
 
         {/* LINHA 4 DE FILTROS */}
         <div className="max-w-xs pt-1">
-          <label className="block text-xs font-semibold text-muted-foreground mb-1">Buscar Peças</label>
+          <label className="block text-xs font-semibold text-muted-foreground mb-1">
+            Buscar Peças
+          </label>
           <div className="relative">
             <input
               type="text"
@@ -363,7 +397,6 @@ export const PecasTab: React.FC = () => {
             <Search className="w-4 h-4 text-muted absolute left-3 top-3" strokeWidth={1.5} />
           </div>
         </div>
-
       </div>
 
       {/* 2. GRID DE EXIBIÇÃO DE PEÇAS */}
@@ -382,9 +415,7 @@ export const PecasTab: React.FC = () => {
               className="bg-surface border border-border rounded-xl p-4 shadow-2xs hover:border-accent-camel/50 hover:shadow-md hover:scale-[1.01] transition-all duration-300 group cursor-pointer"
             >
               <div className="flex items-center justify-between mb-3">
-                <h4 className="text-xs font-bold text-primary truncate">
-                  {peca.nome}
-                </h4>
+                <h4 className="text-xs font-bold text-primary truncate">{peca.nome}</h4>
               </div>
 
               <div className="w-full h-44 rounded-lg bg-surface-muted border border-border-muted overflow-hidden mb-3 relative flex items-center justify-center">
@@ -396,16 +427,25 @@ export const PecasTab: React.FC = () => {
               </div>
 
               <div className="space-y-1 text-[11px] text-muted-foreground">
-                <p>Status: <strong className="text-primary font-semibold">{peca.status}</strong></p>
-                <p>Tema: <strong className="text-primary font-semibold">{peca.tema}</strong></p>
-                <p className="truncate">Coleção: <strong className="text-primary font-semibold">{peca.colecaoNome}</strong></p>
-                <p>Marca: <strong className="text-accent-camel font-semibold">{peca.marcaNome}</strong></p>
+                <p>
+                  Status: <strong className="text-primary font-semibold">{peca.status}</strong>
+                </p>
+                <p>
+                  Tema: <strong className="text-primary font-semibold">{peca.tema}</strong>
+                </p>
+                <p className="truncate">
+                  Coleção:{' '}
+                  <strong className="text-primary font-semibold">{peca.colecaoNome}</strong>
+                </p>
+                <p>
+                  Marca:{' '}
+                  <strong className="text-accent-camel font-semibold">{peca.marcaNome}</strong>
+                </p>
               </div>
             </div>
           ))}
         </div>
       </div>
-
     </div>
   );
 };

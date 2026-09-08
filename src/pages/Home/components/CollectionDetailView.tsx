@@ -12,23 +12,23 @@
 import React, { useState } from 'react';
 import type { MarcaSummary } from '../../../types/auth';
 import type { ColecaoItem, PecaItem } from '../../../types/plm';
-import { 
-  ChevronRight, 
-  ArrowLeft, 
-  Search, 
-  Calendar, 
-  CheckCircle2, 
-  Plus, 
-  Sun, 
-  Filter, 
-  Grid, 
-  Download, 
-  Image as ImageIcon, 
+import {
+  ChevronRight,
+  ArrowLeft,
+  Search,
+  Calendar,
+  CheckCircle2,
+  Plus,
+  Sun,
+  Filter,
+  Grid,
+  Download,
+  Image as ImageIcon,
   ChevronDown,
   X,
   Target,
   Edit2,
-  FileSpreadsheet
+  FileSpreadsheet,
 } from 'lucide-react';
 
 interface CollectionDetailViewProps {
@@ -52,10 +52,11 @@ const MOCK_PECAS_COLECAO: PecaItem[] = [
     marcaNome: 'K&J Black',
     estilista: 'Mariana Barbosa',
     tecidos: ['Tricoline Hi Flex', 'Entrela Rolo'],
-    imagemCroquiUrl: 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=600&auto=format&fit=crop',
-    custo: 120.00,
-    preco: 349.90,
-    previsaoEntrega: '15/09/2026'
+    imagemCroquiUrl:
+      'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=600&auto=format&fit=crop',
+    custo: 120.0,
+    preco: 349.9,
+    previsaoEntrega: '15/09/2026',
   },
   {
     id: 'p2',
@@ -69,10 +70,11 @@ const MOCK_PECAS_COLECAO: PecaItem[] = [
     marcaNome: 'K&J Black',
     estilista: 'Mariana Barbosa',
     tecidos: ['Cotton Pinpoint Span'],
-    imagemCroquiUrl: 'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?q=80&w=600&auto=format&fit=crop',
-    custo: 135.00,
-    preco: 389.90,
-    previsaoEntrega: '20/09/2026'
+    imagemCroquiUrl:
+      'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?q=80&w=600&auto=format&fit=crop',
+    custo: 135.0,
+    preco: 389.9,
+    previsaoEntrega: '20/09/2026',
   },
   {
     id: 'p3',
@@ -86,10 +88,11 @@ const MOCK_PECAS_COLECAO: PecaItem[] = [
     marcaNome: 'K&J Black',
     estilista: 'Ivonete Barbosa',
     tecidos: ['Malha Suedine Poliamida'],
-    imagemCroquiUrl: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=600&auto=format&fit=crop',
-    custo: 98.00,
-    preco: 299.90,
-    previsaoEntrega: '30/09/2026'
+    imagemCroquiUrl:
+      'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=600&auto=format&fit=crop',
+    custo: 98.0,
+    preco: 299.9,
+    previsaoEntrega: '30/09/2026',
   },
   {
     id: 'p4',
@@ -103,10 +106,11 @@ const MOCK_PECAS_COLECAO: PecaItem[] = [
     marcaNome: 'K&J Black',
     estilista: 'Fabiano',
     tecidos: ['Tricoline Blend Span'],
-    imagemCroquiUrl: 'https://images.unsplash.com/photo-1621072156002-e2fccdc0b176?q=80&w=600&auto=format&fit=crop',
-    custo: 110.00,
-    preco: 329.90,
-    previsaoEntrega: '05/10/2026'
+    imagemCroquiUrl:
+      'https://images.unsplash.com/photo-1621072156002-e2fccdc0b176?q=80&w=600&auto=format&fit=crop',
+    custo: 110.0,
+    preco: 329.9,
+    previsaoEntrega: '05/10/2026',
   },
   {
     id: 'p5',
@@ -120,11 +124,12 @@ const MOCK_PECAS_COLECAO: PecaItem[] = [
     marcaNome: 'K&J Black',
     estilista: 'Beatris Sgarioni',
     tecidos: ['Piquet Pima Cores'],
-    imagemCroquiUrl: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?q=80&w=600&auto=format&fit=crop',
-    custo: 140.00,
-    preco: 399.90,
-    previsaoEntrega: '12/10/2026'
-  }
+    imagemCroquiUrl:
+      'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?q=80&w=600&auto=format&fit=crop',
+    custo: 140.0,
+    preco: 399.9,
+    previsaoEntrega: '12/10/2026',
+  },
 ];
 
 /**
@@ -157,9 +162,15 @@ const DatePickerInput: React.FC<{
           value={value}
           onClick={() => setIsOpen(!isOpen)}
           readOnly
-          className={className || "w-32 px-3 py-1.5 bg-surface-muted border border-border rounded-lg text-xs font-medium focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none cursor-pointer pr-7 text-primary transition-all duration-200"}
+          className={
+            className ||
+            'w-32 px-3 py-1.5 bg-surface-muted border border-border rounded-lg text-xs font-medium focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none cursor-pointer pr-7 text-primary transition-all duration-200'
+          }
         />
-        <Calendar className="w-3.5 h-3.5 text-muted absolute right-2.5 pointer-events-none" strokeWidth={1.5} />
+        <Calendar
+          className="w-3.5 h-3.5 text-muted absolute right-2.5 pointer-events-none"
+          strokeWidth={1.5}
+        />
       </div>
 
       {/* POP-UP DO CALENDÁRIO FLUTUANTE PARA SELEÇÃO DE DATA */}
@@ -167,11 +178,9 @@ const DatePickerInput: React.FC<{
         <div className="absolute top-full left-0 mt-2 w-64 bg-surface border border-border rounded-xl shadow-xl z-50 p-4 space-y-3 animate-in fade-in duration-200 font-sans">
           {/* Header do Mês */}
           <div className="flex items-center justify-between border-b border-border-muted pb-2">
-            <span className="text-xs font-bold text-primary">
-              Setembro 2026
-            </span>
-            <button 
-              type="button" 
+            <span className="text-xs font-bold text-primary">Setembro 2026</span>
+            <button
+              type="button"
               onClick={() => setIsOpen(false)}
               className="p-1 hover:bg-surface-muted rounded-md text-muted hover:text-primary cursor-pointer transition-colors duration-200"
             >
@@ -181,7 +190,13 @@ const DatePickerInput: React.FC<{
 
           {/* Dias da Semana */}
           <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-muted">
-            <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+            <span>D</span>
+            <span>S</span>
+            <span>T</span>
+            <span>Q</span>
+            <span>Q</span>
+            <span>S</span>
+            <span>S</span>
           </div>
 
           {/* Grid de Dias */}
@@ -223,7 +238,10 @@ const DatePickerInput: React.FC<{
 
             <button
               type="button"
-              onClick={() => { onChange(''); setIsOpen(false); }}
+              onClick={() => {
+                onChange('');
+                setIsOpen(false);
+              }}
               className="text-muted font-bold hover:text-primary cursor-pointer"
             >
               Limpar
@@ -257,16 +275,24 @@ const ReservaMateriaisTab: React.FC<{
         <div className="space-y-3.5 text-xs">
           <div className="flex items-center gap-4">
             <span className="w-36 text-muted-foreground font-semibold">Estilista</span>
-            <button className="px-3 py-1 rounded-md bg-accent-camel text-white font-bold transition-all duration-200">Todas</button>
+            <button className="px-3 py-1 rounded-md bg-accent-camel text-white font-bold transition-all duration-200">
+              Todas
+            </button>
           </div>
 
           <div className="flex items-center gap-4">
-            <span className="w-36 text-muted-foreground font-semibold">Responsável pela reserva</span>
-            <button className="px-3 py-1 rounded-md bg-accent-camel text-white font-bold transition-all duration-200">Todas</button>
+            <span className="w-36 text-muted-foreground font-semibold">
+              Responsável pela reserva
+            </span>
+            <button className="px-3 py-1 rounded-md bg-accent-camel text-white font-bold transition-all duration-200">
+              Todas
+            </button>
           </div>
 
           <div className="flex items-center gap-4">
-            <span className="w-36 text-muted-foreground font-semibold">Data de cadastro da reserva</span>
+            <span className="w-36 text-muted-foreground font-semibold">
+              Data de cadastro da reserva
+            </span>
             <div className="flex items-center gap-2">
               <DatePickerInput
                 placeholder="Início"
@@ -279,9 +305,12 @@ const ReservaMateriaisTab: React.FC<{
                 value={dataFim}
                 onChange={(val) => setDataFim(val)}
               />
-              <button 
+              <button
                 type="button"
-                onClick={() => { setDataInicio(''); setDataFim(''); }}
+                onClick={() => {
+                  setDataInicio('');
+                  setDataFim('');
+                }}
                 className="p-1 text-muted hover:text-primary cursor-pointer transition-colors duration-200"
                 title="Limpar Datas"
               >
@@ -307,7 +336,7 @@ const ReservaMateriaisTab: React.FC<{
       <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-4 transition-all duration-300">
         <div className="flex items-center justify-between border-b border-border-muted pb-3">
           <h3 className="text-sm font-bold font-editorial text-primary">{tituloReserva}</h3>
-          
+
           <div className="flex items-center gap-2">
             <button className="px-3.5 py-1.5 rounded-lg border border-border bg-surface-muted text-xs font-bold text-muted-foreground hover:bg-border-muted transition-all duration-200 cursor-pointer">
               Opções ▾
@@ -323,8 +352,12 @@ const ReservaMateriaisTab: React.FC<{
           <div className="flex items-center justify-between text-[11px] font-bold text-muted pb-2 border-b border-border-muted">
             <span>0-0 de 0</span>
             <div className="flex items-center gap-2">
-              <button disabled className="opacity-40">&lt;</button>
-              <button disabled className="opacity-40">&gt;</button>
+              <button disabled className="opacity-40">
+                &lt;
+              </button>
+              <button disabled className="opacity-40">
+                &gt;
+              </button>
             </div>
           </div>
 
@@ -332,7 +365,11 @@ const ReservaMateriaisTab: React.FC<{
             <thead>
               <tr className="border-b border-border-muted text-[11px] font-bold text-muted uppercase tracking-wider">
                 <th className="py-3 px-3.5 w-10">
-                  <input type="checkbox" className="rounded-md border-border text-accent-camel focus:ring-accent-camel cursor-pointer" defaultChecked />
+                  <input
+                    type="checkbox"
+                    className="rounded-md border-border text-accent-camel focus:ring-accent-camel cursor-pointer"
+                    defaultChecked
+                  />
                 </th>
                 <th className="py-3 px-3.5">{rotuloMaterial}</th>
                 <th className="py-3 px-3.5">Cor</th>
@@ -361,11 +398,20 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
   marca,
   colecao,
   onBackToBrand,
-  onBackToHome
+  onBackToHome,
 }) => {
   // Aba ativa interna (as 10 abas)
   const [activeTab, setActiveTab] = useState<
-    'pecas' | 'temas' | 'cores' | 'paineis' | 'estampas' | 'reserva_tecidos' | 'reserva_aviamentos' | 'mix' | 'metas' | 'cronograma'
+    | 'pecas'
+    | 'temas'
+    | 'cores'
+    | 'paineis'
+    | 'estampas'
+    | 'reserva_tecidos'
+    | 'reserva_aviamentos'
+    | 'mix'
+    | 'metas'
+    | 'cronograma'
   >('pecas');
 
   // Busca de Peças
@@ -394,8 +440,8 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
   const temporadaExtraida = colecao.nome.toLowerCase().includes('inverno')
     ? 'Inverno'
     : colecao.nome.toLowerCase().includes('verão')
-    ? 'Verão'
-    : 'Atemporal';
+      ? 'Verão'
+      : 'Atemporal';
 
   const anoExtraido = colecao.nome.match(/\b(20\d{2}(-\d{2})?|\d{2})\b/)?.[0] || '2026';
 
@@ -403,26 +449,36 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
   const isConcluido = colecao.progressoPercent === 100 || !!colecao.concluidoEmDate;
 
   // Filtrar Peças dinamicamente
-  const pecasFiltradas = MOCK_PECAS_COLECAO.filter(p => {
-    const matchesSearch = p.nome.toLowerCase().includes(searchPeca.toLowerCase()) || 
-                          p.codigo.toLowerCase().includes(searchPeca.toLowerCase());
+  const pecasFiltradas = MOCK_PECAS_COLECAO.filter((p) => {
+    const matchesSearch =
+      p.nome.toLowerCase().includes(searchPeca.toLowerCase()) ||
+      p.codigo.toLowerCase().includes(searchPeca.toLowerCase());
 
     const matchesTema = selectedTemaFilter === 'Todas' || p.tema === selectedTemaFilter;
     const matchesStatus = selectedStatusFilter === 'Todas' || p.status === selectedStatusFilter;
     const matchesTipo = selectedTipoFilter === 'Todas' || p.tipo === selectedTipoFilter;
-    const matchesEstilista = selectedEstilistaFilter === 'Todas' || p.estilista === selectedEstilistaFilter;
-    const matchesTecido = selectedTecidoFilter === 'Todas' || p.tecidos.some(t => t.toLowerCase().includes(selectedTecidoFilter.toLowerCase()));
+    const matchesEstilista =
+      selectedEstilistaFilter === 'Todas' || p.estilista === selectedEstilistaFilter;
+    const matchesTecido =
+      selectedTecidoFilter === 'Todas' ||
+      p.tecidos.some((t) => t.toLowerCase().includes(selectedTecidoFilter.toLowerCase()));
 
-    return matchesSearch && matchesTema && matchesStatus && matchesTipo && matchesEstilista && matchesTecido;
+    return (
+      matchesSearch &&
+      matchesTema &&
+      matchesStatus &&
+      matchesTipo &&
+      matchesEstilista &&
+      matchesTecido
+    );
   });
 
   return (
     <div className="space-y-6 font-sans pb-16 animate-in fade-in duration-200">
-      
       {/* 1. BREADCRUMBS FLUTUANTES (Início > [Marca] > [Nome da Coleção]) */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-xs font-semibold text-muted">
-          <button 
+          <button
             type="button"
             onClick={onBackToHome}
             className="hover:text-accent-camel transition-colors duration-200 cursor-pointer font-medium text-muted-foreground"
@@ -430,7 +486,7 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
             Início
           </button>
           <ChevronRight className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
-          <button 
+          <button
             type="button"
             onClick={onBackToBrand}
             className="hover:text-accent-camel transition-colors duration-200 cursor-pointer font-medium text-muted-foreground"
@@ -443,7 +499,7 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
           </span>
         </div>
 
-        <button 
+        <button
           type="button"
           onClick={onBackToBrand}
           className="flex items-center gap-1 text-xs font-bold px-3.5 py-1.5 rounded-lg border border-border bg-surface text-muted-foreground hover:bg-surface-muted transition-all duration-200 cursor-pointer shadow-2xs"
@@ -455,13 +511,12 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
 
       {/* 2. HEADER DA COLEÇÃO (CARD NÍVEL 2) */}
       <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-5 transition-all duration-300">
-        
         <div className="flex items-center justify-between border-b border-border-muted pb-3">
           <h1 className="text-xl sm:text-2xl font-bold font-editorial text-primary tracking-wide">
             Coleção {colecao.nome}
           </h1>
 
-          <button 
+          <button
             type="button"
             className="px-3 py-1.5 rounded-lg border border-border bg-surface-muted hover:bg-border-muted text-xs font-semibold text-muted-foreground flex items-center gap-1.5 cursor-pointer transition-all duration-200 shadow-2xs"
           >
@@ -494,7 +549,8 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
           {isConcluido && (
             <div>
               <span className="text-[10px] font-semibold uppercase text-muted tracking-wider flex items-center gap-1 mb-1">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" strokeWidth={1.5} /> Data de Conclusão
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" strokeWidth={1.5} /> Data de
+                Conclusão
               </span>
               <strong className="text-xs font-semibold text-muted-foreground block">
                 {colecao.concluidoEmDate || '18/07/2025'}
@@ -511,7 +567,6 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
             </span>
           </div>
         </div>
-
       </div>
 
       {/* 3. AS 10 SUB-ABAS HORIZONTAIS INTERATIVAS */}
@@ -551,23 +606,21 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
       {/* 4.1 ABA 1: PEÇAS (FILTROS DE PEÇAS) */}
       {activeTab === 'pecas' && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          
           {/* SEÇÃO "FILTROS DE PEÇAS" (CARD NÍVEL 2) */}
           <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-4 font-sans transition-all duration-300">
-            
             <div className="flex items-center justify-between border-b border-border-muted pb-3">
               <h3 className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider">
                 <Filter className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} /> Filtros de peças
               </h3>
 
               <div className="flex items-center gap-2">
-                <button 
+                <button
                   type="button"
                   className="px-3 py-1 rounded-lg border border-border bg-surface hover:bg-surface-muted text-xs font-semibold text-muted-foreground shadow-2xs transition-all duration-200 cursor-pointer"
                 >
                   Canceladas
                 </button>
-                <button 
+                <button
                   type="button"
                   className="px-3 py-1 rounded-lg border border-border bg-surface hover:bg-surface-muted text-xs font-semibold text-muted-foreground shadow-2xs transition-all duration-200 cursor-pointer flex items-center gap-1"
                 >
@@ -578,12 +631,11 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
 
             {/* LINHAS DE FILTROS */}
             <div className="space-y-3 text-xs">
-              
               {/* Tema */}
               <div className="flex flex-wrap items-center gap-3">
                 <span className="w-28 font-semibold text-muted-foreground">Tema</span>
                 <div className="flex flex-wrap items-center gap-1.5">
-                  {['Todas', 'Base'].map(t => (
+                  {['Todas', 'Base'].map((t) => (
                     <button
                       key={t}
                       type="button"
@@ -594,7 +646,10 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                           : 'bg-surface-muted hover:bg-border-muted text-muted-foreground font-semibold border border-border'
                       }`}
                     >
-                      {t} <span className={selectedTemaFilter === t ? 'opacity-80' : 'text-muted'}>10</span>
+                      {t}{' '}
+                      <span className={selectedTemaFilter === t ? 'opacity-80' : 'text-muted'}>
+                        10
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -609,7 +664,7 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                     { label: 'A desenhar', val: 'A desenhar', count: 1 },
                     { label: 'Completas', val: 'Completa', count: 2 },
                     { label: 'Em andamento', val: 'Em andamento', count: 7 },
-                  ].map(s => (
+                  ].map((s) => (
                     <button
                       key={s.val}
                       type="button"
@@ -620,7 +675,12 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                           : 'bg-surface-muted hover:bg-border-muted text-muted-foreground font-semibold border border-border'
                       }`}
                     >
-                      {s.label} <span className={selectedStatusFilter === s.val ? 'opacity-80' : 'text-muted'}>{s.count}</span>
+                      {s.label}{' '}
+                      <span
+                        className={selectedStatusFilter === s.val ? 'opacity-80' : 'text-muted'}
+                      >
+                        {s.count}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -634,7 +694,7 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                     { label: 'Todas', val: 'Todas', count: 10 },
                     { label: 'Camisa', val: 'Camisa', count: 6 },
                     { label: 'Polo', val: 'Polo', count: 4 },
-                  ].map(t => (
+                  ].map((t) => (
                     <button
                       key={t.val}
                       type="button"
@@ -645,7 +705,10 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                           : 'bg-surface-muted hover:bg-border-muted text-muted-foreground font-semibold border border-border'
                       }`}
                     >
-                      {t.label} <span className={selectedTipoFilter === t.val ? 'opacity-80' : 'text-muted'}>{t.count}</span>
+                      {t.label}{' '}
+                      <span className={selectedTipoFilter === t.val ? 'opacity-80' : 'text-muted'}>
+                        {t.count}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -661,7 +724,7 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                     { label: 'Ivonete Barbosa', val: 'Ivonete Barbosa', count: 1 },
                     { label: 'Fabiano', val: 'Fabiano', count: 1 },
                     { label: 'Beatris Sgarioni', val: 'Beatris Sgarioni', count: 1 },
-                  ].map(e => (
+                  ].map((e) => (
                     <button
                       key={e.val}
                       type="button"
@@ -672,7 +735,12 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                           : 'bg-surface-muted hover:bg-border-muted text-muted-foreground font-semibold border border-border'
                       }`}
                     >
-                      {e.label} <span className={selectedEstilistaFilter === e.val ? 'opacity-80' : 'text-muted'}>{e.count}</span>
+                      {e.label}{' '}
+                      <span
+                        className={selectedEstilistaFilter === e.val ? 'opacity-80' : 'text-muted'}
+                      >
+                        {e.count}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -690,7 +758,7 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                     { label: 'PIQUET PIMA CORES', val: 'Piquet Pima' },
                     { label: 'TECIDO URBAN HI FLEX', val: 'Tricoline Hi Flex' },
                     { label: 'TRICOLINE BLEND SPAN', val: 'Tricoline Blend' },
-                  ].map(tec => (
+                  ].map((tec) => (
                     <button
                       key={tec.val}
                       type="button"
@@ -706,9 +774,7 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                   ))}
                 </div>
               </div>
-
             </div>
-
           </div>
 
           {/* BARRA SUPERIOR DE QUANTIDADE DE PEÇAS E BUSCA */}
@@ -724,7 +790,10 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
 
             <div className="flex items-center gap-2.5 flex-wrap">
               <div className="relative flex-1 sm:w-64">
-                <Search className="w-3.5 h-3.5 text-muted absolute left-3 top-1/2 -translate-y-1/2" strokeWidth={1.5} />
+                <Search
+                  className="w-3.5 h-3.5 text-muted absolute left-3 top-1/2 -translate-y-1/2"
+                  strokeWidth={1.5}
+                />
                 <input
                   type="text"
                   placeholder="Procurar pelo nome, código..."
@@ -756,16 +825,16 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
           {/* GRID DE PEÇAS COM TRATAMENTO DE IMAGEM */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {pecasFiltradas.map((peca) => (
-              <div 
+              <div
                 key={peca.id}
                 className="bg-surface border border-border rounded-xl p-3.5 shadow-2xs hover:shadow-md hover:scale-[1.01] transition-all duration-300 space-y-3 flex flex-col justify-between group cursor-pointer"
               >
                 {/* Imagem / Croqui com img-brand-treated */}
                 <div className="w-full h-44 bg-surface-muted rounded-lg overflow-hidden relative border border-border-muted">
-                  <img 
-                    src={peca.imagemCroquiUrl} 
+                  <img
+                    src={peca.imagemCroquiUrl}
                     alt={peca.nome}
-                    className="w-full h-full object-cover img-brand-treated group-hover:scale-105 transition-all duration-300" 
+                    className="w-full h-full object-cover img-brand-treated group-hover:scale-105 transition-all duration-300"
                   />
                   <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-neutral-950/70 text-white text-[10px] font-medium backdrop-blur-xs">
                     {peca.etapaAtual}
@@ -778,9 +847,7 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                     <span className="font-bold text-primary">{peca.tipo}</span>
                     <span className="font-semibold text-muted text-[11px]">{peca.codigo}</span>
                   </div>
-                  <div className="text-[11px] text-muted-foreground font-medium">
-                    {peca.tema}
-                  </div>
+                  <div className="text-[11px] text-muted-foreground font-medium">{peca.tema}</div>
                 </div>
 
                 {/* Detalhes */}
@@ -789,23 +856,33 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                     Status: <strong className="text-primary font-semibold">{peca.status}</strong>
                   </div>
                   <div>
-                    Etapa: <strong className="text-muted-foreground font-normal">{peca.etapaAtual || '—'}</strong>
+                    Etapa:{' '}
+                    <strong className="text-muted-foreground font-normal">
+                      {peca.etapaAtual || '—'}
+                    </strong>
                   </div>
                   <div>
-                    Previsão: <strong className="text-muted-foreground font-normal">{peca.previsaoEntrega || '—'}</strong>
+                    Previsão:{' '}
+                    <strong className="text-muted-foreground font-normal">
+                      {peca.previsaoEntrega || '—'}
+                    </strong>
                   </div>
                   <div>
-                    Estilista: <strong className="text-muted-foreground font-normal">{peca.estilista || '—'}</strong>
+                    Estilista:{' '}
+                    <strong className="text-muted-foreground font-normal">
+                      {peca.estilista || '—'}
+                    </strong>
                   </div>
                   <div className="truncate text-muted pt-0.5">
-                    Tecidos: <span className="text-muted-foreground font-normal">{peca.tecidos.join(', ')}</span>
+                    Tecidos:{' '}
+                    <span className="text-muted-foreground font-normal">
+                      {peca.tecidos.join(', ')}
+                    </span>
                   </div>
                 </div>
-
               </div>
             ))}
           </div>
-
         </div>
       )}
 
@@ -862,8 +939,12 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
             </h4>
             <div className="flex items-center gap-4 text-xs">
               <span className="text-muted-foreground font-medium">Paleta</span>
-              <button className="px-3 py-1 rounded-md bg-accent-camel text-white font-bold transition-all duration-200">Todas</button>
-              <button className="px-3 py-1 rounded-md bg-surface-muted text-muted-foreground font-medium transition-all duration-200">Sem paleta</button>
+              <button className="px-3 py-1 rounded-md bg-accent-camel text-white font-bold transition-all duration-200">
+                Todas
+              </button>
+              <button className="px-3 py-1 rounded-md bg-surface-muted text-muted-foreground font-medium transition-all duration-200">
+                Sem paleta
+              </button>
             </div>
           </div>
 
@@ -881,9 +962,15 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
           <div className="pt-4 border-t border-border-muted flex items-center justify-between">
             <h3 className="text-base font-bold font-editorial text-primary">Cores</h3>
             <div className="flex items-center gap-2">
-              <button className="px-3 py-1.5 rounded-lg border border-border text-xs font-bold text-muted-foreground cursor-pointer transition-all duration-200">Selecionar todas</button>
-              <button className="px-3 py-1.5 rounded-lg border border-border text-xs font-bold text-muted-foreground cursor-pointer transition-all duration-200">Opções ▾</button>
-              <button className="px-4 py-1.5 rounded-lg bg-accent-camel text-white text-xs font-bold flex items-center gap-1 cursor-pointer transition-all duration-200">+ Adicionar</button>
+              <button className="px-3 py-1.5 rounded-lg border border-border text-xs font-bold text-muted-foreground cursor-pointer transition-all duration-200">
+                Selecionar todas
+              </button>
+              <button className="px-3 py-1.5 rounded-lg border border-border text-xs font-bold text-muted-foreground cursor-pointer transition-all duration-200">
+                Opções ▾
+              </button>
+              <button className="px-4 py-1.5 rounded-lg bg-accent-camel text-white text-xs font-bold flex items-center gap-1 cursor-pointer transition-all duration-200">
+                + Adicionar
+              </button>
             </div>
           </div>
         </div>
@@ -917,11 +1004,21 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
           <div className="flex items-center justify-between">
             <h3 className="text-base font-bold font-editorial text-primary">0 Estampas</h3>
             <div className="flex items-center gap-2">
-              <button className="px-3.5 py-1.5 rounded-lg border border-border bg-surface-muted text-xs font-bold text-accent-camel cursor-pointer transition-all duration-200">Ordenação (Tipo)</button>
-              <button className="px-3.5 py-1.5 rounded-lg border border-border bg-accent-camel/10 text-xs font-bold text-accent-camel cursor-pointer transition-all duration-200">✓ Todas</button>
-              <button className="px-3.5 py-1.5 rounded-lg border border-border bg-surface text-xs font-bold text-muted-foreground cursor-pointer transition-all duration-200">Miniatura</button>
-              <button className="px-3.5 py-1.5 rounded-lg border border-border bg-surface text-xs font-bold text-muted-foreground cursor-pointer transition-all duration-200">Opções ▾</button>
-              <button className="px-4 py-1.5 rounded-lg bg-accent-camel text-white text-xs font-bold flex items-center gap-1 cursor-pointer transition-all duration-200">+ Estampa</button>
+              <button className="px-3.5 py-1.5 rounded-lg border border-border bg-surface-muted text-xs font-bold text-accent-camel cursor-pointer transition-all duration-200">
+                Ordenação (Tipo)
+              </button>
+              <button className="px-3.5 py-1.5 rounded-lg border border-border bg-accent-camel/10 text-xs font-bold text-accent-camel cursor-pointer transition-all duration-200">
+                ✓ Todas
+              </button>
+              <button className="px-3.5 py-1.5 rounded-lg border border-border bg-surface text-xs font-bold text-muted-foreground cursor-pointer transition-all duration-200">
+                Miniatura
+              </button>
+              <button className="px-3.5 py-1.5 rounded-lg border border-border bg-surface text-xs font-bold text-muted-foreground cursor-pointer transition-all duration-200">
+                Opções ▾
+              </button>
+              <button className="px-4 py-1.5 rounded-lg bg-accent-camel text-white text-xs font-bold flex items-center gap-1 cursor-pointer transition-all duration-200">
+                + Estampa
+              </button>
             </div>
           </div>
         </div>
@@ -929,18 +1026,12 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
 
       {/* 4.6 ABA 6: RESERVA DE TECIDOS */}
       {activeTab === 'reserva_tecidos' && (
-        <ReservaMateriaisTab
-          tituloReserva="Reservas de material"
-          rotuloMaterial="Tecido"
-        />
+        <ReservaMateriaisTab tituloReserva="Reservas de material" rotuloMaterial="Tecido" />
       )}
 
       {/* 4.7 ABA 7: RESERVA DE AVIAMENTOS */}
       {activeTab === 'reserva_aviamentos' && (
-        <ReservaMateriaisTab
-          tituloReserva="Reservas de aviamento"
-          rotuloMaterial="Aviamento"
-        />
+        <ReservaMateriaisTab tituloReserva="Reservas de aviamento" rotuloMaterial="Aviamento" />
       )}
 
       {/* 4.8 ABA 8: MIX */}
@@ -951,7 +1042,7 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
 
             {/* Menu Opções Dropdown */}
             <div className="relative">
-              <button 
+              <button
                 type="button"
                 onClick={() => setIsMixOptionsOpen(!isMixOptionsOpen)}
                 className="px-3.5 py-1.5 rounded-lg border border-border bg-surface-muted text-xs font-bold text-muted-foreground flex items-center gap-1 cursor-pointer transition-all duration-200"
@@ -981,13 +1072,19 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
 
           <div className="p-6 rounded-xl bg-surface border border-border shadow-2xs space-y-4">
             <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Mix</h4>
-            
+
             <div className="space-y-3">
               <div className="flex items-center gap-6 text-xs text-muted-foreground">
                 <span className="font-bold text-primary">Total</span>
-                <span>Planejado: <strong>0</strong></span>
-                <span>Executado: <strong>0</strong></span>
-                <span>Concluído: <strong>0</strong></span>
+                <span>
+                  Planejado: <strong>0</strong>
+                </span>
+                <span>
+                  Executado: <strong>0</strong>
+                </span>
+                <span>
+                  Concluído: <strong>0</strong>
+                </span>
               </div>
 
               {/* Barra do Mix */}
@@ -1007,8 +1104,12 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
           <div className="p-12 text-center space-y-4 bg-surface-muted rounded-xl border border-border-muted">
             <Target className="w-12 h-12 text-accent-camel mx-auto" />
             <div className="max-w-md mx-auto space-y-1">
-              <h4 className="text-sm font-bold font-editorial text-primary">Definição de Metas da Coleção</h4>
-              <p className="text-xs text-muted">Defina as etapas e prazos limite para estabelecer as metas de produção.</p>
+              <h4 className="text-sm font-bold font-editorial text-primary">
+                Definição de Metas da Coleção
+              </h4>
+              <p className="text-xs text-muted">
+                Defina as etapas e prazos limite para estabelecer as metas de produção.
+              </p>
             </div>
 
             <button
@@ -1026,7 +1127,6 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
       {/* 4.10 ABA 10: CRONOGRAMA (FRENTE 5: DENSIDADE DE TABELAS) */}
       {activeTab === 'cronograma' && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          
           {/* FILTROS DO CRONOGRAMA */}
           <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-4 transition-all duration-300">
             <div className="flex items-center justify-between border-b border-border-muted pb-3">
@@ -1065,7 +1165,9 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
               <button
                 onClick={() => setCronogramaSubTab('tabela')}
                 className={`pb-1 border-b-2 transition-all duration-200 cursor-pointer ${
-                  cronogramaSubTab === 'tabela' ? 'border-accent-camel text-accent-camel' : 'text-muted'
+                  cronogramaSubTab === 'tabela'
+                    ? 'border-accent-camel text-accent-camel'
+                    : 'text-muted'
                 }`}
               >
                 Tabela
@@ -1073,7 +1175,9 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
               <button
                 onClick={() => setCronogramaSubTab('gantt')}
                 className={`pb-1 border-b-2 transition-all duration-200 cursor-pointer ${
-                  cronogramaSubTab === 'gantt' ? 'border-accent-camel text-accent-camel' : 'text-muted'
+                  cronogramaSubTab === 'gantt'
+                    ? 'border-accent-camel text-accent-camel'
+                    : 'text-muted'
                 }`}
               >
                 Gantt
@@ -1088,8 +1192,12 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
               <div className="flex items-center justify-between text-[11px] font-bold text-muted pb-2 border-b border-border-muted">
                 <span>0-0 de 0</span>
                 <div className="flex items-center gap-2">
-                  <button disabled className="opacity-40">&lt;</button>
-                  <button disabled className="opacity-40">&gt;</button>
+                  <button disabled className="opacity-40">
+                    &lt;
+                  </button>
+                  <button disabled className="opacity-40">
+                    &gt;
+                  </button>
                 </div>
               </div>
 
@@ -1097,7 +1205,10 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                 <thead>
                   <tr className="border-b border-border-muted text-[11px] font-bold text-muted uppercase tracking-wider">
                     <th className="py-3 px-3.5 w-10">
-                      <input type="checkbox" className="rounded-md border-border text-accent-camel focus:ring-accent-camel cursor-pointer" />
+                      <input
+                        type="checkbox"
+                        className="rounded-md border-border text-accent-camel focus:ring-accent-camel cursor-pointer"
+                      />
                     </th>
                     <th className="py-3 px-3.5">Nome</th>
                     <th className="py-3 px-3.5">Período</th>
@@ -1116,7 +1227,6 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
               </table>
             </div>
           </div>
-
         </div>
       )}
 
@@ -1124,10 +1234,11 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
       {isDefinirMetasOpen && (
         <div className="fixed inset-0 bg-neutral-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-surface rounded-xl p-6 sm:p-8 border border-border shadow-xl max-w-4xl w-full space-y-6 animate-in fade-in duration-200">
-            
             {/* Header do Form */}
             <div className="flex items-center justify-between border-b border-border-muted pb-4">
-              <h3 className="text-base font-bold font-editorial text-primary">Definição de Metas de Produção</h3>
+              <h3 className="text-base font-bold font-editorial text-primary">
+                Definição de Metas de Produção
+              </h3>
               <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
                 Status: Ainda não criado
               </span>
@@ -1148,7 +1259,9 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                   <option value="corte">3. Corte & Liberação</option>
                   <option value="producao">4. Produção Industrial</option>
                 </select>
-                <span className="text-[10px] text-muted block">Selecione as etapas que definem uma meta concluída.</span>
+                <span className="text-[10px] text-muted block">
+                  Selecione as etapas que definem uma meta concluída.
+                </span>
               </div>
 
               <div className="space-y-1.5">
@@ -1159,7 +1272,9 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                   onChange={(val) => setMetaDataInicio(val)}
                   className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium focus:bg-surface focus:outline-none cursor-pointer text-primary pr-8 transition-all duration-200"
                 />
-                <span className="text-[10px] text-muted block">Selecione a data de início das metas.</span>
+                <span className="text-[10px] text-muted block">
+                  Selecione a data de início das metas.
+                </span>
               </div>
 
               <div className="space-y-1.5">
@@ -1170,12 +1285,14 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                   onChange={(val) => setMetaDataEntrega(val)}
                   className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium focus:bg-surface focus:outline-none cursor-pointer text-primary pr-8 transition-all duration-200"
                 />
-                <span className="text-[10px] text-muted block">Selecione a data de entrega das metas.</span>
+                <span className="text-[10px] text-muted block">
+                  Selecione a data de entrega das metas.
+                </span>
               </div>
             </div>
 
             <div className="pt-2">
-              <button 
+              <button
                 type="button"
                 className="px-4 py-2 rounded-lg border border-border bg-surface-muted hover:bg-border-muted text-xs font-bold text-muted-foreground transition-all duration-200 cursor-pointer"
               >
@@ -1201,11 +1318,9 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                 Fechar
               </button>
             </div>
-
           </div>
         </div>
       )}
-
     </div>
   );
 };

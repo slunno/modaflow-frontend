@@ -11,12 +11,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { 
-  Eye, 
-  EyeOff, 
-  RefreshCw,
-  ArrowRight
-} from 'lucide-react';
+import { Eye, EyeOff, RefreshCw, ArrowRight } from 'lucide-react';
 
 interface LoginPageProps {
   /** Callback opcional executado ao autenticar com sucesso */
@@ -28,13 +23,13 @@ interface LoginPageProps {
  */
 export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const { login } = useAuth();
-  
+
   // Estados do Formulário
   const [email, setEmail] = useState('nathanhlima10@gmail.com');
   const [password, setPassword] = useState('123456789');
   const [showPassword, setShowPassword] = useState(false);
   const [captchaChecked, setCaptchaChecked] = useState(true);
-  
+
   // Estado do Carregamento / Feedback de Erro
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -60,7 +55,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       if (onLoginSuccess) {
         onLoginSuccess();
       }
-    } catch (err) {
+    } catch {
       setError('Falha ao realizar login. Verifique suas credenciais.');
     } finally {
       setLoading(false);
@@ -69,10 +64,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
   return (
     <div className="h-screen w-full flex items-center justify-center p-4 font-sans selection:bg-accent-camel selection:text-white overflow-hidden relative bg-bg text-primary">
-      
       {/* CARD CENTRALIZADO DE LOGIN AKR BRANDS (NÍVEL 1 HERO/DESTAQUE) */}
       <div className="w-full max-w-md bg-surface text-primary border border-border shadow-xl p-8 sm:p-10 rounded-3xl relative z-10 animate-in fade-in duration-300">
-        
         {/* TOPO: LOGO AKR BRANDS (BRANDING EDITORIAL) */}
         <div className="mb-8 text-center">
           <div className="inline-flex items-center gap-3 font-editorial text-2xl font-bold tracking-[0.25em] text-primary uppercase">
@@ -95,7 +88,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
         {/* FORMULÁRIO DE LOGIN */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          
           {/* Campo Email Corporativo */}
           <div>
             <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider text-muted-foreground">
@@ -130,7 +122,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-primary cursor-pointer transition-colors duration-200"
               >
-                {showPassword ? <EyeOff className="w-4 h-4" strokeWidth={1.5} /> : <Eye className="w-4 h-4" strokeWidth={1.5} />}
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" strokeWidth={1.5} />
+                ) : (
+                  <Eye className="w-4 h-4" strokeWidth={1.5} />
+                )}
               </button>
             </div>
           </div>
@@ -147,8 +143,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               <span className="text-xs font-semibold text-muted-foreground">Não sou um robô</span>
             </label>
             <div className="flex flex-col items-center pr-2">
-              <RefreshCw className="w-3.5 h-3.5 text-accent-camel animate-spin-slow" strokeWidth={1.5} />
-              <span className="text-[7px] font-extrabold text-muted uppercase tracking-tighter mt-0.5">reCAPTCHA</span>
+              <RefreshCw
+                className="w-3.5 h-3.5 text-accent-camel animate-spin-slow"
+                strokeWidth={1.5}
+              />
+              <span className="text-[7px] font-extrabold text-muted uppercase tracking-tighter mt-0.5">
+                reCAPTCHA
+              </span>
             </div>
           </div>
 
@@ -156,11 +157,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           <div className="flex items-center justify-between text-xs pt-1">
             <span className="text-muted">
               Não tem cadastro?{' '}
-              <a href="#cadastro" className="text-accent-camel hover:underline font-bold transition-all duration-200">
+              <a
+                href="#cadastro"
+                className="text-accent-camel hover:underline font-bold transition-all duration-200"
+              >
                 Cadastre-se
               </a>
             </span>
-            <a href="#esqueceu" className="text-accent-camel hover:underline font-bold transition-all duration-200">
+            <a
+              href="#esqueceu"
+              className="text-accent-camel hover:underline font-bold transition-all duration-200"
+            >
               Esqueceu a senha?
             </a>
           </div>
@@ -186,9 +193,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         <div className="pt-6 mt-6 border-t border-border-muted text-center text-[11px] text-muted font-semibold">
           AKR BRANDS &copy; {new Date().getFullYear()} • Direitos reservados T.I Versão : 0.0.1
         </div>
-
       </div>
-
     </div>
   );
 };
