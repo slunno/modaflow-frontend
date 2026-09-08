@@ -13,8 +13,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import type { MarcaSummary } from '../../../types/auth';
 import type { ColecaoItem } from '../../../types/plm';
-import { MOCK_MARCAS } from '../../../contexts/AuthContext';
-import { useAuth } from '../../../contexts/AuthContext';
+import { MOCK_MARCAS } from '../../../constants/mockData';
+import { useAuth } from '../../../hooks/useAuth';
 import {
   ChevronRight,
   ArrowLeft,

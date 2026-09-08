@@ -10,7 +10,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useAuth, MOCK_MARCAS } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
+import { MOCK_MARCAS } from '../../constants/mockData';
 import { ChevronLeft, ChevronRight, ArrowRight, Sparkles } from 'lucide-react';
 import type { MarcaSummary } from '../../types/auth';
 import { PecasTab } from './components/PecasTab';

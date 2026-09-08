@@ -17,6 +17,7 @@ import { MainLayout } from './components/layout/MainLayout';
 import { HomePage } from './pages/Home/HomePage';
 import { GestaoPage } from './pages/Gestao/GestaoPage';
 import type { MarcaSummary } from './types/auth';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { BarChart3, Kanban } from 'lucide-react';
 
 const GestaoRouteWrapper: React.FC = () => {
@@ -58,26 +59,28 @@ const KanbanPage: React.FC = () => (
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <MainLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<HomePage />} />
-            <Route path="gestao" element={<GestaoRouteWrapper />} />
-            <Route path="relatorios" element={<RelatoriosPage />} />
-            <Route path="kanban" element={<KanbanPage />} />
-          </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <MainLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<HomePage />} />
+              <Route path="gestao" element={<GestaoRouteWrapper />} />
+              <Route path="relatorios" element={<RelatoriosPage />} />
+              <Route path="kanban" element={<KanbanPage />} />
+            </Route>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

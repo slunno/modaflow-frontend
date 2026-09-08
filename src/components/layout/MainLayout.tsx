@@ -10,7 +10,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import type { MarcaSummary } from '../../types/auth';
 import { LogOut, Bell, ChevronDown } from 'lucide-react';
 

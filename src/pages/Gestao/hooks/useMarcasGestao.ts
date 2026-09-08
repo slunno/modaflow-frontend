@@ -9,7 +9,7 @@
 
 import { useState } from 'react';
 import { usePersistedState } from '../../../hooks/usePersistedState';
-import { MOCK_MARCAS } from '../../../contexts/AuthContext';
+import { MOCK_MARCAS } from '../../../constants/mockData';
 import type { MarcaSummary } from '../../../types/auth';
 
 export function useMarcasGestao() {

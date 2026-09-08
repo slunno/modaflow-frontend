@@ -12,7 +12,7 @@
 import React, { useState } from 'react';
 import { Filter, BarChart2, MousePointerClick } from 'lucide-react';
 import { MultiSelectDropdown } from '../../../components/ui/MultiSelectDropdown';
-import { ETAPAS_OPTIONS, COLECOES_OPTIONS } from './PecasTab';
+import { ETAPAS_OPTIONS, COLECOES_OPTIONS } from '../../../constants/pecasOptions';
 
 /** Lista de Fornecedores extraída da tela oficial do PLM */
 const FORNECEDORES_OPTIONS = [
