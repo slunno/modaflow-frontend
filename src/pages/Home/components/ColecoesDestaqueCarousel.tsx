@@ -21,7 +21,7 @@ interface MarcaCarouselItem extends CarouselItem {
   marcaObj: MarcaSummary;
 }
 
-/** Dados Reais das Marcas da AKR BRANDS / King & Joe */
+/** Dados Reais das Marcas da AKR BRANDS / King & Joe (Apenas as 3 marcas oficiais) */
 const MARCAS_PLM_ITEMS: MarcaCarouselItem[] = [
   {
     tag: '#LinhaPrincipal',
@@ -52,26 +52,6 @@ const MARCAS_PLM_ITEMS: MarcaCarouselItem[] = [
     ctaText: 'ABRIR COLEÇÕES',
     ctaUrl: '#',
     marcaObj: MOCK_MARCAS[2]!,
-  },
-  {
-    tag: '#Preview2028',
-    titleLine1: 'URBAN HERITAGE',
-    titleLine2: '– PREVIEW INVERNO',
-    desc: 'Tricots texturizados, overshirts em sarja pesada e paleta militar minimalista.',
-    img: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?q=80&w=1600&auto=format&fit=crop',
-    ctaText: 'ABRIR COLEÇÕES',
-    ctaUrl: '#',
-    marcaObj: MOCK_MARCAS[0]!,
-  },
-  {
-    tag: '#EdicaoLimitada',
-    titleLine1: 'AKR SELECTION',
-    titleLine2: '– CÁPSULA ATEMPORAL',
-    desc: 'Edição limitada em algodão egípcio orgânico com tingimento artesanal de alfaiataria.',
-    img: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=1600&auto=format&fit=crop',
-    ctaText: 'ABRIR COLEÇÕES',
-    ctaUrl: '#',
-    marcaObj: MOCK_MARCAS[0]!,
   },
 ];
 

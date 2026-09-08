@@ -16,9 +16,10 @@ import { LoginPage } from './pages/Login/LoginPage';
 import { MainLayout } from './components/layout/MainLayout';
 import { HomePage } from './pages/Home/HomePage';
 import { GestaoPage } from './pages/Gestao/GestaoPage';
+import { RelatoriosPage } from './pages/Relatorios/RelatoriosPage';
 import type { MarcaSummary } from './types/auth';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
-import { BarChart3, Kanban } from 'lucide-react';
+import { Kanban } from 'lucide-react';
 
 const GestaoRouteWrapper: React.FC = () => {
   const { handleOpenColecoesFromGestao } = useOutletContext<{
@@ -27,21 +28,6 @@ const GestaoRouteWrapper: React.FC = () => {
 
   return <GestaoPage onOpenColecoes={handleOpenColecoesFromGestao} />;
 };
-
-const RelatoriosPage: React.FC = () => (
-  <div className="max-w-7xl mx-auto p-8">
-    <div className="p-12 rounded-xl bg-fabric-pattern border border-border shadow-2xs text-center space-y-3">
-      <BarChart3 className="w-12 h-12 text-accent-camel mx-auto opacity-80" />
-      <h3 className="text-xl font-bold font-editorial text-primary">
-        Módulo de Relatórios & BI Executivo
-      </h3>
-      <p className="text-xs text-muted-foreground max-w-md mx-auto">
-        Histórico consolidado de coleções, índices de repilotagem por marca, consumo de
-        matéria-prima e exportação de relatórios gerenciais.
-      </p>
-    </div>
-  </div>
-);
 
 const KanbanPage: React.FC = () => (
   <div className="max-w-7xl mx-auto p-8">
