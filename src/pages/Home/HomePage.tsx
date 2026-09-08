@@ -18,6 +18,7 @@ import { PecasTab } from './components/PecasTab';
 import { DashboardTab } from './components/DashboardTab';
 import { GraficosTab } from './components/GraficosTab';
 import { BrandCollectionsView } from './components/BrandCollectionsView';
+import { ColecoesDestaqueCarousel } from './components/ColecoesDestaqueCarousel';
 
 /**
  * Componente da Tela Inicial (Home) com Carrossel Suspenso de Marcas e Abas do PLM.
@@ -298,6 +299,9 @@ export const HomePage: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* CARROSSEL 3D COVERFLOW DE COLEÇÕES EM DESTAQUE */}
+              <ColecoesDestaqueCarousel />
             </div>
           ))}
 
