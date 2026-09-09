@@ -63,9 +63,13 @@ export const HomePage: React.FC = () => {
   }, []);
 
   return (
-    <div className="w-full min-h-[calc(100vh-65px)] flex flex-col font-sans bg-[#0c0a09]">
+    <div
+      className={`w-full min-h-[calc(100vh-65px)] flex flex-col font-sans transition-colors duration-300 ${
+        selectedMarcaForView ? 'bg-bg' : 'bg-[#0c0a09]'
+      }`}
+    >
       {selectedMarcaForView ? (
-        <div className="animate-in fade-in duration-200 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full bg-bg text-primary min-h-screen">
+        <div className="animate-in fade-in duration-200 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full text-primary flex-1">
           <BrandCollectionsView
             marca={selectedMarcaForView}
             onBack={() => setSelectedMarcaForView(null)}
