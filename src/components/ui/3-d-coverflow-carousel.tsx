@@ -243,7 +243,9 @@ export function CoverFlowCarousel({
           style={{ perspective: '1400px' }}
         >
           {items.map((item, idx) => {
-            const offset = (idx - currentIndex + total) % total;
+            let diff = (idx - currentIndex) % total;
+            if (diff > total / 2) diff -= total;
+            if (diff < -total / 2) diff += total;
 
             let transform = 'translateX(0px) scale(0.4) rotateY(0deg)';
             let opacity = 0;
@@ -251,28 +253,28 @@ export function CoverFlowCarousel({
             let filter = 'brightness(0.4) blur(2px)';
             let isCenter = false;
 
-            if (offset === 0) {
+            if (diff === 0) {
               isCenter = true;
               transform = 'translateX(0px) scale(1) rotateY(0deg)';
               opacity = 1;
               zIndex = 30;
               filter = 'brightness(1)';
-            } else if (offset === 1) {
+            } else if (diff === 1) {
               transform = 'translateX(285px) scale(0.84) rotateY(-24deg)';
               opacity = 0.65;
               zIndex = 20;
               filter = 'brightness(0.75)';
-            } else if (offset === 2) {
-              transform = 'translateX(510px) scale(0.68) rotateY(-38deg)';
-              opacity = 0.38;
-              zIndex = 10;
-              filter = 'brightness(0.55) blur(1px)';
-            } else if (offset === total - 1) {
+            } else if (diff === -1) {
               transform = 'translateX(-285px) scale(0.84) rotateY(24deg)';
               opacity = 0.65;
               zIndex = 20;
               filter = 'brightness(0.75)';
-            } else if (offset === total - 2) {
+            } else if (diff === 2) {
+              transform = 'translateX(510px) scale(0.68) rotateY(-38deg)';
+              opacity = 0.38;
+              zIndex = 10;
+              filter = 'brightness(0.55) blur(1px)';
+            } else if (diff === -2) {
               transform = 'translateX(-510px) scale(0.68) rotateY(38deg)';
               opacity = 0.38;
               zIndex = 10;
