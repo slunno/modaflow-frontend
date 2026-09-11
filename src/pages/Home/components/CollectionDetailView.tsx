@@ -4,7 +4,7 @@
  * ARQUIVO: src/pages/Home/components/CollectionDetailView.tsx
  * PROJETO: ModaFlow PLM — AKR BRANDS
  * DESCRIÇÃO: Tela detalhada da coleção selecionada com gerenciamento de peças,
- *            modal de criação de peças fiel ao Print 4 e modelo de card fiel ao Print 5.
+ *            modal de miniatura (Print 1) e ficha técnica completa da peça (Prints 2, 3, 4, 5).
  * ============================================================================
  */
 
@@ -26,6 +26,9 @@ import {
   ChevronDown,
   X,
 } from 'lucide-react';
+
+import { MiniaturaModal } from './MiniaturaModal';
+import { PecaFichaTecnicaView } from './PecaFichaTecnicaView';
 
 interface CollectionDetailViewProps {
   marca: MarcaSummary;
@@ -88,6 +91,26 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
   // Lista de Peças persistida no LocalStorage
   const [allPecas, setAllPecas] = usePersistedState<PecaItem[]>('modaflow_collection_pecas', []);
 
+  // Campos selecionados no Modal de Miniaturas (Print 1)
+  const [miniaturaFields, setMiniaturaFields] = usePersistedState<string[]>(
+    'modaflow_miniatura_fields',
+    ['Status', 'Etapas', 'Previsão', 'Estilista', 'Tecidos']
+  );
+
+  // Estado para abrir a Ficha Técnica de uma peça específica (Prints 2, 3, 4, 5)
+  const [selectedFichaPeca, setSelectedFichaPeca] = useState<PecaItem | null>(null);
+
+  // Modal Miniatura (Print 1)
+  const [isMiniaturaModalOpen, setIsMiniaturaModalOpen] = useState(false);
+
+  // Modal "Adicionar peças" (Print 4)
+  const [isAdicionarPecasOpen, setIsAdicionarPecasOpen] = useState(false);
+  const [formQuantidade, setFormQuantidade] = useState<number>(1);
+  const [formNomePeca, setFormNomePeca] = useState('Camisa');
+  const [formTema, setFormTema] = useState('Base');
+  const [formEstilista, setFormEstilista] = useState('Ivonete Barbosa');
+  const [formTecido, setFormTecido] = useState('CAMBRAIA VISCO LINEN P11LN0077 (01030198)');
+
   // Sub-abas (Peças, Temas, Cores, etc.)
   const [activeTab, setActiveTab] = useState<
     | 'pecas'
@@ -105,18 +128,9 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
   // Busca de Peças
   const [searchPeca, setSearchPeca] = useState('');
 
-  // Modal "Adicionar peças" (Print 4)
-  const [isAdicionarPecasOpen, setIsAdicionarPecasOpen] = useState(false);
-  const [formQuantidade, setFormQuantidade] = useState<number>(1);
-  const [formNomePeca, setFormNomePeca] = useState('Camisa');
-  const [formTema, setFormTema] = useState('Base');
-  const [formEstilista, setFormEstilista] = useState('Ivonete Barbosa');
-  const [formTecido, setFormTecido] = useState('CAMBRAIA VISCO LINEN P11LN0077 (01030198)');
-
   // Filtros selecionados
   const [selectedTemaFilter, setSelectedTemaFilter] = useState('Todas');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('Todas');
-  const [selectedTipoFilter] = useState('Todas');
 
   // Filtra as peças da coleção atual
   const pecasDaColecao = allPecas.filter(
@@ -132,9 +146,8 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
 
     const matchesTema = selectedTemaFilter === 'Todas' || p.tema === selectedTemaFilter;
     const matchesStatus = selectedStatusFilter === 'Todas' || p.status === selectedStatusFilter;
-    const matchesTipo = selectedTipoFilter === 'Todas' || p.tipo === selectedTipoFilter;
 
-    return matchesSearch && matchesTema && matchesStatus && matchesTipo;
+    return matchesSearch && matchesTema && matchesStatus;
   });
 
   // Handler para criar peças (suporta quantidade informada no modal)
@@ -171,6 +184,25 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
     setAllPecas((prev) => [...novasPecas, ...prev]);
     setIsAdicionarPecasOpen(false);
   };
+
+  // Atualizar peça editada na ficha técnica
+  const handleUpdatePecaInFicha = (updatedPeca: PecaItem) => {
+    setAllPecas((prev) => prev.map((p) => (p.id === updatedPeca.id ? updatedPeca : p)));
+    setSelectedFichaPeca(updatedPeca);
+  };
+
+  // Se a Ficha Técnica de uma peça estiver aberta, renderiza a visão de Ficha Técnica
+  if (selectedFichaPeca) {
+    return (
+      <PecaFichaTecnicaView
+        peca={selectedFichaPeca}
+        colecao={colecao}
+        marca={marca}
+        onBack={() => setSelectedFichaPeca(null)}
+        onUpdatePeca={handleUpdatePecaInFicha}
+      />
+    );
+  }
 
   const temporadaExtraida = colecao.temporada || 'Verão';
   const anoExtraido = colecao.ano || '2026-27';
@@ -228,7 +260,7 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
           </button>
         </div>
 
-        {/* PAINEL DE METADADOS (TEMPORADA, ANO, DATA DE ENTREGA) */}
+        {/* PAINEL DE METADADOS */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-xs pt-1">
           <div>
             <span className="text-[10px] font-semibold uppercase text-muted tracking-wider flex items-center gap-1 mb-1">
@@ -373,7 +405,7 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
             </div>
           </div>
 
-          {/* BARRA SUPERIOR DE QUANTIDADE E AÇÃO "+ PEÇAS" */}
+          {/* BARRA SUPERIOR DE QUANTIDADE, MINIATURAS E AÇÃO "+ PEÇAS" */}
           <div className="bg-surface p-4 sm:p-5 rounded-xl border border-border shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 transition-all duration-300">
             <div className="flex items-center gap-3">
               <h3 className="text-base font-bold font-editorial text-primary">
@@ -399,26 +431,33 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                 />
               </div>
 
-              <button className="px-3 py-1.5 rounded-lg border border-border bg-surface text-xs font-semibold text-muted-foreground flex items-center gap-1 shadow-2xs transition-all duration-200 cursor-pointer">
-                <Grid className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} /> Miniaturas
+              {/* BOTÃO "MINIATURAS" QUE ABRE O MODAL DO PRINT 1 */}
+              <button
+                type="button"
+                onClick={() => setIsMiniaturaModalOpen(true)}
+                className="px-3.5 py-1.5 rounded-lg border border-border bg-surface hover:bg-surface-muted text-xs font-semibold text-muted-foreground flex items-center gap-1.5 shadow-2xs transition-all duration-200 cursor-pointer"
+              >
+                <Grid className="w-3.5 h-3.5 text-accent-camel" strokeWidth={1.5} />
+                <span>Miniaturas</span>
               </button>
 
-              <button className="px-3 py-1.5 rounded-lg border border-border bg-surface text-xs font-semibold text-muted-foreground flex items-center gap-1 shadow-2xs transition-all duration-200 cursor-pointer">
+              <button className="px-3.5 py-1.5 rounded-lg border border-border bg-surface hover:bg-surface-muted text-xs font-semibold text-muted-foreground flex items-center gap-1 shadow-2xs transition-all duration-200 cursor-pointer">
                 <Download className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} /> Exportar
               </button>
 
-              {/* BOTÃO "+ PEÇAS" / "PEÇAS +" QUE ABRE O MODAL DO PRINT 4 */}
+              {/* BOTÃO "+ PEÇAS" COM A COR CORRETA DO DESIGN SYSTEM (ACCENT CAMEL / GOLD) */}
               <button
                 type="button"
                 onClick={() => setIsAdicionarPecasOpen(true)}
-                className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1 shadow-2xs transition-all duration-200 cursor-pointer"
+                className="px-4 py-1.5 rounded-lg bg-accent-camel hover:bg-accent-camel/90 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all duration-200 cursor-pointer"
               >
+                <Plus className="w-4 h-4" />
                 <span>Peças +</span>
               </button>
             </div>
           </div>
 
-          {/* GRID DE CARDS DAS PEÇAS (MODELO FIEL AO PRINT 5) */}
+          {/* GRID DE CARDS DAS PEÇAS (EXIBE OS CAMPOS SELECIONADOS NO MODAL DE MINIATURA - PRINT 1 & 5) */}
           {pecasFiltradas.length === 0 ? (
             <div className="bg-surface p-12 rounded-xl border border-border text-center space-y-4">
               <div className="w-16 h-16 rounded-full bg-surface-muted border border-border-muted flex items-center justify-center mx-auto text-muted">
@@ -435,7 +474,7 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsAdicionarPecasOpen(true)}
-                className="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs inline-flex items-center gap-2 cursor-pointer shadow-2xs transition-all duration-200"
+                className="px-5 py-2.5 rounded-lg bg-accent-camel hover:bg-accent-camel/90 text-white font-bold text-xs inline-flex items-center gap-2 cursor-pointer shadow-2xs transition-all duration-200"
               >
                 <Plus className="w-4 h-4" />
                 <span>Adicionar Peça</span>
@@ -446,54 +485,92 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
               {pecasFiltradas.map((peca) => (
                 <div
                   key={peca.id}
-                  className="bg-surface border border-border rounded-xl p-4 shadow-2xs hover:shadow-md transition-all duration-200 space-y-3 font-sans"
+                  onClick={() => setSelectedFichaPeca(peca)}
+                  className="bg-surface border border-border rounded-xl p-4 shadow-2xs hover:shadow-md hover:scale-[1.01] transition-all duration-200 space-y-3 font-sans cursor-pointer group"
                 >
                   {/* Topo do Card: Nome e Código (ex: Camisa CS00011J.2) */}
                   <div>
-                    <div className="flex items-center justify-between gap-1 text-sm font-bold text-primary">
+                    <div className="flex items-center justify-between gap-1 text-sm font-bold text-primary group-hover:text-accent-camel transition-colors">
                       <span>{peca.tipo}</span>
-                      <span className="text-xs font-semibold text-slate-500">{peca.codigo}</span>
+                      <span className="text-xs font-semibold text-muted">{peca.codigo}</span>
                     </div>
-                    <div className="text-xs font-medium text-slate-400 mt-0.5">{peca.tema}</div>
+                    <div className="text-xs font-medium text-muted-foreground mt-0.5">
+                      {peca.tema}
+                    </div>
                   </div>
 
                   {/* Área Central: Cabide Desenhado (Print 5) */}
-                  <div className="w-full h-40 bg-surface-muted rounded-lg flex items-center justify-center border border-border-muted">
+                  <div className="w-full h-40 bg-surface-muted rounded-lg flex items-center justify-center border border-border-muted group-hover:border-accent-camel/40 transition">
                     <CabideIcon />
                   </div>
 
-                  {/* Informações detalhadas da peça (Print 5) */}
-                  <div className="space-y-1.5 text-xs text-slate-700 pt-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground font-medium">Status</span>
-                      <span className="font-semibold text-primary">
-                        {peca.status || 'Em andamento'}
-                      </span>
-                    </div>
+                  {/* Informações da peça exibidas conforme a seleção do Modal de Miniatura (Print 1 & 5) */}
+                  <div className="space-y-1.5 text-xs text-primary pt-1">
+                    {miniaturaFields.includes('Status') && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground font-medium">Status</span>
+                        <span className="font-semibold text-primary">
+                          {peca.status || 'Em andamento'}
+                        </span>
+                      </div>
+                    )}
 
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground font-medium">Etapas</span>
-                      <span className="text-primary font-medium">{peca.etapaAtual || '—'}</span>
-                    </div>
+                    {miniaturaFields.includes('Código') && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground font-medium">Código</span>
+                        <span className="font-semibold text-primary">{peca.codigo}</span>
+                      </div>
+                    )}
 
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground font-medium">Previsão</span>
-                      <span className="text-primary font-medium">
-                        {peca.previsaoEntrega || '—'}
-                      </span>
-                    </div>
+                    {miniaturaFields.includes('Etapas') && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground font-medium">Etapas</span>
+                        <span className="text-primary font-medium">{peca.etapaAtual || '—'}</span>
+                      </div>
+                    )}
 
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground font-medium">Estilista</span>
-                      <span className="text-primary font-medium">{peca.estilista || '—'}</span>
-                    </div>
+                    {miniaturaFields.includes('Previsão') && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground font-medium">Previsão</span>
+                        <span className="text-primary font-medium">
+                          {peca.previsaoEntrega || '—'}
+                        </span>
+                      </div>
+                    )}
 
-                    <div className="pt-1 border-t border-border-muted">
-                      <span className="text-muted-foreground font-medium block">Tecidos</span>
-                      <span className="text-primary font-medium text-[11px] block leading-tight mt-0.5">
-                        {peca.tecidos && peca.tecidos.length > 0 ? peca.tecidos.join(', ') : '—'}
-                      </span>
-                    </div>
+                    {miniaturaFields.includes('Estilista') && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground font-medium">Estilista</span>
+                        <span className="text-primary font-medium">{peca.estilista || '—'}</span>
+                      </div>
+                    )}
+
+                    {miniaturaFields.includes('Custo') && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground font-medium">Custo</span>
+                        <span className="text-accent-camel font-bold">
+                          R$ {peca.custo ? peca.custo.toFixed(2) : '120.00'}
+                        </span>
+                      </div>
+                    )}
+
+                    {miniaturaFields.includes('Preço') && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground font-medium">Preço</span>
+                        <span className="text-emerald-600 font-bold">
+                          R$ {peca.preco ? peca.preco.toFixed(2) : '349.90'}
+                        </span>
+                      </div>
+                    )}
+
+                    {miniaturaFields.includes('Tecidos') && (
+                      <div className="pt-1 border-t border-border-muted">
+                        <span className="text-muted-foreground font-medium block">Tecidos</span>
+                        <span className="text-primary font-medium text-[11px] block leading-tight mt-0.5">
+                          {peca.tecidos && peca.tecidos.length > 0 ? peca.tecidos.join(', ') : '—'}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -502,19 +579,15 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
         </div>
       )}
 
-      {/* ABA TEMAS */}
-      {activeTab === 'temas' && (
-        <div className="bg-surface p-6 sm:p-8 rounded-xl border border-border shadow-2xs space-y-6 animate-in fade-in duration-200">
-          <div className="flex items-center justify-between border-b border-border-muted pb-4">
-            <h3 className="text-base font-bold text-primary font-editorial">Pendentes</h3>
-          </div>
-          <div className="p-8 text-center text-xs text-muted">
-            Gerenciamento de temas da coleção.
-          </div>
-        </div>
-      )}
+      {/* MODAL MINIATURA (PRINT 1) */}
+      <MiniaturaModal
+        isOpen={isMiniaturaModalOpen}
+        onClose={() => setIsMiniaturaModalOpen(false)}
+        selectedFields={miniaturaFields}
+        onSave={(fields) => setMiniaturaFields(fields)}
+      />
 
-      {/* MODAL: "ADICIONAR PEÇAS" (FIEL AO PRINT 4) */}
+      {/* MODAL: "ADICIONAR PEÇAS" (PRINT 4) */}
       {isAdicionarPecasOpen && (
         <div className="fixed inset-0 bg-neutral-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-surface rounded-2xl border border-border shadow-xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200 font-sans">
@@ -543,7 +616,7 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                     min={1}
                     value={formQuantidade}
                     onChange={(e) => setFormQuantidade(parseInt(e.target.value) || 1)}
-                    className="w-full px-3 py-2 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-blue-600 focus:outline-none"
+                    className="w-full px-3 py-2 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
                     required
                   />
                 </div>
@@ -556,7 +629,7 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                   <select
                     value={formNomePeca}
                     onChange={(e) => setFormNomePeca(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-blue-600 focus:outline-none cursor-pointer"
+                    className="w-full px-3 py-2 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none cursor-pointer"
                   >
                     {OPCOES_NOME_PECA.map((op) => (
                       <option key={op} value={op}>
@@ -573,7 +646,7 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                 <select
                   value={formTema}
                   onChange={(e) => setFormTema(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-blue-600 focus:outline-none cursor-pointer"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none cursor-pointer"
                 >
                   {OPCOES_TEMA.map((t) => (
                     <option key={t} value={t}>
@@ -591,7 +664,7 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                   value={formEstilista}
                   onChange={(e) => setFormEstilista(e.target.value)}
                   placeholder="Nome da estilista"
-                  className="w-full px-3 py-2 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-blue-600 focus:outline-none"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
                 />
               </div>
 
@@ -603,7 +676,7 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                   value={formTecido}
                   onChange={(e) => setFormTecido(e.target.value)}
                   placeholder="Ex: CAMBRAIA VISCO LINEN P11LN0077 (01030198)"
-                  className="w-full px-3 py-2 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-blue-600 focus:outline-none"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
                 />
               </div>
 
@@ -618,7 +691,7 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer shadow-2xs transition-all duration-200"
+                  className="px-5 py-2 rounded-lg bg-accent-camel hover:bg-accent-camel/90 text-white font-bold cursor-pointer shadow-2xs transition-all duration-200"
                 >
                   Adicionar
                 </button>
