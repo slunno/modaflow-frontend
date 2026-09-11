@@ -3,13 +3,14 @@
  * HOOK: useUsuariosGestao
  * ARQUIVO: src/pages/Gestao/hooks/useUsuariosGestao.ts
  * PROJETO: ModaFlow PLM — AKR BRANDS
- * DESCRIÇÃO: Encapsula o estado e operações da aba de Usuários.
+ * DESCRIÇÃO: Encapsula o estado e operações da aba de Usuários, sincronizando com a API do backend.
  * ============================================================================
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePersistedState } from '../../../hooks/usePersistedState';
 import type { UserRecord } from '../../../types/gestao';
+import { getUsuariosApi } from '../../../services/authService';
 
 export function useUsuariosGestao() {
   const [usersList, setUsersList] = usePersistedState<UserRecord[]>('modaflow_users_data', []);
@@ -25,6 +26,29 @@ export function useUsuariosGestao() {
   const [editingUserProfile, setEditingUserProfile] = useState<UserRecord | null>(null);
   const [searchCargoQuery, setSearchCargoQuery] = useState('');
   const [filtrarCargosToggle, setFiltrarCargosToggle] = useState(false);
+
+  // Busca lista de usuários cadastrados no backend ao carregar
+  useEffect(() => {
+    getUsuariosApi()
+      .then((backendUsers) => {
+        if (backendUsers && backendUsers.length > 0) {
+          const mapped: UserRecord[] = backendUsers.map((b) => ({
+            id: String(b.id),
+            nome: b.nome,
+            email: b.email,
+            codigo: `usr-${b.id}`,
+            marcas: ['King & Joe', 'King & Joe Play', 'K&J Black'],
+            status: b.ativo ? 'Ativo' : 'Inativo',
+            acesso: b.ativo ? 'Permitido' : 'Bloqueado',
+            brandRoles: [],
+          }));
+          setUsersList(mapped);
+        }
+      })
+      .catch(() => {
+        // Ignora erros de conexão ao carregar
+      });
+  }, [setUsersList]);
 
   const addUser = (user: UserRecord) => {
     setUsersList((prev) => [user, ...prev]);

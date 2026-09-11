@@ -21,6 +21,7 @@ import type {
 
 import { useMarcasGestao } from './hooks/useMarcasGestao';
 import { useUsuariosGestao } from './hooks/useUsuariosGestao';
+import { registerUserApi } from '../../services/authService';
 import { useTimesGestao } from './hooks/useTimesGestao';
 import { useTecidosGestao } from './hooks/useTecidosGestao';
 import { useAviamentosGestao } from './hooks/useAviamentosGestao';
@@ -162,32 +163,48 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   };
 
   // Handlers para Usuários
-  const handleCreateUser = () => {
+  const handleCreateUser = async () => {
     if (!newUserName.trim() || !newUserEmail.trim()) return;
-    const newUser: UserRecord = {
-      id: `usr-${Date.now()}`,
-      nome: newUserName.trim(),
-      email: newUserEmail.trim(),
-      codigo: newUserCodigo.trim() || undefined,
-      marcas: ['King & Joe', 'King & Joe Play', 'K&J Black'],
-      status: 'Ativo',
-      acesso: 'Permitido',
-      isFantasma: newUserIsFantasma,
-      brandRoles: marcasHook.marcasList.map((m) => ({
-        marcaId: m.id,
-        marcaNome: m.nome,
-        cargo: 'Nenhum',
-        times: [],
-      })),
-    };
-    usuariosHook.addUser(newUser);
-    setShowCriarUsuarioModal(false);
-    setNewUserName('');
-    setNewUserCodigo('');
-    setNewUserEmail('');
-    setNewUserIsFantasma(false);
-    setNewUserSenha('');
-    setNewUserConfirmarSenha('');
+
+    try {
+      // 1. Cadastra o novo usuário na API backend (com Hash BCrypt)
+      const created = await registerUserApi({
+        nome: newUserName.trim(),
+        email: newUserEmail.trim(),
+        senha: newUserSenha || '123456',
+        cargo: 'Estilista',
+        empresa: 'AKR BRANDS',
+      });
+
+      // 2. Adiciona o usuário recém-criado na lista local
+      const newUser: UserRecord = {
+        id: String(created.id || Date.now()),
+        nome: newUserName.trim(),
+        email: newUserEmail.trim(),
+        codigo: newUserCodigo.trim() || undefined,
+        marcas: ['King & Joe', 'King & Joe Play', 'K&J Black'],
+        status: 'Ativo',
+        acesso: 'Permitido',
+        isFantasma: newUserIsFantasma,
+        brandRoles: marcasHook.marcasList.map((m) => ({
+          marcaId: m.id,
+          marcaNome: m.nome,
+          cargo: 'Nenhum',
+          times: [],
+        })),
+      };
+      usuariosHook.addUser(newUser);
+      setShowCriarUsuarioModal(false);
+      setNewUserName('');
+      setNewUserCodigo('');
+      setNewUserEmail('');
+      setNewUserIsFantasma(false);
+      setNewUserSenha('');
+      setNewUserConfirmarSenha('');
+    } catch (err: unknown) {
+      const errorData = err as { message?: string };
+      alert(errorData.message || 'Erro ao cadastrar usuário no backend.');
+    }
   };
 
   const handleSaveUserProfile = () => {
