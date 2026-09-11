@@ -5,18 +5,15 @@
  * PROJETO: ModaFlow PLM — AKR BRANDS
  * DESCRIÇÃO: Define os contratos de dados para produtos (peças), coleções,
  *            filtros dinâmicos e métricas de dashboard/BI.
- * ----------------------------------------------------------------------------
- * PADRÃO DE EXTENSÃO:
- * - Utilize estas interfaces para tipar as respostas JSON do backend em Java
- *   Spring Boot quando a integração via API REST for ativada.
  * ============================================================================
  */
 
 export interface PecaItem {
   id: string;
+  colecaoId?: string;
   codigo: string;
   nome: string;
-  tipo: 'Calça' | 'Camisa' | 'Polo' | 'Bermuda' | 'Jaqueta' | 'Blazer' | 'Acessórios';
+  tipo: string;
   status: 'Em andamento' | 'Completa' | 'A desenhar' | 'Cancelada';
   etapaAtual: string;
   tema: string;
@@ -34,6 +31,8 @@ export interface PecaItem {
 
 export interface ColecaoItem {
   id: string;
+  marcaId?: string;
+  codigoPill?: string;
   nome: string;
   marcaNome: string;
   status: 'Em andamento' | 'Completas' | 'Arquivadas';
@@ -43,6 +42,10 @@ export interface ColecaoItem {
   concluidoEmDate?: string;
   dataEntrega: string;
   diasAtraso: number;
+  ano?: string;
+  temporada?: string;
+  descricao?: string;
+  imagemReferencia?: string;
 }
 
 export interface EtapaDashboardMetric {

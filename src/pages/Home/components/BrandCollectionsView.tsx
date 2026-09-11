@@ -1,12 +1,10 @@
 /**
  * ============================================================================
- * MÓDULO: Visão Re-imaginada de Coleções da Marca (BrandCollectionsView)
+ * MÓDULO: Visão de Coleções da Marca (BrandCollectionsView)
  * ARQUIVO: src/pages/Home/components/BrandCollectionsView.tsx
  * PROJETO: ModaFlow PLM — AKR BRANDS
- * DESCRIÇÃO: Exibe a interface de coleções da marca inspirada no layout da
- *            imagem de referência (Hero dark glassmorphic com estatísticas
- *            integradas no topo direito, botões de ação [Coleções] e [Cronograma],
- *            filtros por status, busca por coleção e grid de cards com badges % em destaque).
+ * DESCRIÇÃO: Exibe a interface de coleções da marca com criação de novas coleções,
+ *            sem dados mockados por padrão, com suporte a persistência e visualização.
  * ============================================================================
  */
 
@@ -15,20 +13,18 @@ import type { MarcaSummary } from '../../../types/auth';
 import type { ColecaoItem } from '../../../types/plm';
 import { MOCK_MARCAS } from '../../../constants/mockData';
 import { useAuth } from '../../../hooks/useAuth';
+import { usePersistedState } from '../../../hooks/usePersistedState';
 import {
   ChevronRight,
   ArrowLeft,
-  ArrowUpDown,
   Search,
   Calendar,
-  CheckCircle2,
-  Clock,
   Layers,
   Sparkles,
-  ChevronDown,
   X,
   Building2,
   Check,
+  Plus,
 } from 'lucide-react';
 
 import { CollectionDetailView } from './CollectionDetailView';
@@ -40,183 +36,6 @@ interface BrandCollectionsViewProps {
   onSelectColecao?: (colecao: ColecaoItem) => void;
 }
 
-// MOCK COMPLETO E EXTRAÍDO DO DESIGN DA IMAGEM DE REFERÊNCIA
-const ALL_MOCK_COLECOES: (ColecaoItem & { marcaId: string; codigoPill: string })[] = [
-  // K&J BLACK (ID: '2')
-  {
-    id: 'kb-1',
-    marcaId: '2',
-    codigoPill: 'KB',
-    nome: 'PL - SARTORIAL PREMIUM BLACK',
-    marcaNome: 'K&J Black',
-    status: 'Em andamento',
-    progressoPercent: 20,
-    pecasConcluidas: 2,
-    pecasTotal: 10,
-    concluidoEmDate: undefined,
-    dataEntrega: '15/12/2026',
-    diasAtraso: 102,
-  },
-  {
-    id: 'kb-2',
-    marcaId: '2',
-    codigoPill: 'KB',
-    nome: 'TESTES VERÃO 28 - K&J BLACK',
-    marcaNome: 'K&J Black',
-    status: 'Em andamento',
-    progressoPercent: 20,
-    pecasConcluidas: 4,
-    pecasTotal: 18,
-    concluidoEmDate: undefined,
-    dataEntrega: '29/01/2027',
-    diasAtraso: 148,
-  },
-  {
-    id: 'kb-3',
-    marcaId: '2',
-    codigoPill: 'KB',
-    nome: 'VERÃO 28 - K&J BLACK CAPSULA NOBRE',
-    marcaNome: 'K&J Black',
-    status: 'Em andamento',
-    progressoPercent: 20,
-    pecasConcluidas: 1,
-    pecasTotal: 4,
-    concluidoEmDate: undefined,
-    dataEntrega: '26/02/2027',
-    diasAtraso: 176,
-  },
-  {
-    id: 'kb-4',
-    marcaId: '2',
-    codigoPill: 'KB',
-    nome: 'INVERNO 26 - LUXURY SUITING',
-    marcaNome: 'K&J Black',
-    status: 'Completas',
-    progressoPercent: 100,
-    pecasConcluidas: 24,
-    pecasTotal: 24,
-    concluidoEmDate: '15/05/2026',
-    dataEntrega: '20/05/2026',
-    diasAtraso: 0,
-  },
-
-  // KING & JOE (ID: '1')
-  {
-    id: 'kj-1',
-    marcaId: '1',
-    codigoPill: 'KJ',
-    nome: 'TESTES VERÃO 28 - KING&JOE',
-    marcaNome: 'King & Joe',
-    status: 'Em andamento',
-    progressoPercent: 35,
-    pecasConcluidas: 12,
-    pecasTotal: 34,
-    concluidoEmDate: undefined,
-    dataEntrega: '10/01/2027',
-    diasAtraso: 120,
-  },
-  {
-    id: 'kj-2',
-    marcaId: '1',
-    codigoPill: 'KJ',
-    nome: 'INVERNO 26 - KING&JOE CLASSIC',
-    marcaNome: 'King & Joe',
-    status: 'Completas',
-    progressoPercent: 100,
-    pecasConcluidas: 85,
-    pecasTotal: 85,
-    concluidoEmDate: '10/04/2026',
-    dataEntrega: '15/04/2026',
-    diasAtraso: 0,
-  },
-
-  // KING & JOE PLAY (ID: '3')
-  {
-    id: 'p-1',
-    marcaId: '3',
-    codigoPill: 'KP',
-    nome: 'INVERNO 26 - KING&JOE PLAY COLLECTION',
-    marcaNome: 'King & Joe Play',
-    status: 'Completas',
-    progressoPercent: 100,
-    pecasConcluidas: 214,
-    pecasTotal: 214,
-    concluidoEmDate: '22/07/2025',
-    dataEntrega: '23/07/2025',
-    diasAtraso: 0,
-  },
-  {
-    id: 'p-2',
-    marcaId: '3',
-    codigoPill: 'KP',
-    nome: 'INVERNO 26 - KING&JOE PLAY PERENES',
-    marcaNome: 'King & Joe Play',
-    status: 'Completas',
-    progressoPercent: 100,
-    pecasConcluidas: 28,
-    pecasTotal: 28,
-    concluidoEmDate: '18/07/2025',
-    dataEntrega: '18/07/2025',
-    diasAtraso: 0,
-  },
-  {
-    id: 'p-3',
-    marcaId: '3',
-    codigoPill: 'KP',
-    nome: 'INVERNO 27 - KING&JOE PLAY',
-    marcaNome: 'King & Joe Play',
-    status: 'Em andamento',
-    progressoPercent: 12,
-    pecasConcluidas: 30,
-    pecasTotal: 259,
-    concluidoEmDate: undefined,
-    dataEntrega: '26/08/2026',
-    diasAtraso: 45,
-  },
-  {
-    id: 'p-4',
-    marcaId: '3',
-    codigoPill: 'KP',
-    nome: 'VERÃO 26 - King&Joe Play Collection',
-    marcaNome: 'King & Joe Play',
-    status: 'Completas',
-    progressoPercent: 100,
-    pecasConcluidas: 151,
-    pecasTotal: 151,
-    concluidoEmDate: '07/07/2025',
-    dataEntrega: '10/01/2025',
-    diasAtraso: 0,
-  },
-  {
-    id: 'p-5',
-    marcaId: '3',
-    codigoPill: 'KP',
-    nome: 'VERÃO 26 - King&Joe Play Perenes',
-    marcaNome: 'King & Joe Play',
-    status: 'Em andamento',
-    progressoPercent: 50,
-    pecasConcluidas: 17,
-    pecasTotal: 34,
-    concluidoEmDate: undefined,
-    dataEntrega: '10/01/2027',
-    diasAtraso: 90,
-  },
-  {
-    id: 'p-6',
-    marcaId: '3',
-    codigoPill: 'KP',
-    nome: 'VERÃO 27 - KING & JOE PLAY',
-    marcaNome: 'King & Joe Play',
-    status: 'Em andamento',
-    progressoPercent: 5,
-    pecasConcluidas: 1,
-    pecasTotal: 228,
-    concluidoEmDate: undefined,
-    dataEntrega: '26/08/2027',
-    diasAtraso: 310,
-  },
-];
-
 export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
   marca,
   onBack,
@@ -225,7 +44,13 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
 }) => {
   const { setActiveMarca } = useAuth();
 
-  // Estado local para a marca ativa caso o usuário altere no modal do quadro
+  // Lista de Coleções Persistida no LocalStorage
+  const [allColecoes, setAllColecoes] = usePersistedState<ColecaoItem[]>(
+    'modaflow_user_colecoes',
+    []
+  );
+
+  // Estado local da marca selecionada
   const [currentMarca, setCurrentMarca] = useState<MarcaSummary>(marca);
   const [prevMarca, setPrevMarca] = useState<MarcaSummary>(marca);
   if (marca !== prevMarca) {
@@ -236,27 +61,39 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
   // Sub-aba interna da marca: [Coleções] ou [Cronograma]
   const [activeSubTab, setActiveSubTab] = useState<'colecoes' | 'cronograma'>('colecoes');
 
-  // Filtro por Status [Em andamento | Completas | Arquivadas]
-  const [statusFiltro, setStatusFiltro] = useState<'Em andamento' | 'Completas' | 'Arquivadas'>(
-    'Em andamento'
-  );
+  // Filtro por Status [Todas | Em andamento | Completas | Arquivadas]
+  const [statusFiltro, setStatusFiltro] = useState<
+    'Todas' | 'Em andamento' | 'Completas' | 'Arquivadas'
+  >('Todas');
 
-  // Busca por texto da coleção
+  // Busca por texto
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Ordenação das coleções
-  const [sortOrder, setSortOrder] = useState<'progress_desc' | 'name_asc'>('progress_desc');
+  // Ordenação
+  const [sortOrder] = useState<'progress_desc' | 'name_asc'>('name_asc');
 
-  // Estado da Coleção selecionada
+  // Estado da Coleção Selecionada para abrir os detalhes
   const [selectedColecao, setSelectedColecao] = useState<ColecaoItem | null>(() => {
     const savedColecaoId = localStorage.getItem('modaflow_selected_colecao_id');
     if (savedColecaoId) {
-      return ALL_MOCK_COLECOES.find((c) => c.id === savedColecaoId) || null;
+      return allColecoes.find((c) => c.id === savedColecaoId) || null;
     }
     return null;
   });
 
-  // Salva no localStorage quando a coleção é selecionada
+  // Modal de Criar Nova Coleção
+  const [isCriarColecaoOpen, setIsCriarColecaoOpen] = useState(false);
+  const [formNome, setFormNome] = useState('');
+  const [formAno, setFormAno] = useState('');
+  const [formTemporada, setFormTemporada] = useState('Verão');
+  const [formDataEntrega, setFormDataEntrega] = useState('');
+  const [formDescricao, setFormDescricao] = useState('');
+  const [formImagemUrl, setFormImagemUrl] = useState('');
+  const [formError, setFormError] = useState('');
+
+  // Modal de Alternar Marca
+  const [isBrandModalOpen, setIsBrandModalOpen] = useState(false);
+
   useEffect(() => {
     if (selectedColecao) {
       localStorage.setItem('modaflow_selected_colecao_id', selectedColecao.id);
@@ -265,18 +102,15 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
     }
   }, [selectedColecao]);
 
-  // Modal do Quadro de Linhas & Marcas
-  const [isBrandModalOpen, setIsBrandModalOpen] = useState(false);
-
-  // Filtra as coleções pela marca atual
+  // Filtra as coleções vinculadas à marca atual
   const colecoesDaMarca = useMemo(() => {
-    return ALL_MOCK_COLECOES.filter((c) => c.marcaId === currentMarca.id);
-  }, [currentMarca.id]);
+    return allColecoes.filter((c) => c.marcaId === currentMarca.id);
+  }, [allColecoes, currentMarca.id]);
 
   // Filtra por status e termo de busca
   const colecoesFiltradas = useMemo(() => {
     let result = colecoesDaMarca.filter((c) => {
-      const matchStatus = c.status === statusFiltro;
+      const matchStatus = statusFiltro === 'Todas' || c.status === statusFiltro;
       const matchQuery =
         searchQuery === '' || c.nome.toLowerCase().includes(searchQuery.toLowerCase());
       return matchStatus && matchQuery;
@@ -291,14 +125,55 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
     return result;
   }, [colecoesDaMarca, statusFiltro, searchQuery, sortOrder]);
 
-  // Cálculos dinâmicos das estatísticas da marca
+  // Estatísticas dinâmicas
   const totalColecoes = colecoesDaMarca.length;
   const emAndamentoCount = colecoesDaMarca.filter((c) => c.status === 'Em andamento').length;
-  const totalPecas = colecoesDaMarca.reduce((acc, c) => acc + c.pecasTotal, 0);
+  const totalPecas = colecoesDaMarca.reduce((acc, c) => acc + (c.pecasTotal || 0), 0);
   const avgProgress =
     totalColecoes > 0
-      ? Math.round(colecoesDaMarca.reduce((acc, c) => acc + c.progressoPercent, 0) / totalColecoes)
+      ? Math.round(
+          colecoesDaMarca.reduce((acc, c) => acc + (c.progressoPercent || 0), 0) / totalColecoes
+        )
       : 0;
+
+  // Handler para Criar Nova Coleção
+  const handleSaveNovaColecao = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formNome.trim()) {
+      setFormError('O nome da coleção é obrigatório.');
+      return;
+    }
+
+    const novaColecao: ColecaoItem = {
+      id: `col-${Date.now()}`,
+      marcaId: currentMarca.id,
+      codigoPill: currentMarca.code || currentMarca.initials || 'BRAND',
+      nome: formNome.trim(),
+      marcaNome: currentMarca.nome,
+      status: 'Em andamento',
+      progressoPercent: 0,
+      pecasConcluidas: 0,
+      pecasTotal: 0,
+      dataEntrega: formDataEntrega.trim() || 'A definir',
+      diasAtraso: 0,
+      ano: formAno.trim() || '2026-27',
+      temporada: formTemporada || 'Verão',
+      descricao: formDescricao.trim() || undefined,
+      imagemReferencia: formImagemUrl.trim() || undefined,
+    };
+
+    setAllColecoes((prev) => [novaColecao, ...prev]);
+
+    // Reseta form e fecha modal
+    setIsCriarColecaoOpen(false);
+    setFormNome('');
+    setFormAno('');
+    setFormTemporada('Verão');
+    setFormDataEntrega('');
+    setFormDescricao('');
+    setFormImagemUrl('');
+    setFormError('');
+  };
 
   // Troca de marca através do quadro interativo
   const handleSwitchBrand = (newMarca: MarcaSummary) => {
@@ -308,13 +183,15 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
     setIsBrandModalOpen(false);
   };
 
-  // Se houver uma coleção selecionada, renderiza o componente detalhado
+  // Se houver uma coleção selecionada, exibe os detalhes
   if (selectedColecao) {
     return (
       <CollectionDetailView
         colecao={selectedColecao}
         marca={currentMarca}
-        onBackToBrand={() => setSelectedColecao(null)}
+        onBackToBrand={() => {
+          setSelectedColecao(null);
+        }}
         onBackToHome={onBack}
       />
     );
@@ -322,7 +199,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
 
   return (
     <div className="space-y-6 font-sans pb-12 animate-in fade-in duration-200">
-      {/* 1. BREADCRUMBS NO ESTILO DO MOCKUP */}
+      {/* 1. BREADCRUMBS */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-xs font-semibold text-muted">
           <button
@@ -350,33 +227,28 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
         </button>
       </div>
 
-      {/* 2. CARD HERO DARK GLASSMORPHIC (HERO NÍVEL 1: ROUNDED-3XL + SHADOW-XL) */}
+      {/* 2. CARD HERO DARK GLASSMORPHIC */}
       <div className="relative rounded-3xl bg-neutral-950 text-white p-6 sm:p-8 shadow-xl overflow-hidden border border-neutral-800 transition-all duration-500">
-        {/* Fundo com degradê escuro e luz sutil */}
         <div
           className="absolute inset-0 bg-cover bg-center opacity-20 blur-xs img-brand-treated transition-all duration-500"
-          style={{ backgroundImage: `url(${marca.heroImageUrl})` }}
+          style={{ backgroundImage: `url(${currentMarca.heroImageUrl})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-900/95 to-neutral-950" />
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-          {/* Esquerda: Badge, Título, Descrição e Botões de Ação */}
+          {/* Esquerda: Nome e Ações */}
           <div className="space-y-4 max-w-xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] font-bold text-neutral-300">
               <Sparkles className="w-3.5 h-3.5 text-accent-camel" strokeWidth={1.5} />
-              <span>{marca.badgeTag || 'Linha Premium'}</span>
+              <span>{currentMarca.badgeTag || 'Linha Oficial'}</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold font-editorial tracking-wide text-white">
-              {marca.nome}
+              {currentMarca.nome}
             </h1>
 
-            <p className="text-xs sm:text-sm text-neutral-300 font-medium leading-relaxed">
-              {marca.description}
-            </p>
-
-            {/* BOTÕES DE AÇÃO INTERNOS DO BANNER [COLEÇÕES] E [CRONOGRAMA] */}
-            <div className="flex items-center gap-3 pt-2">
+            {/* BOTÕES DE AÇÃO INTERNOS */}
+            <div className="flex flex-wrap items-center gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setActiveSubTab('colecoes')}
@@ -401,6 +273,15 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
               >
                 <Calendar className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
                 <span>Cronograma</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsCriarColecaoOpen(true)}
+                className="px-5 py-2.5 rounded-lg text-xs font-bold bg-accent-camel hover:bg-accent-camel/90 text-white shadow-md flex items-center gap-2 cursor-pointer transition-all duration-200"
+              >
+                <Plus className="w-4 h-4" strokeWidth={2} />
+                <span>Adicionar Coleção</span>
               </button>
             </div>
           </div>
@@ -441,10 +322,22 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
       {/* 3. CONTEÚDO DA ABA SELECIONADA */}
       {activeSubTab === 'colecoes' && (
         <div className="space-y-5 animate-in fade-in duration-200">
-          {/* BARRA DE FILTROS (CARD NÍVEL 2) */}
+          {/* BARRA DE FILTROS E BUSCA */}
           <div className="bg-surface p-4 rounded-xl border border-border shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 transition-all duration-300">
             {/* Status Pills */}
             <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setStatusFiltro('Todas')}
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${
+                  statusFiltro === 'Todas'
+                    ? 'bg-primary text-white shadow-2xs'
+                    : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
+                }`}
+              >
+                Todas ({colecoesDaMarca.length})
+              </button>
+
               <button
                 type="button"
                 onClick={() => setStatusFiltro('Em andamento')}
@@ -482,7 +375,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
               </button>
             </div>
 
-            {/* Ações Direita: Buscar Coleção, Contador & Ordenação */}
+            {/* Ações Direita: Buscar Coleção & Adicionar */}
             <div className="flex items-center gap-3">
               <div className="relative flex-1 sm:w-64">
                 <Search
@@ -500,28 +393,37 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
 
               <button
                 type="button"
-                onClick={() =>
-                  setSortOrder((prev) => (prev === 'progress_desc' ? 'name_asc' : 'progress_desc'))
-                }
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-border text-muted-foreground bg-surface-muted hover:bg-border-muted text-xs font-bold transition-all duration-200 cursor-pointer"
+                onClick={() => setIsCriarColecaoOpen(true)}
+                className="px-4 py-2 rounded-lg bg-accent-camel hover:bg-accent-camel/90 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all duration-200"
               >
-                <ArrowUpDown className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
-                <span>{sortOrder === 'progress_desc' ? 'Progresso' : 'Nome'}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
+                <Plus className="w-4 h-4" />
+                <span>Coleção +</span>
               </button>
             </div>
           </div>
 
-          {/* GRID DE CARDS (CARD NÍVEL 2) */}
+          {/* GRID DE CARDS DAS COLEÇÕES */}
           {colecoesFiltradas.length === 0 ? (
-            <div className="bg-surface p-12 rounded-xl border border-border text-center space-y-3">
-              <Layers className="w-10 h-10 text-muted mx-auto" strokeWidth={1.5} />
-              <h4 className="text-sm font-bold text-muted-foreground font-editorial">
-                Nenhuma coleção encontrada
-              </h4>
-              <p className="text-xs text-muted">
-                Tente alternar o filtro de status ou limpar o campo de busca.
-              </p>
+            <div className="bg-surface p-12 rounded-xl border border-border text-center space-y-4">
+              <div className="w-12 h-12 rounded-full bg-accent-camel/10 border border-accent-camel/30 text-accent-camel flex items-center justify-center mx-auto">
+                <Layers className="w-6 h-6" strokeWidth={1.5} />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-sm font-bold text-primary font-editorial">
+                  Nenhuma coleção cadastrada para {currentMarca.nome}
+                </h4>
+                <p className="text-xs text-muted max-w-md mx-auto">
+                  Clique no botão abaixo para adicionar a primeira coleção desta marca.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCriarColecaoOpen(true)}
+                className="px-5 py-2.5 rounded-lg bg-primary hover:bg-neutral-800 text-white font-bold text-xs inline-flex items-center gap-2 cursor-pointer shadow-2xs transition-all duration-200"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Adicionar Primeira Coleção</span>
+              </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -538,25 +440,24 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                     className="bg-surface border border-border rounded-xl p-6 shadow-2xs hover:shadow-md hover:scale-[1.01] transition-all duration-300 space-y-5 flex flex-col justify-between relative group cursor-pointer"
                   >
                     <div>
-                      {/* Topo do Card: Badge de Código (KB, KJ, KP) */}
+                      {/* Topo do Card: Badge da Marca */}
                       <div className="flex items-center justify-between gap-2 mb-3">
                         <span className="px-3 py-1 rounded-md bg-surface-muted border border-border text-primary font-bold text-[11px] tracking-wider uppercase">
-                          {c.codigoPill}
+                          {c.codigoPill || currentMarca.code}
                         </span>
 
-                        {/* BADGE DE PROGRESSO % DOURADO */}
                         <span className="px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold">
                           {c.progressoPercent}%
                         </span>
                       </div>
 
-                      {/* Título da Coleção com fonte editorial */}
-                      <h3 className="text-sm font-bold font-editorial text-primary uppercase tracking-wide leading-snug group-hover:text-accent-camel transition-colors duration-200 min-h-[40px]">
+                      {/* Título da Coleção */}
+                      <h3 className="text-sm font-bold font-editorial text-primary uppercase tracking-wide leading-snug group-hover:text-accent-camel transition-colors duration-200 min-h-[38px]">
                         {c.nome}
                       </h3>
                     </div>
 
-                    {/* BARRA DE PROGRESSO SLIM */}
+                    {/* BARRA DE PROGRESSO */}
                     <div className="space-y-1.5 pt-2 border-t border-border-muted">
                       <div className="flex justify-between items-center text-xs">
                         <span className="font-semibold text-muted-foreground">
@@ -575,7 +476,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                       </div>
                     </div>
 
-                    {/* DETALHES DE PEÇAS E PRAZOS */}
+                    {/* DETALHES DA COLEÇÃO */}
                     <div className="space-y-2 text-xs bg-surface-muted p-3.5 rounded-lg border border-border-muted">
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground font-medium">Peças concluídas</span>
@@ -585,13 +486,10 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                       </div>
 
                       <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground font-medium">Entrega em</span>
-                        <strong className="text-primary font-bold">{c.diasAtraso} dias</strong>
-                      </div>
-
-                      <div className="flex justify-between items-center">
                         <span className="text-muted-foreground font-medium">Data de Entrega</span>
-                        <strong className="text-primary font-bold">{c.dataEntrega}</strong>
+                        <strong className="text-primary font-bold">
+                          {c.dataEntrega || 'A definir'}
+                        </strong>
                       </div>
                     </div>
                   </div>
@@ -609,7 +507,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
             <div>
               <h3 className="text-base font-bold font-editorial text-primary flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-accent-camel" strokeWidth={1.5} />
-                <span>Cronograma & Marcos de Produção — {marca.nome}</span>
+                <span>Cronograma & Marcos de Produção — {currentMarca.nome}</span>
               </h3>
               <p className="text-xs text-muted-foreground mt-1">
                 Acompanhamento temporal dos marcos de entrega de coleções
@@ -621,96 +519,192 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
             </span>
           </div>
 
-          <div className="space-y-6 pt-2">
-            {colecoesDaMarca.map((c, index) => (
-              <div
-                key={c.id}
-                className="p-5 rounded-lg bg-surface-muted border border-border-muted space-y-3"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border-muted pb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary text-white font-bold text-xs flex items-center justify-center">
-                      {index + 1}
+          {colecoesDaMarca.length === 0 ? (
+            <div className="p-8 text-center text-xs text-muted">
+              Nenhuma coleção disponível para o cronograma.
+            </div>
+          ) : (
+            <div className="space-y-6 pt-2">
+              {colecoesDaMarca.map((c, index) => (
+                <div
+                  key={c.id}
+                  className="p-5 rounded-lg bg-surface-muted border border-border-muted space-y-3"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border-muted pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-primary text-white font-bold text-xs flex items-center justify-center">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold font-editorial text-primary uppercase">
+                          {c.nome}
+                        </h4>
+                        <span className="text-[11px] text-muted-foreground font-semibold">
+                          {c.pecasTotal} peças • Entrega: {c.dataEntrega}
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-xs font-bold font-editorial text-primary uppercase">
-                        {c.nome}
-                      </h4>
-                      <span className="text-[11px] text-muted-foreground font-semibold">
-                        {c.pecasTotal} peças • Entrega: {c.dataEntrega}
-                      </span>
-                    </div>
-                  </div>
 
-                  <span
-                    className={`text-xs font-bold px-3 py-1 rounded-full ${
-                      c.progressoPercent === 100
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : 'bg-amber-100 text-amber-800'
-                    }`}
-                  >
-                    {c.progressoPercent}% Concluído
-                  </span>
+                    <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-800">
+                      {c.progressoPercent}% Concluído
+                    </span>
+                  </div>
                 </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs pt-1">
-                  <div className="p-2.5 bg-surface rounded-lg border border-border">
-                    <span className="text-[10px] font-bold uppercase text-muted block">
-                      1. Design & Estilo
-                    </span>
-                    <span className="font-bold text-emerald-600 flex items-center gap-1 mt-0.5">
-                      <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={1.5} /> Concluído
-                    </span>
-                  </div>
-
-                  <div className="p-2.5 bg-surface rounded-lg border border-border">
-                    <span className="text-[10px] font-bold uppercase text-muted block">
-                      2. Modelagem & Ficha
-                    </span>
-                    <span className="font-bold text-emerald-600 flex items-center gap-1 mt-0.5">
-                      <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={1.5} /> Concluído
-                    </span>
-                  </div>
-
-                  <div className="p-2.5 bg-surface rounded-lg border border-border">
-                    <span className="text-[10px] font-bold uppercase text-muted block">
-                      3. Pilotagem & Corte
-                    </span>
-                    <span
-                      className={`font-bold flex items-center gap-1 mt-0.5 ${c.progressoPercent > 50 ? 'text-emerald-600' : 'text-accent-camel'}`}
-                    >
-                      <Clock className="w-3.5 h-3.5" strokeWidth={1.5} />{' '}
-                      {c.progressoPercent > 50 ? 'Concluído' : 'Em andamento'}
-                    </span>
-                  </div>
-
-                  <div className="p-2.5 bg-surface rounded-lg border border-border">
-                    <span className="text-[10px] font-bold uppercase text-muted block">
-                      4. Produção & ERP
-                    </span>
-                    <span
-                      className={`font-bold flex items-center gap-1 mt-0.5 ${c.progressoPercent === 100 ? 'text-emerald-600' : 'text-amber-600'}`}
-                    >
-                      {c.progressoPercent === 100 ? (
-                        <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={1.5} />
-                      ) : (
-                        <Clock className="w-3.5 h-3.5" strokeWidth={1.5} />
-                      )}
-                      {c.progressoPercent === 100 ? 'Entregue' : 'Aguardando'}
-                    </span>
-                  </div>
+      {/* MODAL: CRIAR NOVA COLEÇÃO */}
+      {isCriarColecaoOpen && (
+        <div className="fixed inset-0 bg-neutral-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-surface rounded-2xl p-6 sm:p-8 border border-border shadow-xl max-w-lg w-full space-y-6 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-border-muted pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-accent-camel/10 border border-accent-camel/30 text-accent-camel flex items-center justify-center font-bold">
+                  <Layers className="w-5 h-5" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold font-editorial text-primary">
+                    Adicionar Nova Coleção
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Marca: <strong>{currentMarca.nome}</strong>
+                  </p>
                 </div>
               </div>
-            ))}
+
+              <button
+                type="button"
+                onClick={() => setIsCriarColecaoOpen(false)}
+                className="p-2 rounded-lg text-muted hover:text-primary hover:bg-surface-muted transition cursor-pointer"
+              >
+                <X className="w-5 h-5" strokeWidth={1.5} />
+              </button>
+            </div>
+
+            {formError && (
+              <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-600 text-xs font-semibold">
+                {formError}
+              </div>
+            )}
+
+            <form onSubmit={handleSaveNovaColecao} className="space-y-4 text-xs">
+              {/* Nome da Coleção (Obrigatório) */}
+              <div>
+                <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-muted-foreground">
+                  Nome da Coleção <span className="text-rose-600">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formNome}
+                  onChange={(e) => setFormNome(e.target.value)}
+                  placeholder="Ex: VERÃO 28 - K&J BLACK CAPSULA NOBRE"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none transition-all duration-200"
+                  required
+                />
+              </div>
+
+              {/* Grid 2 colunas: Temporada & Ano */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-muted-foreground">
+                    Temporada
+                  </label>
+                  <select
+                    value={formTemporada}
+                    onChange={(e) => setFormTemporada(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none cursor-pointer"
+                  >
+                    <option value="Verão">Verão</option>
+                    <option value="Inverno">Inverno</option>
+                    <option value="Atemporal">Atemporal</option>
+                    <option value="Primavera">Primavera</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-muted-foreground">
+                    Ano
+                  </label>
+                  <input
+                    type="text"
+                    value={formAno}
+                    onChange={(e) => setFormAno(e.target.value)}
+                    placeholder="Ex: 2026-27 ou 2028"
+                    className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Data de Entrega */}
+              <div>
+                <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-muted-foreground">
+                  Data de Entrega
+                </label>
+                <input
+                  type="text"
+                  value={formDataEntrega}
+                  onChange={(e) => setFormDataEntrega(e.target.value)}
+                  placeholder="Ex: 26/02/2027"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
+                />
+              </div>
+
+              {/* Descrição */}
+              <div>
+                <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-muted-foreground">
+                  Descrição
+                </label>
+                <textarea
+                  rows={2}
+                  value={formDescricao}
+                  onChange={(e) => setFormDescricao(e.target.value)}
+                  placeholder="Breve conceito ou detalhes da coleção..."
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
+                />
+              </div>
+
+              {/* Imagem de Referência */}
+              <div>
+                <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-muted-foreground">
+                  URL da Imagem de Referência (Opcional)
+                </label>
+                <input
+                  type="url"
+                  value={formImagemUrl}
+                  onChange={(e) => setFormImagemUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
+                />
+              </div>
+
+              {/* Botões do Modal */}
+              <div className="pt-4 border-t border-border-muted flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsCriarColecaoOpen(false)}
+                  className="px-4 py-2.5 rounded-lg border border-border text-muted-foreground font-bold hover:bg-surface-muted cursor-pointer transition-all duration-200"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-lg bg-accent-camel hover:bg-accent-camel/90 text-white font-bold cursor-pointer shadow-2xs transition-all duration-200"
+                >
+                  Criar Coleção
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
 
-      {/* 5. QUADRO DE ALTERNAR LINHA / MARCA (MODAL INTERATIVO NÍVEL 2) */}
+      {/* QUADRO DE ALTERNAR MARCA */}
       {isBrandModalOpen && (
         <div className="fixed inset-0 bg-neutral-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-surface rounded-xl p-6 sm:p-8 border border-border shadow-xl max-w-xl w-full space-y-6 animate-in fade-in zoom-in-95 duration-200">
-            {/* Header do Quadro */}
             <div className="flex items-center justify-between border-b border-border-muted pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-accent-camel/10 border border-accent-camel/30 text-accent-camel flex items-center justify-center font-bold">
@@ -735,7 +729,6 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
               </button>
             </div>
 
-            {/* Lista das Marcas / Linhas da Organização */}
             <div className="space-y-3">
               {MOCK_MARCAS.map((m) => {
                 const isSelected = m.id === currentMarca.id;
@@ -764,13 +757,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                       <div>
                         <div className="flex items-center gap-2">
                           <h4 className="text-sm font-bold text-primary">{m.nome}</h4>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-surface-muted text-muted-foreground border border-border">
-                            {m.badgeTag}
-                          </span>
                         </div>
-                        <span className="text-xs font-semibold text-muted block mt-0.5">
-                          {m.colecoesCount} Coleções • {m.pecasCount} Peças
-                        </span>
                       </div>
                     </div>
 
@@ -788,17 +775,6 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                   </div>
                 );
               })}
-            </div>
-
-            {/* Rodapé do Quadro */}
-            <div className="pt-3 border-t border-border-muted flex justify-end">
-              <button
-                type="button"
-                onClick={() => setIsBrandModalOpen(false)}
-                className="px-4 py-2 bg-surface-muted hover:bg-border-muted text-primary text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer"
-              >
-                Fechar Quadro
-              </button>
             </div>
           </div>
         </div>
