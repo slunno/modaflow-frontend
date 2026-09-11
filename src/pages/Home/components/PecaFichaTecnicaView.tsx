@@ -71,6 +71,26 @@ interface TerceiroDetailItem {
   observacoes: { id: string; titulo: string; descricao: string; imagemUrl?: string }[];
 }
 
+// Grupos de tamanhos disponíveis (Grade Padrão, 01-08 1 em 1, 10-18 2 em 2, 38-50 2 em 2, PP, Único, XXG)
+const GRADE_GRUPOS_TAMANHOS = [
+  {
+    titulo: 'Grade Padrão (Letras / Especial)',
+    opcoes: ['PP', 'P', 'M', 'G', 'GG', 'XG', 'XXG', 'Único'],
+  },
+  {
+    titulo: 'Grade Numérica (01 ao 08 - de 1 em 1)',
+    opcoes: ['01', '02', '03', '04', '05', '06', '07', '08'],
+  },
+  {
+    titulo: 'Grade Numérica (10 ao 18 - de 2 em 2)',
+    opcoes: ['10', '12', '14', '16', '18'],
+  },
+  {
+    titulo: 'Grade Numérica (38 ao 50 - de 2 em 2)',
+    opcoes: ['38', '40', '42', '44', '46', '48', '50'],
+  },
+];
+
 export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
   peca,
   colecao,
@@ -97,18 +117,21 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
   // ===== ESTADOS DA ABA GERAL =====
   const [nomeProduto, setNomeProduto] = useState(peca.nome || '');
   const [codigoRef, setCodigoRef] = useState(peca.codigo || '');
-  const [descricao, setDescricao] = useState(
-    `CAMISA ${peca.tipo.toUpperCase()} POLIAMIDA ULTRAFLEX TRAVEL`
-  );
-  const [tecnica, setTecnica] = useState('Lavanderia, Estamparia, Bordado');
+  const [descricao, setDescricao] = useState('');
+  const [tecnica, setTecnica] = useState('');
   const [corMostruario, setCorMostruario] = useState('');
   const [estampa, setEstampa] = useState('');
 
-  const [subgrupo, setSubgrupo] = useState(peca.tipo.toUpperCase());
-  const [linha, setLinha] = useState('INDEFINIDO');
-  const [grade, setGrade] = useState('P-XG');
-  const [griffe, setGriffe] = useState(marca.nome.toUpperCase());
-  const [tipoMateriaPrima, setTipoMateriaPrima] = useState('MALHA DE FIBRA SINTÉTICA');
+  const [obsGerais, setObsGerais] = useState('');
+  const [obsCorte, setObsCorte] = useState('');
+  const [simbologiaImagemUrl, setSimbologiaImagemUrl] = useState<string | null>(null);
+  const [isDraggingSimbologia, setIsDraggingSimbologia] = useState(false);
+
+  const [subgrupo, setSubgrupo] = useState(peca.tipo ? peca.tipo.toUpperCase() : '');
+  const [linha, setLinha] = useState('');
+  const [grade, setGrade] = useState('');
+  const [griffe, setGriffe] = useState(marca.nome ? marca.nome.toUpperCase() : '');
+  const [tipoMateriaPrima, setTipoMateriaPrima] = useState('');
   const [categoria, setCategoria] = useState('');
   const [subcategoria, setSubcategoria] = useState('');
   const [tamanhos, setTamanhos] = useState<string[]>(['P', 'M', 'G', 'GG', 'XG']);
@@ -116,148 +139,27 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
   // ===== ESTADOS DA ABA MODELAGEM =====
   const [modelagemInput, setModelagemInput] = useState('');
   const [caracteristicaInput, setCaracteristicaInput] = useState('');
-  const [obsModelagem, setObsModelagem] = useState('RENOMEAMOS A REF:CS.25.301 PARA CS01006J');
+  const [obsModelagem, setObsModelagem] = useState('');
 
-  const [tabelasMedidas, setTabelasMedidas] = useState<TabelaMedidaItem[]>([
-    {
-      id: 'tab-1',
-      nome: 'Tabela - 1',
-      medidasSelecionadas: ['BARRA', 'CINTURA', 'OMBRO A OMBRO', 'QUADRIL', 'TORAX'],
-      valoresMedidas: {
-        BARRA: { P: '42', M: '44', G: '46', GG: '48', XG: '50', 'Tol.': '1.0' },
-        CINTURA: { P: '40', M: '42', G: '44', GG: '46', XG: '48', 'Tol.': '1.0' },
-        'OMBRO A OMBRO': { P: '44', M: '46', G: '48', GG: '50', XG: '52', 'Tol.': '0.5' },
-        QUADRIL: { P: '48', M: '50', G: '52', GG: '54', XG: '56', 'Tol.': '1.0' },
-        TORAX: { P: '50', M: '52', G: '54', GG: '56', XG: '58', 'Tol.': '1.0' },
-      },
-    },
-  ]);
+  const [tabelasMedidas, setTabelasMedidas] = useState<TabelaMedidaItem[]>([]);
 
-  // ===== ESTADOS DA ABA TECIDOS (Print 1) =====
-  const [tecidosItems, setTecidosItems] = useState<InsumoItem[]>([
-    {
-      id: 'tec-1',
-      nome: 'TECIDO URBAN HI FLEX P11TC0227 - 01050426 (EXCIM)',
-      preco: '22,8441',
-      custoConsumo: 'R$ 34,9515',
-      precoAtual: 'R$ 19,0565 (Metro)',
-      largura: '1,5',
-      peso: '0,259',
-      consumo: '0,3',
-      uso: 'TECIDO 1 | CORPO',
-      encolhimento: '',
-      unidade: 'Metro',
-    },
-    {
-      id: 'tec-2',
-      nome: 'ENTRETELA ROLO 3200M HDPE - 01040029 (CABERAF)',
-      preco: '25,35',
-      custoConsumo: 'R$ 7,6050',
-      precoAtual: 'R$ 18,5000 (Metro)',
-      consumo: '0,3',
-      uso: 'GOLA | PDG | PUNHOS',
-      encolhimento: '',
-      unidade: 'Metro',
-    },
-    {
-      id: 'tec-3',
-      nome: 'ENTRETELA EM ROLO 8045 V.LO/TSI 4321 - 01040001 (V.L.O ENTRETELAS)',
-      preco: '4,7400',
-      custoConsumo: '—',
-      precoAtual: 'R$ 4,7400 (Metro)',
-      consumo: '1,2',
-      uso: 'CARCELAS',
-      encolhimento: '',
-      unidade: 'Metro',
-    },
-  ]);
+  // ===== ESTADOS DAS ABAS TECIDOS, AVIAMENTOS E TERCEIROS =====
+  const [tecidosItems, setTecidosItems] = useState<InsumoItem[]>([]);
+  const [aviamentosItems, setAviamentosItems] = useState<InsumoItem[]>([]);
+  const [terceirosItems, setTerceirosItems] = useState<TerceiroDetailItem[]>([]);
 
-  // ===== ESTADOS DA ABA AVIAMENTOS (Print 2) =====
-  const [aviamentosItems, setAviamentosItems] = useState<InsumoItem[]>([
-    {
-      id: 'avi-1',
-      nome: 'ENTRETELA DE VISTA 3,0CM - 02270164 (GRUPO TSI)',
-      preco: '0,2533',
-      custoConsumo: '—',
-      consumo: '0,2',
-      uso: 'VISTA SUPERIOR',
-      unidade: 'Metro',
-    },
-    {
-      id: 'avi-2',
-      nome: 'ETQ FITILHO K&J BLACK VIST MAI M0142149 PRETO-PRETO - 02060182 (A M BORDADEOS ETIQUETA)',
-      preco: '0,1',
-      custoConsumo: 'R$ 0,1000',
-      precoAtual: 'R$ 0,1100 (Quantidade)',
-      quantidade: '1',
-      uso: 'PRESA NOS 4 LADOS, NA VISTA Á 2,0CM DA BARRA',
-      unidade: 'Quantidade',
-    },
-    {
-      id: 'avi-3',
-      nome: 'BARBATANA POLLY 5 X1,0 X 25 BRANCO-BRANCO - 02140003 (ALEXANDRE GUIRAO)',
-      preco: '0,0440',
-      custoConsumo: 'R$ 0,0800',
-      precoAtual: 'R$ 0,0440 (Quantidade)',
-      quantidade: '2',
-      uso: 'GOLA | COSTURA',
-      unidade: 'Quantidade',
-    },
-  ]);
+  // Handlers para Seleção de Tamanhos
+  const toggleTamanhoGeral = (t: string) => {
+    setTamanhos((prev) => (prev.includes(t) ? prev.filter((item) => item !== t) : [...prev, t]));
+  };
 
-  // ===== ESTADOS DA ABA TERCEIROS (Prints 3, 4, 5) =====
-  const [terceirosItems, setTerceirosItems] = useState<TerceiroDetailItem[]>([
-    {
-      id: 'terc-1',
-      numero: 1,
-      tipo: 'Silk interno',
-      fornecedor: 'KING&JOE',
-      obsTerceiro: '',
-      tela: '',
-      traducao: '',
-      variantesUsadas: {
-        'Variante: 1 (1)': true,
-        'Variante: 2 (2)': true,
-        'Variante: 3 (3)': true,
-        'Variante: 4 (4)': true,
-      },
-      tecnicas: ['Silk interno'],
-      observacoes: [
-        {
-          id: 'obs-1',
-          titulo: 'VARIANTE PRETO',
-          descricao: 'CINZA CLARO 44 MIX',
-          imagemUrl:
-            'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400&auto=format&fit=crop',
-        },
-      ],
-    },
-    {
-      id: 'terc-2',
-      numero: 2,
-      tipo: 'Bordado',
-      fornecedor: 'KIWAY',
-      obsTerceiro: '',
-      tela: '',
-      traducao: '',
-      variantesUsadas: {
-        'Variante: 1 (1)': true,
-        'Variante: 2 (2)': true,
-        'Variante: 3 (3)': true,
-        'Variante: 4 (4)': true,
-      },
-      tecnicas: ['Bordado'],
-      observacoes: [
-        {
-          id: 'obs-2',
-          titulo: 'vermelho para todas as variantes 32mm seguir gabarito',
-          descricao: 'Ex.: Tricô conforme referência',
-          imagemUrl:
-            'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?q=80&w=400&auto=format&fit=crop',
-        },
-      ],
-    },
-  ]);
+  const selectGradeGrupo = (opcoes: string[]) => {
+    setTamanhos((prev) => Array.from(new Set([...prev, ...opcoes])));
+  };
+
+  const clearTamanhos = () => {
+    setTamanhos([]);
+  };
 
   // Handlers para Modelagem
   const handleAddTabela = () => {
@@ -377,14 +279,6 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
     );
   };
 
-  const toggleTamanhoGeral = (t: string) => {
-    if (tamanhos.includes(t)) {
-      setTamanhos(tamanhos.filter((item) => item !== t));
-    } else {
-      setTamanhos([...tamanhos, t]);
-    }
-  };
-
   const handleSave = () => {
     if (onUpdatePeca) {
       onUpdatePeca({
@@ -471,23 +365,21 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
 
         {/* PILLS DE TAGS DA PEÇA */}
         <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold">
-          <span className="text-muted uppercase tracking-wider">TAGS</span>
-          <span className="text-muted uppercase tracking-wider">SUBCATEGORIA</span>
-          <span className="px-2.5 py-0.5 rounded bg-accent-camel/10 text-accent-camel border border-accent-camel/30 uppercase">
-            OFFICE
-          </span>
-          <span className="text-muted uppercase tracking-wider">LINHA</span>
-          <span className="px-2.5 py-0.5 rounded bg-accent-camel/10 text-accent-camel border border-accent-camel/30 uppercase">
-            BLACK
-          </span>
-          <span className="text-muted uppercase tracking-wider">TECIDO</span>
-          <span className="px-2.5 py-0.5 rounded bg-accent-camel/10 text-accent-camel border border-accent-camel/30 uppercase">
-            {peca.tecidos[0] || 'URBAN HI FLEX'}
-          </span>
-          <span className="text-muted uppercase tracking-wider">FICHA TÉCNICA</span>
-          <span className="px-2.5 py-0.5 rounded bg-accent-camel/10 text-accent-camel border border-accent-camel/30 uppercase">
-            PRODUÇÃO
-          </span>
+          <span className="text-muted uppercase tracking-wider font-semibold">TAGS:</span>
+          {peca.tecidos && peca.tecidos.length > 0 ? (
+            peca.tecidos.map((tec: string) => (
+              <span
+                key={tec}
+                className="px-2.5 py-0.5 rounded bg-accent-camel/10 text-accent-camel border border-accent-camel/30 uppercase"
+              >
+                {tec}
+              </span>
+            ))
+          ) : (
+            <span className="text-muted text-[11px] font-normal italic">
+              Nenhuma tag cadastrada
+            </span>
+          )}
         </div>
 
         {/* PAINEL DE MÉTRICAS RESUMIDAS */}
@@ -505,7 +397,7 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
               Custo
             </span>
             <strong className="text-xs font-bold text-accent-camel block">
-              R$ {peca.custo ? peca.custo.toFixed(4) : '70,5246'}
+              {peca.custo ? `R$ ${peca.custo.toFixed(4)}` : '—'}
             </strong>
           </div>
           <div>
@@ -513,7 +405,7 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
               Preço
             </span>
             <strong className="text-xs font-bold text-emerald-600 block">
-              R$ {peca.preco ? peca.preco.toFixed(3) : '200,995'}
+              {peca.preco ? `R$ ${peca.preco.toFixed(3)}` : '—'}
             </strong>
           </div>
           <div>
@@ -573,7 +465,7 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* COLUNA ESQUERDA (2/3): CONTEÚDO DAS ABAS */}
         <div className="lg:col-span-2 space-y-6">
-          {/* ===== ABA GERAL (Com Categoria e Subcategoria adicionadas) ===== */}
+          {/* ===== ABA GERAL (Com Tamanhos Multi-Seleção, Cor do Linx, Observações e Simbologia Drag-and-Drop) ===== */}
           {activeFichaTab === 'geral' && (
             <div className="space-y-6 animate-in fade-in duration-200">
               {/* BLOCO GERAL */}
@@ -604,6 +496,7 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
                       type="text"
                       value={codigoRef}
                       onChange={(e) => setCodigoRef(e.target.value)}
+                      placeholder="Ex.: CS01006J"
                       className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
                     />
                   </div>
@@ -616,33 +509,62 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
                       type="text"
                       value={descricao}
                       onChange={(e) => setDescricao(e.target.value)}
+                      placeholder="Digite a descrição detalhada do produto..."
                       className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
                     />
                   </div>
 
-                  {/* Seleção de Tamanhos */}
-                  <div className="sm:col-span-2">
-                    <label className="block font-semibold mb-1 text-muted-foreground">
-                      Tamanhos
-                    </label>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {['P', 'M', 'G', 'GG', 'XG'].map((t) => {
-                        const isSelected = tamanhos.includes(t);
-                        return (
-                          <button
-                            key={t}
-                            type="button"
-                            onClick={() => toggleTamanhoGeral(t)}
-                            className={`w-8 h-8 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${
-                              isSelected
-                                ? 'bg-accent-camel text-white shadow-2xs'
-                                : 'bg-surface-muted text-muted-foreground border border-border hover:bg-border-muted'
-                            }`}
-                          >
-                            {t}
-                          </button>
-                        );
-                      })}
+                  {/* SELEÇÃO MULTIDIMENSIONAL DE TAMANHOS */}
+                  <div className="sm:col-span-2 space-y-3 p-4 rounded-xl border border-border bg-surface-muted/30">
+                    <div className="flex items-center justify-between">
+                      <label className="block font-bold text-xs uppercase tracking-wider text-primary">
+                        Tamanhos ({tamanhos.length} selecionados)
+                      </label>
+                      <button
+                        type="button"
+                        onClick={clearTamanhos}
+                        className="text-[11px] font-semibold text-muted hover:text-red-500 cursor-pointer"
+                      >
+                        Limpar seleção
+                      </button>
+                    </div>
+
+                    <div className="space-y-3">
+                      {GRADE_GRUPOS_TAMANHOS.map((grupo) => (
+                        <div key={grupo.titulo} className="space-y-1.5">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="font-semibold text-muted-foreground">
+                              {grupo.titulo}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => selectGradeGrupo(grupo.opcoes)}
+                              className="text-accent-camel hover:underline cursor-pointer font-semibold"
+                            >
+                              + Selecionar grupo
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {grupo.opcoes.map((t) => {
+                              const isSelected = tamanhos.includes(t);
+                              return (
+                                <button
+                                  key={t}
+                                  type="button"
+                                  onClick={() => toggleTamanhoGeral(t)}
+                                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all duration-150 cursor-pointer ${
+                                    isSelected
+                                      ? 'bg-accent-camel text-white shadow-2xs border border-accent-camel'
+                                      : 'bg-surface text-muted-foreground border border-border hover:border-accent-camel/50'
+                                  }`}
+                                >
+                                  {t}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
@@ -655,24 +577,31 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
                       type="text"
                       value={tecnica}
                       onChange={(e) => setTecnica(e.target.value)}
-                      placeholder="Exemplo: Estamparia"
+                      placeholder="Exemplo: Estamparia, Lavanderia, Bordado"
                       className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
                     />
                   </div>
 
+                  {/* Cor de mostruário (Vem do Linx) */}
                   <div>
-                    <label className="block font-semibold mb-1 text-muted-foreground">
-                      Cor de mostruário
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block font-semibold text-muted-foreground">
+                        Cor de mostruário
+                      </label>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-accent-camel/10 text-accent-camel border border-accent-camel/30 uppercase">
+                        Linx
+                      </span>
+                    </div>
                     <input
                       type="text"
                       value={corMostruario}
                       onChange={(e) => setCorMostruario(e.target.value)}
-                      placeholder="Clique aqui para selecionar ou remover"
+                      placeholder="Cor vinda da integração Linx..."
                       className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
                     />
                   </div>
 
+                  {/* Estampa */}
                   <div>
                     <label className="block font-semibold mb-1 text-muted-foreground">
                       Estampa
@@ -681,14 +610,125 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
                       type="text"
                       value={estampa}
                       onChange={(e) => setEstampa(e.target.value)}
-                      placeholder="Nenhum valor disponível"
+                      placeholder="Digite o nome ou código da estampa..."
                       className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* BLOCO INTEGRAÇÃO LINX (CATEGORIA E SUBCATEGORIA ADICIONADAS) */}
+              {/* BLOCO OBSERVAÇÕES (GERAIS E DE CORTE) */}
+              <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-4">
+                <h3 className="text-sm font-bold font-editorial text-primary border-b border-border-muted pb-3">
+                  Observações
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <label className="block font-semibold mb-1 text-muted-foreground">
+                      Observações Gerais
+                    </label>
+                    <textarea
+                      rows={4}
+                      value={obsGerais}
+                      onChange={(e) => setObsGerais(e.target.value)}
+                      placeholder="Digite aqui as observações gerais da peça/produção..."
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none resize-y"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold mb-1 text-muted-foreground">
+                      Observações de Corte
+                    </label>
+                    <textarea
+                      rows={4}
+                      value={obsCorte}
+                      onChange={(e) => setObsCorte(e.target.value)}
+                      placeholder="Digite aqui as instruções e observações de corte..."
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none resize-y"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* BLOCO SIMBOLOGIA (DRAG AND DROP DE IMAGEM) */}
+              <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-4">
+                <div className="flex items-center justify-between border-b border-border-muted pb-3">
+                  <h3 className="text-sm font-bold font-editorial text-primary">
+                    Simbologia (Instruções de Lavagem e Conservação)
+                  </h3>
+                  {simbologiaImagemUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setSimbologiaImagemUrl(null)}
+                      className="text-xs font-semibold text-red-500 hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Remover imagem</span>
+                    </button>
+                  )}
+                </div>
+
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDraggingSimbologia(true);
+                  }}
+                  onDragLeave={() => setIsDraggingSimbologia(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDraggingSimbologia(false);
+                    const file = e.dataTransfer.files?.[0];
+                    if (file) {
+                      const url = URL.createObjectURL(file);
+                      setSimbologiaImagemUrl(url);
+                    }
+                  }}
+                  className={`p-6 rounded-xl border-2 border-dashed transition-all text-center flex flex-col items-center justify-center min-h-[140px] cursor-pointer ${
+                    isDraggingSimbologia
+                      ? 'border-accent-camel bg-accent-camel/10'
+                      : 'border-border bg-surface-muted/50 hover:bg-surface-muted'
+                  }`}
+                >
+                  {simbologiaImagemUrl ? (
+                    <div className="relative group max-w-md w-full">
+                      <img
+                        src={simbologiaImagemUrl}
+                        alt="Simbologia de Lavagem"
+                        className="max-h-40 object-contain mx-auto rounded-lg border border-border p-2 bg-white shadow-2xs"
+                      />
+                      <p className="text-[11px] text-muted mt-2">
+                        Clique ou arraste outra imagem para substituir a simbologia
+                      </p>
+                    </div>
+                  ) : (
+                    <label className="cursor-pointer space-y-2 flex flex-col items-center w-full">
+                      <Upload className="w-7 h-7 text-muted" strokeWidth={1.5} />
+                      <span className="text-xs font-bold text-primary">
+                        Arraste e solte a imagem da simbologia aqui
+                      </span>
+                      <span className="text-[11px] text-muted">
+                        ou clique para selecionar o arquivo de imagem
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const url = URL.createObjectURL(file);
+                            setSimbologiaImagemUrl(url);
+                          }
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+
+              {/* BLOCO INTEGRAÇÃO LINX (CATEGORIA E SUBCATEGORIA) */}
               <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-4">
                 <h3 className="text-sm font-bold font-editorial text-primary border-b border-border-muted pb-3">
                   Integração Linx
@@ -703,6 +743,7 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
                       type="text"
                       value={subgrupo}
                       onChange={(e) => setSubgrupo(e.target.value)}
+                      placeholder="Sub-grupo Linx..."
                       className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
                     />
                   </div>
@@ -713,6 +754,7 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
                       type="text"
                       value={linha}
                       onChange={(e) => setLinha(e.target.value)}
+                      placeholder="Linha Linx..."
                       className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
                     />
                   </div>
@@ -723,6 +765,7 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
                       type="text"
                       value={grade}
                       onChange={(e) => setGrade(e.target.value)}
+                      placeholder="Grade Linx..."
                       className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
                     />
                   </div>
@@ -733,6 +776,7 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
                       type="text"
                       value={griffe}
                       onChange={(e) => setGriffe(e.target.value)}
+                      placeholder="Griffe Linx..."
                       className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
                     />
                   </div>
@@ -745,6 +789,7 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
                       type="text"
                       value={tipoMateriaPrima}
                       onChange={(e) => setTipoMateriaPrima(e.target.value)}
+                      placeholder="Tipo de matéria-prima..."
                       className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
                     />
                   </div>
@@ -758,7 +803,7 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
                       type="text"
                       value={categoria}
                       onChange={(e) => setCategoria(e.target.value)}
-                      placeholder="Clique aqui para criar, remover ou selecionar"
+                      placeholder="Clique para criar, remover ou selecionar..."
                       className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
                     />
                   </div>
@@ -772,7 +817,7 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
                       type="text"
                       value={subcategoria}
                       onChange={(e) => setSubcategoria(e.target.value)}
-                      placeholder="Clique aqui para criar, remover ou selecionar"
+                      placeholder="Clique para criar, remover ou selecionar..."
                       className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
                     />
                   </div>
