@@ -9,9 +9,10 @@
  * ============================================================================
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { MarcaSummary } from '../../../types/auth';
 import type { ColecaoItem, PecaItem } from '../../../types/plm';
+import { api } from '../../../services/api';
 import {
   ChevronRight,
   ArrowLeft,
@@ -135,6 +136,44 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
   const [categoria, setCategoria] = useState('');
   const [subcategoria, setSubcategoria] = useState('');
   const [tamanhos, setTamanhos] = useState<string[]>(['P', 'M', 'G', 'GG', 'XG']);
+
+  // ===== CARREGAMENTO DAS OPÇÕES LINX (SQL SERVER) =====
+  const [linxOpcoes, setLinxOpcoes] = useState<{
+    subgrupos: string[];
+    linhas: string[];
+    griffes: string[];
+    grades: string[];
+    categorias: string[];
+  }>({
+    subgrupos: [],
+    linhas: [],
+    griffes: [],
+    grades: [],
+    categorias: [],
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+    api
+      .get<{
+        subgrupos: string[];
+        linhas: string[];
+        griffes: string[];
+        grades: string[];
+        categorias: string[];
+      }>('/linx/opcoes')
+      .then((data) => {
+        if (isMounted && data) {
+          setLinxOpcoes(data);
+        }
+      })
+      .catch((err) => {
+        console.error('Erro ao buscar opções do Linx:', err);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // ===== ESTADOS DA ABA MODELAGEM =====
   const [modelagemInput, setModelagemInput] = useState('');
@@ -728,59 +767,87 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
                 </div>
               </div>
 
-              {/* BLOCO INTEGRAÇÃO LINX (CATEGORIA E SUBCATEGORIA) */}
+              {/* BLOCO INTEGRAÇÃO LINX (DADOS DIRETOS DO SQL SERVER LINX) */}
               <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-4">
-                <h3 className="text-sm font-bold font-editorial text-primary border-b border-border-muted pb-3">
-                  Integração Linx
-                </h3>
+                <div className="flex items-center justify-between border-b border-border-muted pb-3">
+                  <h3 className="text-sm font-bold font-editorial text-primary">Integração Linx</h3>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 border border-emerald-500/30 uppercase">
+                    SQL Server Conectado
+                  </span>
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  {/* Sub-grupo */}
                   <div>
                     <label className="block font-semibold mb-1 text-muted-foreground">
                       Sub-grupo
                     </label>
-                    <input
-                      type="text"
+                    <select
                       value={subgrupo}
                       onChange={(e) => setSubgrupo(e.target.value)}
-                      placeholder="Sub-grupo Linx..."
                       className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
-                    />
+                    >
+                      <option value="">Selecione o Sub-grupo (Linx)...</option>
+                      {linxOpcoes.subgrupos.map((sub) => (
+                        <option key={sub} value={sub}>
+                          {sub}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
+                  {/* Linha */}
                   <div>
                     <label className="block font-semibold mb-1 text-muted-foreground">Linha</label>
-                    <input
-                      type="text"
+                    <select
                       value={linha}
                       onChange={(e) => setLinha(e.target.value)}
-                      placeholder="Linha Linx..."
                       className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
-                    />
+                    >
+                      <option value="">Selecione a Linha (Linx)...</option>
+                      {linxOpcoes.linhas.map((l) => (
+                        <option key={l} value={l}>
+                          {l}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
+                  {/* Grade */}
                   <div>
                     <label className="block font-semibold mb-1 text-muted-foreground">Grade</label>
-                    <input
-                      type="text"
+                    <select
                       value={grade}
                       onChange={(e) => setGrade(e.target.value)}
-                      placeholder="Grade Linx..."
                       className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
-                    />
+                    >
+                      <option value="">Selecione a Grade (Linx)...</option>
+                      {linxOpcoes.grades.map((g) => (
+                        <option key={g} value={g}>
+                          {g}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
+                  {/* Griffe */}
                   <div>
                     <label className="block font-semibold mb-1 text-muted-foreground">Griffe</label>
-                    <input
-                      type="text"
+                    <select
                       value={griffe}
                       onChange={(e) => setGriffe(e.target.value)}
-                      placeholder="Griffe Linx..."
                       className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
-                    />
+                    >
+                      <option value="">Selecione a Griffe (Linx)...</option>
+                      {linxOpcoes.griffes.map((grf) => (
+                        <option key={grf} value={grf}>
+                          {grf}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
+                  {/* Tipo de matéria-prima */}
                   <div>
                     <label className="block font-semibold mb-1 text-muted-foreground">
                       Tipo de matéria-prima
@@ -799,13 +866,18 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
                     <label className="block font-semibold mb-1 text-muted-foreground">
                       Categoria
                     </label>
-                    <input
-                      type="text"
+                    <select
                       value={categoria}
                       onChange={(e) => setCategoria(e.target.value)}
-                      placeholder="Clique para criar, remover ou selecionar..."
                       className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
-                    />
+                    >
+                      <option value="">Selecione a Categoria (Linx)...</option>
+                      {linxOpcoes.categorias.map((cat, idx) => (
+                        <option key={cat} value={cat}>
+                          {idx + 1} - {cat}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   {/* Subcategoria */}
