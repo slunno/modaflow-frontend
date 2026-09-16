@@ -12,35 +12,21 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Filter, BarChart2, MousePointerClick } from 'lucide-react';
 import { MultiSelectDropdown } from '../../../components/ui/MultiSelectDropdown';
-import { ETAPAS_OPTIONS, COLECOES_OPTIONS } from '../../../constants/pecasOptions';
 import { getDashboardMetrics, getBrands, getCollections } from '../../../services/plmService';
 import { useAuth } from '../../../hooks/useAuth';
 import type { DashboardMetricDetail } from '../../../types/plm';
-
-/** Lista de Fornecedores extraída da tela oficial do PLM */
-const FORNECEDORES_OPTIONS = [
-  'ACJ COMERCIO',
-  'ADAR TEXTIL',
-  'ADINA TEXTIL',
-  'ADVANCE',
-  'AKR',
-  'AKR BRANDS',
-  'ALEXANDRE GUIRAO',
-  'MALHAS CIANORTE',
-  'TEXTIL SÃO PAULO',
-];
 
 export const DashboardTab: React.FC = () => {
   const { user } = useAuth();
 
   // ESTADOS DOS FILTROS DO DASHBOARD
-  const [selectedEtapa, setSelectedEtapa] = useState('01 geração de ficha');
+  const [selectedEtapa, setSelectedEtapa] = useState('');
   const [selectedMarca, setSelectedMarca] = useState('');
   const [selectedColecoes, setSelectedColecoes] = useState<string[]>([]);
   const [selectedFornecedores, setSelectedFornecedores] = useState<string[]>([]);
   const [responsaveisBusca, setResponsaveisBusca] = useState('');
 
-  // DADOS DE MÉTRICAS CARREGADOS VIA SERVICE
+  // DADOS DE MÉTRICAS CARREGADOS VIA SERVICE / API
   const [metricsMap, setMetricsMap] = useState<Record<string, DashboardMetricDetail>>({});
   const [fetchedMarcas, setFetchedMarcas] = useState<string[]>([]);
   const [fetchedColecoes, setFetchedColecoes] = useState<string[]>([]);
@@ -56,6 +42,8 @@ export const DashboardTab: React.FC = () => {
       setMetricsMap(metricsData);
       setFetchedMarcas(brandsData.map((b) => b.nome));
       setFetchedColecoes(collectionsData.map((c) => c.nome));
+      const firstEtapa = Object.keys(metricsData)[0];
+      if (firstEtapa) setSelectedEtapa(firstEtapa);
     });
     return () => {
       isMounted = false;
@@ -69,34 +57,33 @@ export const DashboardTab: React.FC = () => {
   }, [user, fetchedMarcas]);
 
   const colecoesOptions = useMemo(() => {
-    const combined = Array.from(new Set([...fetchedColecoes, ...COLECOES_OPTIONS]));
-    return combined.sort();
+    return Array.from(new Set(fetchedColecoes)).sort();
   }, [fetchedColecoes]);
 
-  // DADOS DE ETAPAS E BARRAS
-  const etapasBarrasData = [
-    { etapa: '03 modelagem', azul: 12, laranja: 0 },
-    { etapa: '02 engenharia recebimento', azul: 7, laranja: 3 },
-    { etapa: 'acertando tecido fornecedor', azul: 8, laranja: 1 },
-    { etapa: '07 estoque de tecidos matriz', azul: 6, laranja: 0 },
-    { etapa: '10 corte', azul: 5, laranja: 0 },
-    { etapa: '01 geração de ficha', azul: 3, laranja: 2 },
-    { etapa: '14 pilotagem/costura', azul: 4, laranja: 0 },
-    { etapa: '11 estamparia', azul: 3, laranja: 1 },
-    { etapa: '16 lavanderia', azul: 2, laranja: 0 },
-    { etapa: 'Integração linx', azul: 4, laranja: 0 },
-  ];
+  const etapasOptions = useMemo(() => {
+    return Object.keys(metricsMap).sort();
+  }, [metricsMap]);
+
+  // DADOS DE ETAPAS E BARRAS CALCULADOS DINAMICAMENTE DA API
+  const etapasBarrasData = useMemo(() => {
+    return Object.entries(metricsMap).map(([etapaKey, detail]) => ({
+      etapa: etapaKey,
+      azul: detail.emDia || detail.entradas || 0,
+      laranja: detail.entregaHoje || detail.atrasadas || 0,
+    }));
+  }, [metricsMap]);
 
   // MÉTRICA ATIVA DA ETAPA FOCADA
-  const currentMetric = metricsMap[selectedEtapa.toLowerCase()] || {
-    mediaMes: '1 dia e 8 horas',
-    mediaSemana: '2 horas',
-    entradas: 30,
-    saidas: 25,
-    emDia: 4,
-    entregaHoje: 1,
+  const currentMetric: DashboardMetricDetail = (selectedEtapa &&
+    metricsMap[selectedEtapa.toLowerCase()]) || {
+    mediaMes: '--',
+    mediaSemana: '--',
+    entradas: 0,
+    saidas: 0,
+    emDia: 0,
+    entregaHoje: 0,
     atrasadas: 0,
-    responsaveis: ['J', 'MB'],
+    responsaveis: [],
   };
 
   return (
@@ -121,7 +108,8 @@ export const DashboardTab: React.FC = () => {
               onChange={(e) => setSelectedEtapa(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-semibold text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
             >
-              {ETAPAS_OPTIONS.map((et) => (
+              <option value="">Todas as etapas</option>
+              {etapasOptions.map((et) => (
                 <option key={et} value={et}>
                   {et.toUpperCase()}
                 </option>
@@ -173,7 +161,7 @@ export const DashboardTab: React.FC = () => {
           <MultiSelectDropdown
             label="Fornecedores"
             placeholder="Selecionar fornecedores"
-            options={FORNECEDORES_OPTIONS}
+            options={[]}
             selectedValues={selectedFornecedores}
             onChange={setSelectedFornecedores}
           />

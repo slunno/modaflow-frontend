@@ -21,7 +21,7 @@ import type {
 import type { MarcaSummary } from '../types/auth';
 import { api } from './api';
 
-import { MOCK_NOTIFICACOES, MOCK_ETAPAS_METRICS, MOCK_BI_DATA } from '../constants/mockData';
+import { MOCK_NOTIFICACOES } from '../constants/mockData';
 
 // Cache em memória para permitir mutações controladas de notificações na sessão
 let notificationsCache: NotificationItem[] = [...MOCK_NOTIFICACOES];
@@ -127,29 +127,29 @@ export async function getCollections(marcaId?: string): Promise<ColecaoItem[]> {
 }
 
 /**
- * Retorna as métricas detalhadas de permanência por etapa da produção.
+ * Retorna as métricas detalhadas de permanência por etapa da produção via API.
  */
 export async function getDashboardMetrics(): Promise<Record<string, DashboardMetricDetail>> {
   try {
     const data = await api.get<Record<string, DashboardMetricDetail>>('/dashboard/metrics');
     if (data) return data;
   } catch {
-    // Fallback
+    // API indisponível
   }
-  return { ...MOCK_ETAPAS_METRICS };
+  return {};
 }
 
 /**
- * Retorna métricas analíticas agregadas por dimensão (BI).
+ * Retorna métricas analíticas agregadas por dimensão (BI) via API.
  */
 export async function getBiMetrics(agrupamento: string): Promise<GraficoDimensaoMetric[]> {
   try {
     const data = await api.get<GraficoDimensaoMetric[]>(`/bi/metrics?agrupamento=${agrupamento}`);
     if (data && Array.isArray(data)) return data;
   } catch {
-    // Fallback
+    // API indisponível
   }
-  return MOCK_BI_DATA[agrupamento] || MOCK_BI_DATA['Marca'] || [];
+  return [];
 }
 
 /**

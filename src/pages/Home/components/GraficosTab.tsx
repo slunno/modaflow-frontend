@@ -13,8 +13,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { BarChart3, Info } from 'lucide-react';
 import type { GraficoDimensaoMetric } from '../../../types/plm';
-import { ETAPAS_OPTIONS, COLECOES_OPTIONS } from '../../../constants/pecasOptions';
-import { getBiMetrics, getBrands, getCollections } from '../../../services/plmService';
+import {
+  getBiMetrics,
+  getBrands,
+  getCollections,
+  getDashboardMetrics,
+} from '../../../services/plmService';
 import { useAuth } from '../../../hooks/useAuth';
 
 export const GraficosTab: React.FC = () => {
@@ -43,6 +47,7 @@ export const GraficosTab: React.FC = () => {
   const [currentData, setCurrentData] = useState<GraficoDimensaoMetric[]>([]);
   const [fetchedMarcas, setFetchedMarcas] = useState<string[]>([]);
   const [fetchedColecoes, setFetchedColecoes] = useState<string[]>([]);
+  const [fetchedEtapas, setFetchedEtapas] = useState<string[]>([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -56,13 +61,16 @@ export const GraficosTab: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
-    Promise.all([getBrands().catch(() => []), getCollections().catch(() => [])]).then(
-      ([brandsData, collectionsData]) => {
-        if (!isMounted) return;
-        setFetchedMarcas(brandsData.map((b) => b.nome));
-        setFetchedColecoes(collectionsData.map((c) => c.nome));
-      }
-    );
+    Promise.all([
+      getBrands().catch(() => []),
+      getCollections().catch(() => []),
+      getDashboardMetrics().catch(() => ({})),
+    ]).then(([brandsData, collectionsData, metricsData]) => {
+      if (!isMounted) return;
+      setFetchedMarcas(brandsData.map((b) => b.nome));
+      setFetchedColecoes(collectionsData.map((c) => c.nome));
+      setFetchedEtapas(Object.keys(metricsData));
+    });
     return () => {
       isMounted = false;
     };
@@ -75,8 +83,7 @@ export const GraficosTab: React.FC = () => {
   }, [user, fetchedMarcas]);
 
   const colecoesOptions = useMemo(() => {
-    const combined = Array.from(new Set([...fetchedColecoes, ...COLECOES_OPTIONS]));
-    return combined.sort();
+    return Array.from(new Set(fetchedColecoes)).sort();
   }, [fetchedColecoes]);
 
   // VALOR MÁXIMO PARA A RÉGUA DE ESCALA DO GRÁFICO
@@ -346,7 +353,7 @@ export const GraficosTab: React.FC = () => {
                   className="w-1/2 px-2 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
                 >
                   <option value="">Selecione...</option>
-                  {ETAPAS_OPTIONS.slice(0, 5).map((e) => (
+                  {fetchedEtapas.slice(0, 5).map((e) => (
                     <option key={e} value={e}>
                       {e}
                     </option>
@@ -359,7 +366,7 @@ export const GraficosTab: React.FC = () => {
                   className="w-1/2 px-2 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
                 >
                   <option value="">Selecione...</option>
-                  {ETAPAS_OPTIONS.slice(5, 10).map((e) => (
+                  {fetchedEtapas.slice(5, 10).map((e) => (
                     <option key={e} value={e}>
                       {e}
                     </option>
