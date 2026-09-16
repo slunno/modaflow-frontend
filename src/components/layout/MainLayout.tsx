@@ -8,11 +8,11 @@
  * ============================================================================
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import type { MarcaSummary } from '../../types/auth';
-import { LogOut, Bell, ChevronDown } from 'lucide-react';
+import { LogOut, Bell, ChevronDown, Layers, BarChart2, PieChart } from 'lucide-react';
 
 export const MainLayout: React.FC = () => {
   const { user, logout } = useAuth();
@@ -28,8 +28,25 @@ export const MainLayout: React.FC = () => {
     }, 50);
   };
 
-  // Estado do Dropdown de Perfil
+  // Estado dos Dropdowns
   const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
+  const [relatoriosDropdownOpen, setRelatoriosDropdownOpen] = useState(false);
+
+  const relatoriosRef = useRef<HTMLDivElement>(null);
+  const userProfileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (relatoriosRef.current && !relatoriosRef.current.contains(event.target as Node)) {
+        setRelatoriosDropdownOpen(false);
+      }
+      if (userProfileRef.current && !userProfileRef.current.contains(event.target as Node)) {
+        setBrandDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const getTabClass = (path: string) => {
     const isActive =
@@ -42,6 +59,12 @@ export const MainLayout: React.FC = () => {
         : 'text-muted hover:text-primary'
     }`;
   };
+
+  const isRelatoriosActive =
+    location.pathname.startsWith('/products') ||
+    location.pathname.startsWith('/dashboard') ||
+    location.pathname.startsWith('/bi') ||
+    location.pathname.startsWith('/relatorios');
 
   return (
     <div className="min-h-screen bg-bg text-primary flex flex-col font-sans selection:bg-accent-camel selection:text-white">
@@ -68,29 +91,89 @@ export const MainLayout: React.FC = () => {
               </button>
             </div>
 
-            {/* Centro: Navegação Oficial PLM Coleção Moda + Gestão Interna */}
+            {/* Centro: Navegação com Dropdown de Relatórios, Gestão e Kanban */}
             <nav className="flex items-center gap-2 sm:gap-6 text-sm font-semibold">
-              <button onClick={() => navigate('/products')} className={getTabClass('/products')}>
-                Peças
-              </button>
+              {/* DROPDOWN MENU: RELATÓRIOS & ANALYTICS */}
+              <div className="relative" ref={relatoriosRef}>
+                <button
+                  type="button"
+                  onClick={() => setRelatoriosDropdownOpen(!relatoriosDropdownOpen)}
+                  className={`flex items-center gap-1.5 py-2 transition cursor-pointer ${
+                    isRelatoriosActive
+                      ? 'text-primary font-bold border-b-2 border-primary'
+                      : 'text-muted hover:text-primary'
+                  }`}
+                >
+                  <span>Relatórios</span>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform duration-200 ${
+                      relatoriosDropdownOpen ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
 
-              <button onClick={() => navigate('/dashboard')} className={getTabClass('/dashboard')}>
-                Dashboard
-              </button>
+                {/* Sub-menu suspenso (Peças, Dashboard, Gráficos) */}
+                {relatoriosDropdownOpen && (
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-surface border border-border rounded-xl shadow-xl z-50 p-1.5 text-xs animate-in fade-in zoom-in-95 duration-150">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigate('/products');
+                        setRelatoriosDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 rounded-lg flex items-center gap-2.5 transition cursor-pointer ${
+                        location.pathname.startsWith('/products')
+                          ? 'bg-accent-camel/10 text-accent-camel font-bold'
+                          : 'text-muted-foreground hover:bg-surface-muted hover:text-primary'
+                      }`}
+                    >
+                      <Layers className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                      <span>Peças</span>
+                    </button>
 
-              <button onClick={() => navigate('/bi')} className={getTabClass('/bi')}>
-                Gráficos
-              </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigate('/dashboard');
+                        setRelatoriosDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 rounded-lg flex items-center gap-2.5 transition cursor-pointer ${
+                        location.pathname.startsWith('/dashboard')
+                          ? 'bg-accent-camel/10 text-accent-camel font-bold'
+                          : 'text-muted-foreground hover:bg-surface-muted hover:text-primary'
+                      }`}
+                    >
+                      <BarChart2 className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                      <span>Dashboard</span>
+                    </button>
 
-              <button
-                onClick={() => navigate('/notifications')}
-                className={getTabClass('/notifications')}
-              >
-                Notificações
-              </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigate('/bi');
+                        setRelatoriosDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 rounded-lg flex items-center gap-2.5 transition cursor-pointer ${
+                        location.pathname.startsWith('/bi')
+                          ? 'bg-accent-camel/10 text-accent-camel font-bold'
+                          : 'text-muted-foreground hover:bg-surface-muted hover:text-primary'
+                      }`}
+                    >
+                      <PieChart className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                      <span>Gráficos</span>
+                    </button>
+                  </div>
+                )}
+              </div>
 
+              {/* GESTÃO */}
               <button onClick={() => navigate('/gestao')} className={getTabClass('/gestao')}>
                 Gestão
+              </button>
+
+              {/* KANBAN */}
+              <button onClick={() => navigate('/kanban')} className={getTabClass('/kanban')}>
+                Kanban
               </button>
             </nav>
 
@@ -114,7 +197,7 @@ export const MainLayout: React.FC = () => {
                   {user?.nome.charAt(0) || 'J'}
                 </div>
 
-                <div className="relative">
+                <div className="relative" ref={userProfileRef}>
                   <button
                     type="button"
                     onClick={() => setBrandDropdownOpen(!brandDropdownOpen)}
