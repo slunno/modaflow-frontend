@@ -19,32 +19,7 @@ interface CustoFixoItem {
   status: 'Ativo' | 'Inativo';
 }
 
-const INITIAL_CUSTOS: CustoFixoItem[] = [
-  {
-    id: 'cf-1',
-    categoria: 'Infraestrutura & Energia',
-    descricao: 'Custos de parque fabril e subestação',
-    valorMensal: 28500.0,
-    rateioEstimadoPeca: 2.15,
-    status: 'Ativo',
-  },
-  {
-    id: 'cf-2',
-    categoria: 'Maquinário & Manutenção',
-    descricao: 'Contratos preventivos de teares e mesas de corte',
-    valorMensal: 14200.0,
-    rateioEstimadoPeca: 1.1,
-    status: 'Ativo',
-  },
-  {
-    id: 'cf-3',
-    categoria: 'Tecnologia & Licenciamento PLM',
-    descricao: 'Licenças de modelagem CAD e integração ERP Linx',
-    valorMensal: 9800.0,
-    rateioEstimadoPeca: 0.75,
-    status: 'Ativo',
-  },
-];
+const INITIAL_CUSTOS: CustoFixoItem[] = [];
 
 export const CustosFixosTab: React.FC = () => {
   const [custos] = useState<CustoFixoItem[]>(INITIAL_CUSTOS);

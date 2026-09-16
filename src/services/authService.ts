@@ -46,6 +46,7 @@ export interface BackendUserDTO {
   empresa: string | null;
   cargo: string | null;
   ativo: boolean;
+  marcasPermitidas?: MarcaSummary[];
 }
 
 /**

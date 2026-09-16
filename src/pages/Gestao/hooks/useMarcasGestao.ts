@@ -7,18 +7,27 @@
  * ============================================================================
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePersistedState } from '../../../hooks/usePersistedState';
-import { MOCK_MARCAS } from '../../../constants/mockData';
 import type { MarcaSummary } from '../../../types/auth';
+import { getBrands } from '../../../services/plmService';
 
 export function useMarcasGestao() {
-  const [marcasList, setMarcasList] = usePersistedState<MarcaSummary[]>(
-    'modaflow_marcas_data',
-    MOCK_MARCAS
-  );
+  const [marcasList, setMarcasList] = usePersistedState<MarcaSummary[]>('modaflow_marcas_data', []);
   const [searchMarca, setSearchMarca] = useState('');
   const [openMenuMarcaId, setOpenMenuMarcaId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    getBrands()
+      .then((data) => {
+        if (isMounted && data.length > 0) setMarcasList(data);
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, [setMarcasList]);
 
   const addMarca = (marca: MarcaSummary) => {
     setMarcasList((prev) => [...prev, marca]);

@@ -19,40 +19,7 @@ interface CampoCustomItem {
   status: 'Ativo' | 'Inativo';
 }
 
-const INITIAL_CAMPOS: CampoCustomItem[] = [
-  {
-    id: 'cc-1',
-    nome: 'Linha do Modelo',
-    tipoDado: 'Lista de Seleção',
-    modulo: 'Ficha Técnica',
-    obrigatorio: true,
-    status: 'Ativo',
-  },
-  {
-    id: 'cc-2',
-    nome: 'Código de Barra EAN-13',
-    tipoDado: 'Texto Curto',
-    modulo: 'Ficha Técnica',
-    obrigatorio: false,
-    status: 'Ativo',
-  },
-  {
-    id: 'cc-3',
-    nome: 'Data Limite Mostruário',
-    tipoDado: 'Data',
-    modulo: 'Coleção',
-    obrigatorio: false,
-    status: 'Ativo',
-  },
-  {
-    id: 'cc-4',
-    nome: 'Certificação OEKO-TEX',
-    tipoDado: 'Booleano',
-    modulo: 'Insumo',
-    obrigatorio: false,
-    status: 'Ativo',
-  },
-];
+const INITIAL_CAMPOS: CampoCustomItem[] = [];
 
 export const CamposCustomTab: React.FC = () => {
   const [campos] = useState<CampoCustomItem[]>(INITIAL_CAMPOS);

@@ -9,7 +9,6 @@
 
 import React, { useState, useMemo } from 'react';
 import { Tag, Search, Plus, Filter } from 'lucide-react';
-import { TIPOS_PECAS_OPTIONS } from '../../../constants/pecasOptions';
 
 interface TipoPecaItem {
   id: string;
@@ -20,18 +19,7 @@ interface TipoPecaItem {
   status: 'Ativo' | 'Inativo';
 }
 
-const INITIAL_TIPOS: TipoPecaItem[] = TIPOS_PECAS_OPTIONS.map((tipo, idx) => ({
-  id: `tp-${idx + 1}`,
-  nome: tipo,
-  categoriaSuperior: ['Calça', 'Bermuda', 'Short', 'Sunga'].includes(tipo)
-    ? 'Parte Inferior'
-    : ['Camisa', 'Polo', 'Regata', 'Jaqueta', 'Tricot', 'Blazer'].includes(tipo)
-      ? 'Parte Superior'
-      : 'Geral',
-  totalPecasCatalogo: Math.floor(Math.random() * 40) + 5,
-  gradePadrao: 'P ao GG / 38 ao 46',
-  status: 'Ativo',
-}));
+const INITIAL_TIPOS: TipoPecaItem[] = [];
 
 export const TiposPecaTab: React.FC = () => {
   const [tipos] = useState<TipoPecaItem[]>(INITIAL_TIPOS);

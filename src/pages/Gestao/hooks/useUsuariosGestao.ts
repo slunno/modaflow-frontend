@@ -14,9 +14,7 @@ import { getUsuariosApi } from '../../../services/authService';
 
 export function useUsuariosGestao() {
   const [usersList, setUsersList] = usePersistedState<UserRecord[]>('modaflow_users_data', []);
-  const [userFilterMarca, setUserFilterMarca] = useState<
-    'Todas' | 'King & Joe' | 'King & Joe Play' | 'K&J Black'
-  >('Todas');
+  const [userFilterMarca, setUserFilterMarca] = useState<string>('Todas');
   const [userFilterStatus, setUserFilterStatus] = useState<'Todos' | 'Ativo' | 'Inativo'>('Todos');
   const [userFilterAcesso, setUserFilterAcesso] = useState<'Todos' | 'Permitido' | 'Bloqueado'>(
     'Todos'
@@ -37,7 +35,7 @@ export function useUsuariosGestao() {
             nome: b.nome,
             email: b.email,
             codigo: `usr-${b.id}`,
-            marcas: ['King & Joe', 'King & Joe Play', 'K&J Black'],
+            marcas: b.marcasPermitidas?.map((m) => m.nome) || [],
             status: b.ativo ? 'Ativo' : 'Inativo',
             acesso: b.ativo ? 'Permitido' : 'Bloqueado',
             brandRoles: [],

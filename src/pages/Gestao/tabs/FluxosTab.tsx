@@ -20,35 +20,7 @@ interface FluxoItem {
   status: 'Ativo' | 'Em Validação';
 }
 
-const INITIAL_FLUXOS: FluxoItem[] = [
-  {
-    id: 'fl-1',
-    nome: 'Fluxo Padrão Coleção (23 Etapas)',
-    totalEtapas: 23,
-    etapaInicial: '01 Geração de Ficha',
-    slaEstimadoDias: 45,
-    tipoFluxo: 'Principal',
-    status: 'Ativo',
-  },
-  {
-    id: 'fl-2',
-    nome: 'Fluxo Reposição Rápida / Perenes',
-    totalEtapas: 12,
-    etapaInicial: '05 Checagem de MP Linx',
-    slaEstimadoDias: 20,
-    tipoFluxo: 'Rápido',
-    status: 'Ativo',
-  },
-  {
-    id: 'fl-3',
-    nome: 'Fluxo Protótipo & Cápsula Nobre',
-    totalEtapas: 16,
-    etapaInicial: '03 Modelagem',
-    slaEstimadoDias: 30,
-    tipoFluxo: 'Amostragem',
-    status: 'Ativo',
-  },
-];
+const INITIAL_FLUXOS: FluxoItem[] = [];
 
 export const FluxosTab: React.FC = () => {
   const [fluxos] = useState<FluxoItem[]>(INITIAL_FLUXOS);

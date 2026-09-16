@@ -10,6 +10,8 @@
 import React from 'react';
 import { Search, Plus, ChevronDown, MoreVertical, Trash2 } from 'lucide-react';
 
+import type { MarcaSummary } from '../../../types/auth';
+
 export interface CaracteristicaRecord {
   id: string;
   nome: string;
@@ -19,8 +21,9 @@ export interface CaracteristicaRecord {
 
 interface CaracteristicasTabProps {
   caracteristicasList: CaracteristicaRecord[];
-  caracteristicaFilterMarca: 'K&J Black' | 'King & Joe' | 'King & Joe Play';
-  setCaracteristicaFilterMarca: (m: 'K&J Black' | 'King & Joe' | 'King & Joe Play') => void;
+  marcas?: MarcaSummary[];
+  caracteristicaFilterMarca: string;
+  setCaracteristicaFilterMarca: (m: string) => void;
   caracteristicaSearchQuery: string;
   setCaracteristicaSearchQuery: (v: string) => void;
   openMenuCaracteristicaId: string | null;
@@ -31,6 +34,7 @@ interface CaracteristicasTabProps {
 
 export const CaracteristicasTab: React.FC<CaracteristicasTabProps> = ({
   caracteristicasList,
+  marcas = [],
   caracteristicaFilterMarca,
   setCaracteristicaFilterMarca,
   caracteristicaSearchQuery,
@@ -41,7 +45,7 @@ export const CaracteristicasTab: React.FC<CaracteristicasTabProps> = ({
   onDeleteCaracteristica,
 }) => {
   const filteredCaracteristicas = caracteristicasList
-    .filter((c) => c.marca === caracteristicaFilterMarca)
+    .filter((c) => !caracteristicaFilterMarca || c.marca === caracteristicaFilterMarca)
     .filter(
       (c) =>
         !caracteristicaSearchQuery ||
@@ -56,25 +60,27 @@ export const CaracteristicasTab: React.FC<CaracteristicasTabProps> = ({
           <span>Filtros</span>
         </div>
         <div className="space-y-3">
-          <div className="flex items-center gap-2 text-xs">
-            <span className="font-semibold text-muted-foreground w-16">Marcas</span>
-            <div className="flex items-center gap-1.5">
-              {(['K&J Black', 'King & Joe', 'King & Joe Play'] as const).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setCaracteristicaFilterMarca(m)}
-                  className={`px-3 py-1 rounded-md text-xs font-semibold transition cursor-pointer ${
-                    caracteristicaFilterMarca === m
-                      ? 'bg-primary text-white shadow-2xs'
-                      : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
-                  }`}
-                >
-                  {m}
-                </button>
-              ))}
+          {marcas.length > 0 && (
+            <div className="flex items-center gap-2 text-xs">
+              <span className="font-semibold text-muted-foreground w-16">Marcas</span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {marcas.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setCaracteristicaFilterMarca(m.nome)}
+                    className={`px-3 py-1 rounded-md text-xs font-semibold transition cursor-pointer ${
+                      caracteristicaFilterMarca === m.nome
+                        ? 'bg-primary text-white shadow-2xs'
+                        : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
+                    }`}
+                  >
+                    {m.nome}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
           <div className="space-y-1 max-w-xs pt-1">
             <label className="text-xs font-semibold text-muted-foreground block">Busca</label>
             <input

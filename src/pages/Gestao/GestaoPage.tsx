@@ -121,15 +121,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
 
   const handleOpenEditarUsuarios = (marca: MarcaSummary) => {
     marcasHook.setOpenMenuMarcaId(null);
-    if (
-      marca.nome === 'King & Joe' ||
-      marca.nome === 'King & Joe Play' ||
-      marca.nome === 'K&J Black'
-    ) {
-      usuariosHook.setUserFilterMarca(marca.nome);
-    } else {
-      usuariosHook.setUserFilterMarca('Todas');
-    }
+    usuariosHook.setUserFilterMarca(marca.nome);
     setGestaoSubTab('usuarios');
   };
 
@@ -189,7 +181,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
         nome: newUserName.trim(),
         email: newUserEmail.trim(),
         codigo: newUserCodigo.trim() || undefined,
-        marcas: ['King & Joe', 'King & Joe Play', 'K&J Black'],
+        marcas: marcasHook.marcasList.map((m) => m.nome),
         status: 'Ativo',
         acesso: 'Permitido',
         isFantasma: newUserIsFantasma,
@@ -551,6 +543,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
         ) : gestaoSubTab === 'caracteristicas' ? (
           <CaracteristicasTab
             caracteristicasList={caracteristicasHook.caracteristicasList}
+            marcas={marcasHook.marcasList}
             caracteristicaFilterMarca={caracteristicasHook.caracteristicaFilterMarca}
             setCaracteristicaFilterMarca={caracteristicasHook.setCaracteristicaFilterMarca}
             caracteristicaSearchQuery={caracteristicasHook.caracteristicaSearchQuery}

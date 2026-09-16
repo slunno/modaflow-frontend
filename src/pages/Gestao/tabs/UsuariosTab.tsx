@@ -25,7 +25,7 @@ interface UsuariosTabProps {
   usersList: UserRecord[];
   marcas: MarcaSummary[];
   userFilterMarca: string;
-  setUserFilterMarca: (marca: 'Todas' | 'King & Joe' | 'King & Joe Play' | 'K&J Black') => void;
+  setUserFilterMarca: (marca: string) => void;
   searchUser: string;
   setSearchUser: (value: string) => void;
   userFilterStatus: 'Todos' | 'Ativo' | 'Inativo';
@@ -298,17 +298,15 @@ export const UsuariosTab: React.FC<UsuariosTabProps> = ({
             <label className="font-semibold text-muted-foreground block">Marca</label>
             <select
               value={userFilterMarca}
-              onChange={(e) =>
-                setUserFilterMarca(
-                  e.target.value as 'Todas' | 'King & Joe' | 'King & Joe Play' | 'K&J Black'
-                )
-              }
+              onChange={(e) => setUserFilterMarca(e.target.value)}
               className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none cursor-pointer"
             >
               <option value="Todas">Todas</option>
-              <option value="King & Joe">King & Joe</option>
-              <option value="King & Joe Play">King & Joe Play</option>
-              <option value="K&J Black">K&J Black</option>
+              {marcas.map((m) => (
+                <option key={m.id} value={m.nome}>
+                  {m.nome}
+                </option>
+              ))}
             </select>
           </div>
           <div className="space-y-1">

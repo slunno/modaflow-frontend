@@ -19,48 +19,7 @@ interface FornecedorItem {
   status: 'Homologado' | 'Em Análise';
 }
 
-const INITIAL_FORNECEDORES: FornecedorItem[] = [
-  {
-    id: 'for-1',
-    razaoSocial: 'ADAR TEXTIL LTDA',
-    categoria: 'Tecelagem',
-    cidadeUf: 'São Paulo/SP',
-    contato: 'contato@adartextil.com.br',
-    status: 'Homologado',
-  },
-  {
-    id: 'for-2',
-    razaoSocial: 'ADINA TEXTIL IMPORTADORA',
-    categoria: 'Tecelagem',
-    cidadeUf: 'Joinville/SC',
-    contato: 'vendas@adina.com.br',
-    status: 'Homologado',
-  },
-  {
-    id: 'for-3',
-    razaoSocial: 'MALHAS CIANORTE IND E COM',
-    categoria: 'Tecelagem',
-    cidadeUf: 'Cianorte/PR',
-    contato: 'pedidos@malhascianorte.com.br',
-    status: 'Homologado',
-  },
-  {
-    id: 'for-4',
-    razaoSocial: 'FACÇÃO NOBRE CORTE E COSTURA',
-    categoria: 'Facção de Costura',
-    cidadeUf: 'Maringá/PR',
-    contato: 'financeiro@nobrecostura.com.br',
-    status: 'Homologado',
-  },
-  {
-    id: 'for-5',
-    razaoSocial: 'LAVANDERIA INDUSTRIAL VALE DO TIETÊ',
-    categoria: 'Lavanderia',
-    cidadeUf: 'Americana/SP',
-    contato: 'operacoes@lavtiete.com.br',
-    status: 'Homologado',
-  },
-];
+const INITIAL_FORNECEDORES: FornecedorItem[] = [];
 
 export const FornecedoresTab: React.FC = () => {
   const [fornecedores] = useState<FornecedorItem[]>(INITIAL_FORNECEDORES);

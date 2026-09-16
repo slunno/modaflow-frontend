@@ -17,7 +17,7 @@ export function useTimesGestao() {
     'modaflow_teams_data',
     INITIAL_TEAMS
   );
-  const [teamFilterMarca, setTeamFilterMarca] = useState('King & Joe');
+  const [teamFilterMarca, setTeamFilterMarca] = useState('');
   const [openMenuTeamId, setOpenMenuTeamId] = useState<string | null>(null);
 
   const addTeam = (team: TeamItem) => {

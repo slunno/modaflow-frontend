@@ -16,9 +16,7 @@ export function useCaracteristicasGestao() {
     'modaflow_caracteristicas_data',
     []
   );
-  const [caracteristicaFilterMarca, setCaracteristicaFilterMarca] = useState<
-    'K&J Black' | 'King & Joe' | 'King & Joe Play'
-  >('K&J Black');
+  const [caracteristicaFilterMarca, setCaracteristicaFilterMarca] = useState<string>('');
   const [caracteristicaSearchQuery, setCaracteristicaSearchQuery] = useState('');
   const [openMenuCaracteristicaId, setOpenMenuCaracteristicaId] = useState<string | null>(null);
 

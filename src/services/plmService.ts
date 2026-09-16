@@ -21,10 +21,8 @@ import type {
 import type { MarcaSummary } from '../types/auth';
 import { api } from './api';
 
-import { MOCK_NOTIFICACOES } from '../constants/mockData';
-
 // Cache em memória para permitir mutações controladas de notificações na sessão
-let notificationsCache: NotificationItem[] = [...MOCK_NOTIFICACOES];
+let notificationsCache: NotificationItem[] = [];
 
 /**
  * Retorna as marcas cadastradas no sistema via API REST.

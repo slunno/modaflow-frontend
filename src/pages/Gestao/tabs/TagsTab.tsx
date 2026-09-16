@@ -19,40 +19,7 @@ interface TagItem {
   status: 'Ativo' | 'Inativo';
 }
 
-const INITIAL_TAGS: TagItem[] = [
-  {
-    id: 'tg-1',
-    nome: 'Linha Nobre',
-    grupo: 'Linha',
-    totalPecas: 48,
-    corHex: '#c09858',
-    status: 'Ativo',
-  },
-  {
-    id: 'tg-2',
-    nome: 'Best Seller',
-    grupo: 'Comercial',
-    totalPecas: 85,
-    corHex: '#10b981',
-    status: 'Ativo',
-  },
-  {
-    id: 'tg-3',
-    nome: 'Algodão Sustentável BCI',
-    grupo: 'Sustentabilidade',
-    totalPecas: 32,
-    corHex: '#3b82f6',
-    status: 'Ativo',
-  },
-  {
-    id: 'tg-4',
-    nome: 'Lavagem Especial',
-    grupo: 'Produção',
-    totalPecas: 19,
-    corHex: '#8b5cf6',
-    status: 'Ativo',
-  },
-];
+const INITIAL_TAGS: TagItem[] = [];
 
 export const TagsTab: React.FC = () => {
   const [tags] = useState<TagItem[]>(INITIAL_TAGS);

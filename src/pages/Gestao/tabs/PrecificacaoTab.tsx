@@ -19,32 +19,7 @@ interface RegraPrecificacaoItem {
   status: 'Ativo' | 'Em Revisão';
 }
 
-const INITIAL_REGRAS: RegraPrecificacaoItem[] = [
-  {
-    id: 'p-1',
-    linhaProduto: 'Linha Nobre / Sartorial (K&J Black)',
-    markupAlvo: 3.2,
-    margemMinimaPercent: 45.0,
-    impostosEstimadosPercent: 18.25,
-    status: 'Ativo',
-  },
-  {
-    id: 'p-2',
-    linhaProduto: 'Linha Casual Principal (King & Joe)',
-    markupAlvo: 2.8,
-    margemMinimaPercent: 40.0,
-    impostosEstimadosPercent: 18.25,
-    status: 'Ativo',
-  },
-  {
-    id: 'p-3',
-    linhaProduto: 'Sportwear & Dinâmica (King & Joe Play)',
-    markupAlvo: 2.5,
-    margemMinimaPercent: 35.0,
-    impostosEstimadosPercent: 18.25,
-    status: 'Ativo',
-  },
-];
+const INITIAL_REGRAS: RegraPrecificacaoItem[] = [];
 
 export const PrecificacaoTab: React.FC = () => {
   const [regras] = useState<RegraPrecificacaoItem[]>(INITIAL_REGRAS);
