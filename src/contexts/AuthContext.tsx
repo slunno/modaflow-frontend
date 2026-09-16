@@ -25,10 +25,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return saved ? (JSON.parse(saved) as User) : null;
   });
 
-  // Estado da Marca Ativa no contexto Multi-Tenant
+  // Estado da Marca Ativa no contexto Multi-Tenant (derivada do usuário autenticado ou fallback de dev)
   const [activeMarca, setActiveMarcaState] = useState<MarcaSummary | null>(() => {
     const saved = localStorage.getItem('modaflow_active_marca');
-    return saved ? (JSON.parse(saved) as MarcaSummary) : (MOCK_MARCAS[0] ?? null);
+    if (saved) {
+      try {
+        return JSON.parse(saved) as MarcaSummary;
+      } catch {
+        // Fallback silencioso caso JSON esteja inválido
+      }
+    }
+    const savedUserRaw = localStorage.getItem('modaflow_user');
+    if (savedUserRaw) {
+      try {
+        const savedUser = JSON.parse(savedUserRaw) as User;
+        if (savedUser.marcas && savedUser.marcas.length > 0) {
+          return savedUser.marcas[0] ?? null;
+        }
+      } catch {
+        // Ignora erro de deserialização
+      }
+    }
+    // Fallback controlado para ambiente de desenvolvimento local quando não há marcas cadastradas
+    return MOCK_MARCAS[0] ?? null;
   });
 
   /**
@@ -42,6 +61,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Salva o token JWT para uso em todas as próximas requisições
     localStorage.setItem('modaflow_token', token);
 
+    // Prioriza marcas reais do backend; MOCK_MARCAS atua como fallback controlado de desenvolvimento
+    const userMarcas =
+      usuario.marcasPermitidas && usuario.marcasPermitidas.length > 0
+        ? usuario.marcasPermitidas
+        : MOCK_MARCAS;
+
     // Mapeia o response do backend para a interface User do frontend
     const loggedUser: User = {
       id: String(usuario.id),
@@ -50,14 +75,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       empresa: usuario.empresa ?? 'AKR BRANDS',
       cargo: (usuario.cargo as User['cargo']) ?? 'Administrador',
       avatarUrl: usuario.avatarUrl ?? undefined,
-      // As marcas ainda vêm do mock enquanto o endpoint de marcas não está integrado
-      marcas: MOCK_MARCAS,
+      marcas: userMarcas,
     };
 
+    const initialMarca = userMarcas[0] ?? null;
+
     setUser(loggedUser);
-    setActiveMarcaState(loggedUser.marcas[0] ?? null);
+    setActiveMarcaState(initialMarca);
     localStorage.setItem('modaflow_user', JSON.stringify(loggedUser));
-    localStorage.setItem('modaflow_active_marca', JSON.stringify(loggedUser.marcas[0]));
+    if (initialMarca) {
+      localStorage.setItem('modaflow_active_marca', JSON.stringify(initialMarca));
+    }
 
     return true;
   };

@@ -22,6 +22,16 @@ O projeto adota padrões estritos de qualidade para ambiente enterprise:
 - **Git Hooks:** [Husky](https://typicode.github.io/husky/) + `lint-staged` para validação e autocoerção no `pre-commit`.
 - **CI/CD:** Pipeline de Integração Contínua via GitHub Actions (`.github/workflows/ci.yml`).
 
+## ⚙️ Configuração de Ambiente
+
+Crie um arquivo `.env.local` na raiz do projeto para configurar o endpoint da API backend:
+
+```env
+VITE_API_BASE_URL=http://localhost:8080/api/v1
+```
+
+Caso a variável não seja fornecida, o cliente HTTP utilizará `http://localhost:8080/api/v1` como fallback padrão local.
+
 ## 📜 Scripts Disponíveis
 
 - `npm run dev`: Inicia o servidor de desenvolvimento Vite.

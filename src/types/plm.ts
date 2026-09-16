@@ -64,3 +64,37 @@ export interface GraficoDimensaoMetric {
   rotulo: string;
   quantidade: number;
 }
+
+export interface NotificationItem {
+  id: string;
+  titulo: string;
+  mensagem: string;
+  tipo: 'info' | 'alerta' | 'sucesso' | 'urgente';
+  data: string;
+  lida: boolean;
+  categoria?: string;
+  link?: string;
+}
+
+export interface DashboardMetricDetail {
+  mediaMes: string;
+  mediaSemana: string;
+  entradas: number;
+  saidas: number;
+  emDia: number;
+  entregaHoje: number;
+  atrasadas: number;
+  responsaveis: string[];
+}
+
+export interface ProductFilters {
+  searchTerm?: string;
+  marca?: string;
+  etapas?: string[];
+  tipos?: string[];
+  statusPeca?: string;
+  statusColecao?: string;
+  colecoes?: string[];
+  estacoes?: string[];
+  tecido?: string;
+}

@@ -9,91 +9,28 @@
  * ============================================================================
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { ColecaoItem } from '../../../types/plm';
 import { ArrowUpDown } from 'lucide-react';
-
-const MOCK_COLECOES: ColecaoItem[] = [
-  {
-    id: 'c1',
-    nome: 'INVERNO 26 - KING&JOE PLAY COLLECTION',
-    marcaNome: 'King & Joe Play',
-    status: 'Completas',
-    progressoPercent: 30,
-    pecasConcluidas: 64,
-    pecasTotal: 214,
-    concluidoEmDate: '22/07/2025',
-    dataEntrega: '23/07/2025',
-    diasAtraso: -406,
-  },
-  {
-    id: 'c2',
-    nome: 'INVERNO 26 - KING&JOE PLAY PERENES',
-    marcaNome: 'King & Joe Play',
-    status: 'Completas',
-    progressoPercent: 86,
-    pecasConcluidas: 24,
-    pecasTotal: 28,
-    concluidoEmDate: '18/07/2025',
-    dataEntrega: '18/07/2025',
-    diasAtraso: -411,
-  },
-  {
-    id: 'c3',
-    nome: 'INVERNO 27 - KING&JOE PLAY',
-    marcaNome: 'King & Joe Play',
-    status: 'Completas',
-    progressoPercent: 12,
-    pecasConcluidas: 30,
-    pecasTotal: 259,
-    concluidoEmDate: '26/08/2026',
-    dataEntrega: '26/08/2026',
-    diasAtraso: 0,
-  },
-  {
-    id: 'c4',
-    nome: 'VERÃO 26 - King&Joe Play Collection',
-    marcaNome: 'King & Joe Play',
-    status: 'Completas',
-    progressoPercent: 100,
-    pecasConcluidas: 151,
-    pecasTotal: 151,
-    concluidoEmDate: '07/07/2025',
-    dataEntrega: '10/01/2025',
-    diasAtraso: 0,
-  },
-  {
-    id: 'c5',
-    nome: 'VERÃO 26 - King&Joe Play Perenes',
-    marcaNome: 'King & Joe Play',
-    status: 'Completas',
-    progressoPercent: 0,
-    pecasConcluidas: 0,
-    pecasTotal: 34,
-    concluidoEmDate: '07/07/2025',
-    dataEntrega: '10/01/2025',
-    diasAtraso: -600,
-  },
-  {
-    id: 'c6',
-    nome: 'VERÃO 27 - KING & JOE PLAY',
-    marcaNome: 'King & Joe Play',
-    status: 'Completas',
-    progressoPercent: 0,
-    pecasConcluidas: 1,
-    pecasTotal: 228,
-    concluidoEmDate: '26/08/2026',
-    dataEntrega: '26/08/2026',
-    diasAtraso: 0,
-  },
-];
+import { getCollections } from '../../../services/plmService';
 
 export const ColecoesTab: React.FC = () => {
   const [statusFiltro, setStatusFiltro] = useState<'Em andamento' | 'Completas' | 'Arquivadas'>(
     'Completas'
   );
+  const [allColecoes, setAllColecoes] = useState<ColecaoItem[]>([]);
 
-  const colecoesFiltradas = MOCK_COLECOES.filter((c) => c.status === statusFiltro);
+  useEffect(() => {
+    let isMounted = true;
+    getCollections().then((data) => {
+      if (isMounted) setAllColecoes(data);
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const colecoesFiltradas = allColecoes.filter((c) => c.status === statusFiltro);
 
   return (
     <div className="space-y-4 font-sans animate-in fade-in duration-200">
@@ -136,7 +73,7 @@ export const ColecoesTab: React.FC = () => {
 
         <div className="flex items-center gap-3">
           <span className="text-xs font-semibold text-muted">
-            {colecoesFiltradas.length}/{MOCK_COLECOES.length}
+            {colecoesFiltradas.length}/{allColecoes.length}
           </span>
           <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-accent-camel/30 text-accent-camel bg-accent-camel/10 text-xs font-bold hover:bg-accent-camel/20 transition-all duration-200 cursor-pointer">
             <ArrowUpDown className="w-3.5 h-3.5" strokeWidth={1.5} /> Ordenação

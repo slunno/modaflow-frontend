@@ -4,7 +4,8 @@
  * ARQUIVO: src/App.tsx
  * PROJETO: ModaFlow PLM — AKR BRANDS
  * DESCRIÇÃO: Configuração declarativa do Roteamento SPA com rotas protegidas
- *            e suporte a deep linking (/login, /, /gestao, /relatorios, /kanban).
+ *            compatíveis com o portal Coleção Moda (/products, /dashboard,
+ *            /bi, /notifications, /gestao, /kanban, /, /login).
  * ============================================================================
  */
 
@@ -15,11 +16,15 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { LoginPage } from './pages/Login/LoginPage';
 import { MainLayout } from './components/layout/MainLayout';
 import { HomePage } from './pages/Home/HomePage';
+import { ProductsPage } from './pages/Products/ProductsPage';
+import { DashboardPage } from './pages/Dashboard/DashboardPage';
+import { BIPage } from './pages/BI/BIPage';
+import { NotificationsPage } from './pages/Notifications/NotificationsPage';
 import { GestaoPage } from './pages/Gestao/GestaoPage';
 import { RelatoriosPage } from './pages/Relatorios/RelatoriosPage';
+import { KanbanPage } from './pages/Kanban/KanbanPage';
 import type { MarcaSummary } from './types/auth';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
-import { Kanban } from 'lucide-react';
 
 const GestaoRouteWrapper: React.FC = () => {
   const { handleOpenColecoesFromGestao } = useOutletContext<{
@@ -28,20 +33,6 @@ const GestaoRouteWrapper: React.FC = () => {
 
   return <GestaoPage onOpenColecoes={handleOpenColecoesFromGestao} />;
 };
-
-const KanbanPage: React.FC = () => (
-  <div className="max-w-7xl mx-auto p-8">
-    <div className="p-8 rounded-xl bg-surface border border-border text-center">
-      <Kanban className="w-12 h-12 text-accent-camel mx-auto mb-3" />
-      <h3 className="text-lg font-bold font-editorial text-primary">
-        Quadro Kanban de Planejamento Visual
-      </h3>
-      <p className="text-xs text-muted-foreground mt-1">
-        Visualização por colunas com as 23 etapas de produção e drag-and-drop de peças.
-      </p>
-    </div>
-  </div>
-);
 
 export default function App() {
   return (
@@ -59,6 +50,10 @@ export default function App() {
               }
             >
               <Route index element={<HomePage />} />
+              <Route path="products" element={<ProductsPage />} />
+              <Route path="dashboard" element={<DashboardPage />} />
+              <Route path="bi" element={<BIPage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
               <Route path="gestao" element={<GestaoRouteWrapper />} />
               <Route path="relatorios" element={<RelatoriosPage />} />
               <Route path="kanban" element={<KanbanPage />} />

@@ -32,7 +32,10 @@ export const MainLayout: React.FC = () => {
   const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
 
   const getTabClass = (path: string) => {
-    const isActive = location.pathname === path || (path === '/' && location.pathname === '');
+    const isActive =
+      path === '/'
+        ? location.pathname === '/' || location.pathname === ''
+        : location.pathname.startsWith(path);
     return `py-2 transition cursor-pointer ${
       isActive
         ? 'text-primary font-bold border-b-2 border-primary'
@@ -65,25 +68,29 @@ export const MainLayout: React.FC = () => {
               </button>
             </div>
 
-            {/* Centro: As 4 Grandes Áreas de Navegação (Início, Gestão, Relatórios, Kanban) */}
+            {/* Centro: Navegação Oficial PLM Coleção Moda + Gestão Interna */}
             <nav className="flex items-center gap-2 sm:gap-6 text-sm font-semibold">
-              <button onClick={() => navigate('/')} className={getTabClass('/')}>
-                Início
+              <button onClick={() => navigate('/products')} className={getTabClass('/products')}>
+                Peças
+              </button>
+
+              <button onClick={() => navigate('/dashboard')} className={getTabClass('/dashboard')}>
+                Dashboard
+              </button>
+
+              <button onClick={() => navigate('/bi')} className={getTabClass('/bi')}>
+                Gráficos
+              </button>
+
+              <button
+                onClick={() => navigate('/notifications')}
+                className={getTabClass('/notifications')}
+              >
+                Notificações
               </button>
 
               <button onClick={() => navigate('/gestao')} className={getTabClass('/gestao')}>
                 Gestão
-              </button>
-
-              <button
-                onClick={() => navigate('/relatorios')}
-                className={getTabClass('/relatorios')}
-              >
-                Relatórios
-              </button>
-
-              <button onClick={() => navigate('/kanban')} className={getTabClass('/kanban')}>
-                Kanban
               </button>
             </nav>
 
@@ -91,6 +98,7 @@ export const MainLayout: React.FC = () => {
             <div className="flex items-center gap-4">
               <button
                 type="button"
+                onClick={() => navigate('/notifications')}
                 className="p-1.5 rounded-full text-muted-foreground hover:text-primary transition relative cursor-pointer"
                 title="Notificações Internas"
               >

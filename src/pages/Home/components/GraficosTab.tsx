@@ -10,10 +10,11 @@
  * ============================================================================
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarChart3, Info } from 'lucide-react';
 import type { GraficoDimensaoMetric } from '../../../types/plm';
 import { ETAPAS_OPTIONS, COLECOES_OPTIONS } from '../../../constants/pecasOptions';
+import { getBiMetrics } from '../../../services/plmService';
 
 export const GraficosTab: React.FC = () => {
   // ESTADO DO AGRUPAMENTO SELECIONADO (Campo, Criador, Fornecedor, Marca, Estilista, Time, Tipo, Tag)
@@ -35,70 +36,17 @@ export const GraficosTab: React.FC = () => {
   const [periodoDepois, setPeriodoDepois] = useState('');
   const [periodoAntes, setPeriodoAntes] = useState('');
 
-  // SELEÇÃO DINÂMICA DO CONJUNTO DE DADOS PARA O GRÁFICO
-  // Arrays declarados dentro do useMemo para evitar novas referências a cada render
-  // e eliminar os avisos react-hooks/exhaustive-deps.
-  const currentData = useMemo((): GraficoDimensaoMetric[] => {
-    const dadosMarca: GraficoDimensaoMetric[] = [
-      { rotulo: 'King & Joe', quantidade: 1654 },
-      { rotulo: 'King & Joe Play', quantidade: 1195 },
-      { rotulo: 'K&J Black', quantidade: 938 },
-    ];
+  // SELEÇÃO DINÂMICA DO CONJUNTO DE DADOS PARA O GRÁFICO VIA SERVICE
+  const [currentData, setCurrentData] = useState<GraficoDimensaoMetric[]>([]);
 
-    const dadosCriador: GraficoDimensaoMetric[] = [
-      { rotulo: 'Mariana Barbosa', quantidade: 1127 },
-      { rotulo: 'Ivonete Barbosa', quantidade: 876 },
-      { rotulo: 'Fabiano', quantidade: 750 },
-      { rotulo: 'Beatris Sgarioni', quantidade: 507 },
-      { rotulo: 'Suporte', quantidade: 427 },
-      { rotulo: 'Milena', quantidade: 56 },
-    ];
-
-    const dadosEstilista: GraficoDimensaoMetric[] = [
-      { rotulo: 'Mariana Barbosa', quantidade: 1704 },
-      { rotulo: 'Ivonete Barbosa', quantidade: 1208 },
-      { rotulo: 'Beatris Sgarioni', quantidade: 564 },
-      { rotulo: 'Suporte', quantidade: 1 },
-    ];
-
-    const dadosFornecedor: GraficoDimensaoMetric[] = [{ rotulo: 'Interno', quantidade: 2 }];
-
-    const dadosTipo: GraficoDimensaoMetric[] = [
-      { rotulo: 'Camisa', quantidade: 1250 },
-      { rotulo: 'Calça', quantidade: 980 },
-      { rotulo: 'Polo', quantidade: 840 },
-      { rotulo: 'Bermuda', quantidade: 720 },
-      { rotulo: 'Jaqueta', quantidade: 410 },
-    ];
-
-    const dadosTag: GraficoDimensaoMetric[] = [
-      { rotulo: 'Camiseta', quantidade: 973 },
-      { rotulo: 'Calça', quantidade: 789 },
-      { rotulo: 'Camisa', quantidade: 483 },
-      { rotulo: 'Bermuda', quantidade: 321 },
-      { rotulo: 'Polo', quantidade: 257 },
-      { rotulo: 'Short', quantidade: 219 },
-      { rotulo: 'Conjunto', quantidade: 213 },
-    ];
-
-    switch (agrupamento) {
-      case 'Marca':
-        return dadosMarca;
-      case 'Criador':
-      case 'Campo':
-        return dadosCriador;
-      case 'Estilista':
-      case 'Time':
-        return dadosEstilista;
-      case 'Fornecedor':
-        return dadosFornecedor;
-      case 'Tipo':
-        return dadosTipo;
-      case 'Tag':
-        return dadosTag;
-      default:
-        return dadosMarca;
-    }
+  useEffect(() => {
+    let isMounted = true;
+    getBiMetrics(agrupamento).then((data) => {
+      if (isMounted) setCurrentData(data);
+    });
+    return () => {
+      isMounted = false;
+    };
   }, [agrupamento]);
 
   // VALOR MÁXIMO PARA A RÉGUA DE ESCALA DO GRÁFICO

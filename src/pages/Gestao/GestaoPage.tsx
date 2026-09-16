@@ -33,6 +33,13 @@ import { TimesTab } from './tabs/TimesTab';
 import { TecidosTab } from './tabs/TecidosTab';
 import { AviamentosTab } from './tabs/AviamentosTab';
 import { CaracteristicasTab } from './tabs/CaracteristicasTab';
+import { CustosFixosTab } from './tabs/CustosFixosTab';
+import { PrecificacaoTab } from './tabs/PrecificacaoTab';
+import { TiposPecaTab } from './tabs/TiposPecaTab';
+import { FornecedoresTab } from './tabs/FornecedoresTab';
+import { TagsTab } from './tabs/TagsTab';
+import { FluxosTab } from './tabs/FluxosTab';
+import { CamposCustomTab } from './tabs/CamposCustomTab';
 
 import { CriarMarcaModal } from './modals/CriarMarcaModal';
 import { EditarMarcaModal } from './modals/EditarMarcaModal';
@@ -557,6 +564,20 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
             }}
             onDeleteCaracteristica={caracteristicasHook.deleteCaracteristica}
           />
+        ) : gestaoSubTab === 'custos_fixos' ? (
+          <CustosFixosTab />
+        ) : gestaoSubTab === 'precificacao' ? (
+          <PrecificacaoTab />
+        ) : gestaoSubTab === 'tipos_peca' ? (
+          <TiposPecaTab />
+        ) : gestaoSubTab === 'fornecedores' ? (
+          <FornecedoresTab />
+        ) : gestaoSubTab === 'tags' ? (
+          <TagsTab />
+        ) : gestaoSubTab === 'fluxos' ? (
+          <FluxosTab />
+        ) : gestaoSubTab === 'campos_custom' ? (
+          <CamposCustomTab />
         ) : (
           <div className="p-12 rounded-xl bg-surface border border-border shadow-2xs text-center space-y-3">
             <Users2 className="w-12 h-12 text-accent-camel mx-auto opacity-80" strokeWidth={1.5} />

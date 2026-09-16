@@ -9,10 +9,12 @@
  * ============================================================================
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Filter, BarChart2, MousePointerClick } from 'lucide-react';
 import { MultiSelectDropdown } from '../../../components/ui/MultiSelectDropdown';
 import { ETAPAS_OPTIONS, COLECOES_OPTIONS } from '../../../constants/pecasOptions';
+import { getDashboardMetrics } from '../../../services/plmService';
+import type { DashboardMetricDetail } from '../../../types/plm';
 
 /** Lista de Fornecedores extraída da tela oficial do PLM */
 const FORNECEDORES_OPTIONS = [
@@ -27,112 +29,6 @@ const FORNECEDORES_OPTIONS = [
   'TEXTIL SÃO PAULO',
 ];
 
-/** Mapeamento de métricas dinâmicas por Etapa para a Visão Geral */
-const ETAPAS_METRICS_MAP: Record<
-  string,
-  {
-    mediaMes: string;
-    mediaSemana: string;
-    entradas: number;
-    saidas: number;
-    emDia: number;
-    entregaHoje: number;
-    atrasadas: number;
-    responsaveis: string[];
-  }
-> = {
-  '01 geração de ficha': {
-    mediaMes: '1 dia e 13 horas',
-    mediaSemana: '1 hora',
-    entradas: 59,
-    saidas: 55,
-    emDia: 3,
-    entregaHoje: 2,
-    atrasadas: 0,
-    responsaveis: ['F', 'IB'],
-  },
-  '02 engenharia recebimento': {
-    mediaMes: '2 dias e 4 horas',
-    mediaSemana: '5 horas',
-    entradas: 42,
-    saidas: 38,
-    emDia: 7,
-    entregaHoje: 3,
-    atrasadas: 1,
-    responsaveis: ['MB', 'J'],
-  },
-  '03 modelagem': {
-    mediaMes: '3 dias e 12 horas',
-    mediaSemana: '8 horas',
-    entradas: 68,
-    saidas: 60,
-    emDia: 12,
-    entregaHoje: 0,
-    atrasadas: 0,
-    responsaveis: ['J', 'CE'],
-  },
-  '07 estoque de tecidos matriz': {
-    mediaMes: '1 dia',
-    mediaSemana: '2 horas',
-    entradas: 30,
-    saidas: 28,
-    emDia: 6,
-    entregaHoje: 1,
-    atrasadas: 0,
-    responsaveis: ['F'],
-  },
-  '10 corte': {
-    mediaMes: '2 dias',
-    mediaSemana: '4 horas',
-    entradas: 45,
-    saidas: 41,
-    emDia: 5,
-    entregaHoje: 2,
-    atrasadas: 0,
-    responsaveis: ['AKR'],
-  },
-  '11 estamparia': {
-    mediaMes: '4 dias',
-    mediaSemana: '12 horas',
-    entradas: 22,
-    saidas: 18,
-    emDia: 3,
-    entregaHoje: 1,
-    atrasadas: 2,
-    responsaveis: ['MB'],
-  },
-  '14 pilotagem/costura': {
-    mediaMes: '3 dias e 6 horas',
-    mediaSemana: '6 horas',
-    entradas: 36,
-    saidas: 32,
-    emDia: 4,
-    entregaHoje: 1,
-    atrasadas: 0,
-    responsaveis: ['J'],
-  },
-  '16 lavanderia': {
-    mediaMes: '2 dias e 8 horas',
-    mediaSemana: '3 horas',
-    entradas: 19,
-    saidas: 15,
-    emDia: 2,
-    entregaHoje: 0,
-    atrasadas: 1,
-    responsaveis: ['CE'],
-  },
-  'Integração linx': {
-    mediaMes: '12 horas',
-    mediaSemana: '45 minutos',
-    entradas: 80,
-    saidas: 78,
-    emDia: 4,
-    entregaHoje: 0,
-    atrasadas: 0,
-    responsaveis: ['AKR'],
-  },
-};
-
 export const DashboardTab: React.FC = () => {
   // ESTADOS DOS FILTROS DO DASHBOARD
   const [selectedEtapa, setSelectedEtapa] = useState('01 geração de ficha');
@@ -140,6 +36,19 @@ export const DashboardTab: React.FC = () => {
   const [selectedColecoes, setSelectedColecoes] = useState<string[]>([]);
   const [selectedFornecedores, setSelectedFornecedores] = useState<string[]>([]);
   const [responsaveisBusca, setResponsaveisBusca] = useState('');
+
+  // DADOS DE MÉTRICAS CARREGADOS VIA SERVICE
+  const [metricsMap, setMetricsMap] = useState<Record<string, DashboardMetricDetail>>({});
+
+  useEffect(() => {
+    let isMounted = true;
+    getDashboardMetrics().then((data) => {
+      if (isMounted) setMetricsMap(data);
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // DADOS DE ETAPAS E BARRAS
   const etapasBarrasData = [
@@ -156,7 +65,7 @@ export const DashboardTab: React.FC = () => {
   ];
 
   // MÉTRICA ATIVA DA ETAPA FOCADA
-  const currentMetric = ETAPAS_METRICS_MAP[selectedEtapa.toLowerCase()] || {
+  const currentMetric = metricsMap[selectedEtapa.toLowerCase()] || {
     mediaMes: '1 dia e 8 horas',
     mediaSemana: '2 horas',
     entradas: 30,

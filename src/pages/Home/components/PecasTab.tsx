@@ -5,14 +5,15 @@
  * PROJETO: ModaFlow PLM — AKR BRANDS
  * DESCRIÇÃO: Renderiza a listagem de peças com os dropdowns multi-seleção de
  *            Etapas, Tipos de Peças (incluindo Regata, Short, Sunga, Tricot),
- *            Status da Coleção, Coleções e Estações.
+ *            Status da Coleção, Coleções e Estações, alimentada por plmService.
  * ============================================================================
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import type { PecaItem } from '../../../types/plm';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, Loader2, Shirt } from 'lucide-react';
 import { MultiSelectDropdown } from '../../../components/ui/MultiSelectDropdown';
+import { getProducts } from '../../../services/plmService';
 
 import {
   ETAPAS_OPTIONS,
@@ -21,101 +22,15 @@ import {
   COLECOES_OPTIONS,
 } from '../../../constants/pecasOptions';
 
-/** Mock Data de Peças inspiradas no sistema Coleção Moda */
-const MOCK_PECAS: PecaItem[] = [
-  {
-    id: 'p1',
-    codigo: 'TE05003J',
-    nome: 'Calça TE05003J',
-    tipo: 'Calça',
-    status: 'Em andamento',
-    etapaAtual: '05 checagem de mp linx',
-    tema: 'Base',
-    colecaoNome: 'TESTES VERÃO 28 - K&J BLACK',
-    marcaNome: 'K&J Black',
-    estilista: 'Mariana Barbosa',
-    tecidos: ['Linho Misto Fios Nobres'],
-    custo: 42.5,
-    preco: 149.9,
-    previsaoEntrega: '23/07/2026',
-    imagemCroquiUrl:
-      'https://images.unsplash.com/photo-1542272604-780c96856592?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    id: 'p2',
-    codigo: 'TE05017J',
-    nome: 'Camisa TE05017J',
-    tipo: 'Camisa',
-    status: 'Em andamento',
-    etapaAtual: '03 modelagem',
-    tema: 'Base',
-    colecaoNome: 'TESTES VERÃO 28 - K&J BLACK',
-    marcaNome: 'K&J Black',
-    estilista: 'Mariana Barbosa',
-    tecidos: ['Algodão Egípcio 80 fios'],
-    custo: 38.0,
-    preco: 129.9,
-    previsaoEntrega: '18/07/2026',
-    imagemCroquiUrl:
-      'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    id: 'p3',
-    codigo: 'TE05016J',
-    nome: 'Camisa TE05016J',
-    tipo: 'Camisa',
-    status: 'Em andamento',
-    etapaAtual: '01 geração de ficha',
-    tema: 'Base',
-    colecaoNome: 'TESTES VERÃO 28 - K&J BLACK',
-    marcaNome: 'K&J Black',
-    estilista: 'Juliano',
-    tecidos: ['Tricoline Premium'],
-    custo: 35.0,
-    preco: 119.9,
-    previsaoEntrega: '26/08/2026',
-    imagemCroquiUrl:
-      'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    id: 'p4',
-    codigo: 'TE29029',
-    nome: 'Calça TE29029',
-    tipo: 'Calça',
-    status: 'Em andamento',
-    etapaAtual: '10 corte',
-    tema: 'Base',
-    colecaoNome: 'TESTES VERÃO 28 - KING&JOE',
-    marcaNome: 'King & Joe',
-    estilista: 'Mariana Barbosa',
-    tecidos: ['Sarja com Elastano'],
-    custo: 48.0,
-    preco: 169.9,
-    previsaoEntrega: '10/01/2026',
-    imagemCroquiUrl:
-      'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    id: 'p5',
-    codigo: 'TE15003K',
-    nome: 'Calça TE15003K',
-    tipo: 'Calça',
-    status: 'Em andamento',
-    etapaAtual: '14 pilotagem/costura',
-    tema: 'Base',
-    colecaoNome: 'TESTES VERÃO 28 - KING&JOE PLAY',
-    marcaNome: 'King & Joe Play',
-    estilista: 'Juliano',
-    tecidos: ['Moletom Fleece Light'],
-    custo: 40.0,
-    preco: 139.9,
-    previsaoEntrega: '10/01/2026',
-    imagemCroquiUrl:
-      'https://images.unsplash.com/photo-1552902865-b72c031ac5ea?q=80&w=600&auto=format&fit=crop',
-  },
-];
+interface PecasTabProps {
+  onSelectPeca?: (peca: PecaItem) => void;
+}
 
-export const PecasTab: React.FC = () => {
+export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
+  // DADOS VIA SERVICE
+  const [pecasList, setPecasList] = useState<PecaItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   // ESTADOS DOS FILTROS
   const [filterMarca, setFilterMarca] = useState('');
   const [selectedEtapas, setSelectedEtapas] = useState<string[]>([]);
@@ -127,9 +42,26 @@ export const PecasTab: React.FC = () => {
   const [filterTecido, setFilterTecido] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
+  useEffect(() => {
+    let isMounted = true;
+    getProducts()
+      .then((data) => {
+        if (isMounted) {
+          setPecasList(data);
+          setIsLoading(false);
+        }
+      })
+      .catch(() => {
+        if (isMounted) setIsLoading(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // FILTRAGEM REATIVA DE PEÇAS
   const filteredPecas = useMemo(() => {
-    return MOCK_PECAS.filter((peca) => {
+    return pecasList.filter((peca) => {
       const matchSearch =
         searchTerm === '' ||
         peca.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -165,6 +97,7 @@ export const PecasTab: React.FC = () => {
       );
     });
   }, [
+    pecasList,
     searchTerm,
     filterMarca,
     selectedEtapas,
@@ -331,46 +264,64 @@ export const PecasTab: React.FC = () => {
           <h3 className="text-base font-bold font-editorial text-primary">
             Peças ({filteredPecas.length})
           </h3>
-          <span className="text-xs text-muted font-medium">Exibindo catálogo da coleção</span>
+          <span className="text-xs text-muted font-medium">Exibindo catálogo do PLM</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {filteredPecas.map((peca) => (
-            <div
-              key={peca.id}
-              className="bg-surface border border-border rounded-xl p-4 shadow-2xs hover:border-accent-camel/50 hover:shadow-md hover:scale-[1.01] transition-all duration-300 group cursor-pointer"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-xs font-bold text-primary truncate">{peca.nome}</h4>
-              </div>
+        {isLoading ? (
+          <div className="bg-surface p-12 rounded-xl border border-border text-center flex flex-col items-center justify-center space-y-3">
+            <Loader2 className="w-8 h-8 text-accent-camel animate-spin" />
+            <span className="text-xs text-muted font-medium">Carregando catálogo de peças...</span>
+          </div>
+        ) : filteredPecas.length === 0 ? (
+          <div className="bg-surface p-12 rounded-xl border border-border text-center space-y-3">
+            <Shirt className="w-10 h-10 text-muted mx-auto opacity-60" strokeWidth={1.5} />
+            <h4 className="text-sm font-bold font-editorial text-primary">
+              Nenhuma peça encontrada
+            </h4>
+            <p className="text-xs text-muted max-w-sm mx-auto">
+              Ajuste os filtros de pesquisa para visualizar outros produtos do catálogo.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {filteredPecas.map((peca) => (
+              <div
+                key={peca.id}
+                onClick={() => onSelectPeca?.(peca)}
+                className="bg-surface border border-border rounded-xl p-4 shadow-2xs hover:border-accent-camel/50 hover:shadow-md hover:scale-[1.01] transition-all duration-300 group cursor-pointer"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-xs font-bold text-primary truncate">{peca.nome}</h4>
+                </div>
 
-              <div className="w-full h-44 rounded-lg bg-surface-muted border border-border-muted overflow-hidden mb-3 relative flex items-center justify-center">
-                <img
-                  src={peca.imagemCroquiUrl}
-                  alt={peca.nome}
-                  className="w-full h-full object-cover img-brand-treated group-hover:scale-105 transition-all duration-300"
-                />
-              </div>
+                <div className="w-full h-44 rounded-lg bg-surface-muted border border-border-muted overflow-hidden mb-3 relative flex items-center justify-center">
+                  <img
+                    src={peca.imagemCroquiUrl}
+                    alt={peca.nome}
+                    className="w-full h-full object-cover img-brand-treated group-hover:scale-105 transition-all duration-300"
+                  />
+                </div>
 
-              <div className="space-y-1 text-[11px] text-muted-foreground">
-                <p>
-                  Status: <strong className="text-primary font-semibold">{peca.status}</strong>
-                </p>
-                <p>
-                  Tema: <strong className="text-primary font-semibold">{peca.tema}</strong>
-                </p>
-                <p className="truncate">
-                  Coleção:{' '}
-                  <strong className="text-primary font-semibold">{peca.colecaoNome}</strong>
-                </p>
-                <p>
-                  Marca:{' '}
-                  <strong className="text-accent-camel font-semibold">{peca.marcaNome}</strong>
-                </p>
+                <div className="space-y-1 text-[11px] text-muted-foreground">
+                  <p>
+                    Status: <strong className="text-primary font-semibold">{peca.status}</strong>
+                  </p>
+                  <p>
+                    Tema: <strong className="text-primary font-semibold">{peca.tema}</strong>
+                  </p>
+                  <p className="truncate">
+                    Coleção:{' '}
+                    <strong className="text-primary font-semibold">{peca.colecaoNome}</strong>
+                  </p>
+                  <p>
+                    Marca:{' '}
+                    <strong className="text-accent-camel font-semibold">{peca.marcaNome}</strong>
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
