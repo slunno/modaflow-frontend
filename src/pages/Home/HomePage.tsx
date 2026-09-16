@@ -10,22 +10,39 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { MOCK_MARCAS } from '../../constants/mockData';
+import { getBrands } from '../../services/plmService';
 import type { MarcaSummary } from '../../types/auth';
 import { BrandCollectionsView } from './components/BrandCollectionsView';
 import { ColecoesDestaqueCarousel } from './components/ColecoesDestaqueCarousel';
 
 export const HomePage: React.FC = () => {
-  const { setActiveMarca } = useAuth();
+  const { user, setActiveMarca } = useAuth();
+  const [allBrands, setAllBrands] = useState<MarcaSummary[]>([]);
 
   // Marca selecionada recuperada do localStorage
   const [selectedMarcaForView, setSelectedMarcaForView] = useState<MarcaSummary | null>(() => {
-    const savedMarcaId = localStorage.getItem('modaflow_selected_marca_id');
-    if (savedMarcaId) {
-      return MOCK_MARCAS.find((m) => m.id === savedMarcaId) || null;
+    const savedMarcaRaw = localStorage.getItem('modaflow_active_marca');
+    if (savedMarcaRaw) {
+      try {
+        return JSON.parse(savedMarcaRaw) as MarcaSummary;
+      } catch {
+        // Ignora
+      }
     }
     return null;
   });
+
+  useEffect(() => {
+    let isMounted = true;
+    getBrands()
+      .then((data) => {
+        if (isMounted) setAllBrands(data);
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Salvar selectedMarcaForView no localStorage
   useEffect(() => {
@@ -48,7 +65,8 @@ export const HomePage: React.FC = () => {
     const handleOpenMarca = (e: Event) => {
       const customEvt = e as CustomEvent;
       const marcaId = customEvt.detail;
-      const found = MOCK_MARCAS.find((m) => m.id === marcaId);
+      const available = [...(user?.marcas || []), ...allBrands];
+      const found = available.find((m) => m.id === marcaId || m.nome === marcaId);
       if (found) {
         setSelectedMarcaForView(found);
       }
@@ -60,7 +78,7 @@ export const HomePage: React.FC = () => {
       window.removeEventListener('modaflow_reset_to_home', handleReset);
       window.removeEventListener('modaflow_open_marca_colecoes', handleOpenMarca);
     };
-  }, []);
+  }, [user, allBrands]);
 
   return (
     <div

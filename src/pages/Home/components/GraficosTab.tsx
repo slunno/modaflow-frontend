@@ -10,13 +10,16 @@
  * ============================================================================
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { BarChart3, Info } from 'lucide-react';
 import type { GraficoDimensaoMetric } from '../../../types/plm';
 import { ETAPAS_OPTIONS, COLECOES_OPTIONS } from '../../../constants/pecasOptions';
-import { getBiMetrics } from '../../../services/plmService';
+import { getBiMetrics, getBrands, getCollections } from '../../../services/plmService';
+import { useAuth } from '../../../hooks/useAuth';
 
 export const GraficosTab: React.FC = () => {
+  const { user } = useAuth();
+
   // ESTADO DO AGRUPAMENTO SELECIONADO (Campo, Criador, Fornecedor, Marca, Estilista, Time, Tipo, Tag)
   const [agrupamento, setAgrupamento] = useState<
     'Campo' | 'Criador' | 'Fornecedor' | 'Marca' | 'Estilista' | 'Time' | 'Tipo' | 'Tag'
@@ -38,6 +41,8 @@ export const GraficosTab: React.FC = () => {
 
   // SELEÇÃO DINÂMICA DO CONJUNTO DE DADOS PARA O GRÁFICO VIA SERVICE
   const [currentData, setCurrentData] = useState<GraficoDimensaoMetric[]>([]);
+  const [fetchedMarcas, setFetchedMarcas] = useState<string[]>([]);
+  const [fetchedColecoes, setFetchedColecoes] = useState<string[]>([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -48,6 +53,31 @@ export const GraficosTab: React.FC = () => {
       isMounted = false;
     };
   }, [agrupamento]);
+
+  useEffect(() => {
+    let isMounted = true;
+    Promise.all([getBrands().catch(() => []), getCollections().catch(() => [])]).then(
+      ([brandsData, collectionsData]) => {
+        if (!isMounted) return;
+        setFetchedMarcas(brandsData.map((b) => b.nome));
+        setFetchedColecoes(collectionsData.map((c) => c.nome));
+      }
+    );
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const marcasOptions = useMemo(() => {
+    const userMarcas = user?.marcas?.map((m) => m.nome) || [];
+    const combined = Array.from(new Set([...userMarcas, ...fetchedMarcas]));
+    return combined.sort();
+  }, [user, fetchedMarcas]);
+
+  const colecoesOptions = useMemo(() => {
+    const combined = Array.from(new Set([...fetchedColecoes, ...COLECOES_OPTIONS]));
+    return combined.sort();
+  }, [fetchedColecoes]);
 
   // VALOR MÁXIMO PARA A RÉGUA DE ESCALA DO GRÁFICO
   const maxVal = Math.max(...currentData.map((d: GraficoDimensaoMetric) => d.quantidade), 10);
@@ -163,9 +193,11 @@ export const GraficosTab: React.FC = () => {
                   className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
                 >
                   <option value="">Selecione marcas</option>
-                  <option value="King & Joe">King & Joe</option>
-                  <option value="K&J Black">K&J Black</option>
-                  <option value="King & Joe Play">King & Joe Play</option>
+                  {marcasOptions.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -178,8 +210,8 @@ export const GraficosTab: React.FC = () => {
                   onChange={(e) => setSelectedColecao(e.target.value)}
                   className="w-full px-3.5 py-2 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
                 >
-                  <option value="">Selecione marcas</option>
-                  {COLECOES_OPTIONS.map((c) => (
+                  <option value="">Selecione coleções</option>
+                  {colecoesOptions.map((c) => (
                     <option key={c} value={c}>
                       {c}
                     </option>

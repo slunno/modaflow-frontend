@@ -7,9 +7,12 @@
  * ============================================================================
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Plus, MoreVertical, Pencil } from 'lucide-react';
 import type { TeamItem } from '../../../types/gestao';
+import type { MarcaSummary } from '../../../types/auth';
+import { useAuth } from '../../../hooks/useAuth';
+import { getBrands } from '../../../services/plmService';
 
 interface TimesTabProps {
   teamsList: TeamItem[];
@@ -19,6 +22,7 @@ interface TimesTabProps {
   setOpenMenuTeamId: (id: string | null) => void;
   onOpenCriarTeamModal: () => void;
   onOpenEditTeamModal: (team: TeamItem) => void;
+  marcas?: MarcaSummary[];
 }
 
 export const TimesTab: React.FC<TimesTabProps> = ({
@@ -29,7 +33,31 @@ export const TimesTab: React.FC<TimesTabProps> = ({
   setOpenMenuTeamId,
   onOpenCriarTeamModal,
   onOpenEditTeamModal,
+  marcas = [],
 }) => {
+  const { user } = useAuth();
+  const [fetchedBrands, setFetchedBrands] = useState<string[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    getBrands()
+      .then((data) => {
+        if (isMounted) setFetchedBrands(data.map((b) => b.nome));
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const availableBrands = Array.from(
+    new Set([
+      ...marcas.map((m) => m.nome),
+      ...(user?.marcas?.map((m) => m.nome) || []),
+      ...fetchedBrands,
+    ])
+  ).sort();
+
   return (
     <>
       <div className="p-6 rounded-xl bg-surface border border-border shadow-2xs space-y-4">
@@ -44,9 +72,11 @@ export const TimesTab: React.FC<TimesTabProps> = ({
             onChange={(e) => setTeamFilterMarca(e.target.value)}
             className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none cursor-pointer"
           >
-            <option value="King & Joe">King & Joe</option>
-            <option value="King & Joe Play">King & Joe Play</option>
-            <option value="K&J Black">K&J Black</option>
+            {availableBrands.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
           </select>
         </div>
       </div>

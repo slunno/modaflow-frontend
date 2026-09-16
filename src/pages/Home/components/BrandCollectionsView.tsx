@@ -11,7 +11,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import type { MarcaSummary } from '../../../types/auth';
 import type { ColecaoItem } from '../../../types/plm';
-import { MOCK_MARCAS } from '../../../constants/mockData';
 import { useAuth } from '../../../hooks/useAuth';
 import { usePersistedState } from '../../../hooks/usePersistedState';
 import {
@@ -28,6 +27,7 @@ import {
 } from 'lucide-react';
 
 import { CollectionDetailView } from './CollectionDetailView';
+import { getBrands } from '../../../services/plmService';
 
 interface BrandCollectionsViewProps {
   marca: MarcaSummary;
@@ -42,7 +42,26 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
   onSelectMarca,
   onSelectColecao,
 }) => {
-  const { setActiveMarca } = useAuth();
+  const { user, setActiveMarca } = useAuth();
+  const [availableBrands, setAvailableBrands] = useState<MarcaSummary[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    getBrands()
+      .then((b) => {
+        if (isMounted && b.length > 0) setAvailableBrands(b);
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const brandListModal = useMemo(() => {
+    if (availableBrands.length > 0) return availableBrands;
+    if (user?.marcas && user.marcas.length > 0) return user.marcas;
+    return [marca];
+  }, [availableBrands, user, marca]);
 
   // Lista de Coleções Persistida no LocalStorage
   const [allColecoes, setAllColecoes] = usePersistedState<ColecaoItem[]>(
@@ -730,7 +749,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
             </div>
 
             <div className="space-y-3">
-              {MOCK_MARCAS.map((m) => {
+              {brandListModal.map((m) => {
                 const isSelected = m.id === currentMarca.id;
 
                 return (

@@ -8,10 +8,11 @@
  * ============================================================================
  */
 
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { CoverFlowCarousel, type CarouselItem } from '@/components/ui/3-d-coverflow-carousel';
-import { MOCK_MARCAS } from '@/constants/mockData';
 import type { MarcaSummary } from '@/types/auth';
+import { useAuth } from '@/hooks/useAuth';
+import { getBrands } from '@/services/plmService';
 
 interface ColecoesDestaqueCarouselProps {
   onSelectMarca?: (marca: MarcaSummary) => void;
@@ -21,47 +22,59 @@ interface MarcaCarouselItem extends CarouselItem {
   marcaObj: MarcaSummary;
 }
 
-/** Dados Reais das Marcas da AKR BRANDS / King & Joe (Apenas o nome das 3 marcas) */
-const MARCAS_PLM_ITEMS: MarcaCarouselItem[] = [
-  {
-    titleLine1: 'KING & JOE',
-    img: 'https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?q=80&w=1600&auto=format&fit=crop',
-    ctaText: 'ABRIR COLEÇÕES',
-    ctaUrl: '#',
-    marcaObj: MOCK_MARCAS[0]!,
-  },
-  {
-    titleLine1: 'K&J BLACK',
-    img: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=1600&auto=format&fit=crop',
-    ctaText: 'ABRIR COLEÇÕES',
-    ctaUrl: '#',
-    marcaObj: MOCK_MARCAS[1]!,
-  },
-  {
-    titleLine1: 'KING & JOE PLAY',
-    img: 'https://images.unsplash.com/photo-1516257984-b1b4d707412e?q=80&w=1600&auto=format&fit=crop',
-    ctaText: 'ABRIR COLEÇÕES',
-    ctaUrl: '#',
-    marcaObj: MOCK_MARCAS[2]!,
-  },
-];
-
 export const ColecoesDestaqueCarousel: React.FC<ColecoesDestaqueCarouselProps> = ({
   onSelectMarca,
 }) => {
+  const { user } = useAuth();
+  const [marcasList, setMarcasList] = useState<MarcaSummary[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    getBrands()
+      .then((brandsData) => {
+        if (isMounted && brandsData.length > 0) {
+          setMarcasList(brandsData);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const effectiveBrands = useMemo(() => {
+    if (marcasList.length > 0) return marcasList;
+    if (user?.marcas && user.marcas.length > 0) return user.marcas;
+    return [];
+  }, [marcasList, user]);
+
+  const carouselItems: MarcaCarouselItem[] = useMemo(() => {
+    return effectiveBrands.map((m) => ({
+      titleLine1: m.nome.toUpperCase(),
+      img:
+        m.heroImageUrl ||
+        'https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?q=80&w=1600&auto=format&fit=crop',
+      ctaText: 'ABRIR COLEÇÕES',
+      ctaUrl: '#',
+      marcaObj: m,
+    }));
+  }, [effectiveBrands]);
+
   const handleCtaClick = (item: CarouselItem) => {
-    const matched = MARCAS_PLM_ITEMS.find((m) => m.titleLine1 === item.titleLine1);
+    const matched = carouselItems.find((m) => m.titleLine1 === item.titleLine1);
     if (onSelectMarca && matched) {
       onSelectMarca(matched.marcaObj);
-    } else if (onSelectMarca) {
-      onSelectMarca(MOCK_MARCAS[0]!);
+    } else if (onSelectMarca && effectiveBrands[0]) {
+      onSelectMarca(effectiveBrands[0]);
     }
   };
+
+  if (carouselItems.length === 0) return null;
 
   return (
     <div className="w-full bg-[#0c0a09]">
       <CoverFlowCarousel
-        items={MARCAS_PLM_ITEMS}
+        items={carouselItems}
         sectionLabel="MARCAS DA ORGANIZAÇÃO — AKR BRANDS"
         autoplay={true}
         autoplayDelay={6000}

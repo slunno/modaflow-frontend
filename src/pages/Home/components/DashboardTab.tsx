@@ -9,11 +9,12 @@
  * ============================================================================
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Filter, BarChart2, MousePointerClick } from 'lucide-react';
 import { MultiSelectDropdown } from '../../../components/ui/MultiSelectDropdown';
 import { ETAPAS_OPTIONS, COLECOES_OPTIONS } from '../../../constants/pecasOptions';
-import { getDashboardMetrics } from '../../../services/plmService';
+import { getDashboardMetrics, getBrands, getCollections } from '../../../services/plmService';
+import { useAuth } from '../../../hooks/useAuth';
 import type { DashboardMetricDetail } from '../../../types/plm';
 
 /** Lista de Fornecedores extraída da tela oficial do PLM */
@@ -30,6 +31,8 @@ const FORNECEDORES_OPTIONS = [
 ];
 
 export const DashboardTab: React.FC = () => {
+  const { user } = useAuth();
+
   // ESTADOS DOS FILTROS DO DASHBOARD
   const [selectedEtapa, setSelectedEtapa] = useState('01 geração de ficha');
   const [selectedMarca, setSelectedMarca] = useState('');
@@ -39,16 +42,36 @@ export const DashboardTab: React.FC = () => {
 
   // DADOS DE MÉTRICAS CARREGADOS VIA SERVICE
   const [metricsMap, setMetricsMap] = useState<Record<string, DashboardMetricDetail>>({});
+  const [fetchedMarcas, setFetchedMarcas] = useState<string[]>([]);
+  const [fetchedColecoes, setFetchedColecoes] = useState<string[]>([]);
 
   useEffect(() => {
     let isMounted = true;
-    getDashboardMetrics().then((data) => {
-      if (isMounted) setMetricsMap(data);
+    Promise.all([
+      getDashboardMetrics(),
+      getBrands().catch(() => []),
+      getCollections().catch(() => []),
+    ]).then(([metricsData, brandsData, collectionsData]) => {
+      if (!isMounted) return;
+      setMetricsMap(metricsData);
+      setFetchedMarcas(brandsData.map((b) => b.nome));
+      setFetchedColecoes(collectionsData.map((c) => c.nome));
     });
     return () => {
       isMounted = false;
     };
   }, []);
+
+  const marcasOptions = useMemo(() => {
+    const userMarcas = user?.marcas?.map((m) => m.nome) || [];
+    const combined = Array.from(new Set([...userMarcas, ...fetchedMarcas]));
+    return combined.sort();
+  }, [user, fetchedMarcas]);
+
+  const colecoesOptions = useMemo(() => {
+    const combined = Array.from(new Set([...fetchedColecoes, ...COLECOES_OPTIONS]));
+    return combined.sort();
+  }, [fetchedColecoes]);
 
   // DADOS DE ETAPAS E BARRAS
   const etapasBarrasData = [
@@ -115,9 +138,11 @@ export const DashboardTab: React.FC = () => {
               className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:bg-surface focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200 shadow-2xs"
             >
               <option value="">Todas as marcas</option>
-              <option value="King & Joe">King & Joe</option>
-              <option value="K&J Black">K&J Black</option>
-              <option value="King & Joe Play">King & Joe Play</option>
+              {marcasOptions.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -125,7 +150,7 @@ export const DashboardTab: React.FC = () => {
           <MultiSelectDropdown
             label="Coleções"
             placeholder="Selecione as coleções"
-            options={COLECOES_OPTIONS}
+            options={colecoesOptions}
             selectedValues={selectedColecoes}
             onChange={setSelectedColecoes}
           />
