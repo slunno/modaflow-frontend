@@ -11,7 +11,6 @@
 
 import React, { useState } from 'react';
 import type { User, MarcaSummary } from '../types/auth';
-import { MOCK_MARCAS } from '../constants/mockData';
 import { AuthContext } from './authContextInstance';
 import { loginApi } from '../services/authService';
 
@@ -46,8 +45,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Ignora erro de deserialização
       }
     }
-    // Fallback controlado para ambiente de desenvolvimento local quando não há marcas cadastradas
-    return MOCK_MARCAS[0] ?? null;
+    // Fallback controlado quando não há marca ativa salva
+    return null;
   });
 
   /**
@@ -61,11 +60,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Salva o token JWT para uso em todas as próximas requisições
     localStorage.setItem('modaflow_token', token);
 
-    // Prioriza marcas reais do backend; MOCK_MARCAS atua como fallback controlado de desenvolvimento
-    const userMarcas =
-      usuario.marcasPermitidas && usuario.marcasPermitidas.length > 0
-        ? usuario.marcasPermitidas
-        : MOCK_MARCAS;
+    // Marcas reais retornadas pelo backend
+    const userMarcas = usuario.marcasPermitidas || [];
 
     // Mapeia o response do backend para a interface User do frontend
     const loggedUser: User = {

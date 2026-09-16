@@ -21,45 +21,38 @@ import type {
 import type { MarcaSummary } from '../types/auth';
 import { api } from './api';
 
-import {
-  MOCK_MARCAS,
-  MOCK_PECAS,
-  MOCK_COLECOES,
-  MOCK_NOTIFICACOES,
-  MOCK_ETAPAS_METRICS,
-  MOCK_BI_DATA,
-} from '../constants/mockData';
+import { MOCK_NOTIFICACOES, MOCK_ETAPAS_METRICS, MOCK_BI_DATA } from '../constants/mockData';
 
 // Cache em memória para permitir mutações controladas de notificações na sessão
 let notificationsCache: NotificationItem[] = [...MOCK_NOTIFICACOES];
 
 /**
- * Retorna as marcas cadastradas no sistema via API REST (com fallback seguro).
+ * Retorna as marcas cadastradas no sistema via API REST.
  */
 export async function getBrands(): Promise<MarcaSummary[]> {
   try {
     const data = await api.get<MarcaSummary[]>('/marcas');
-    if (data && Array.isArray(data) && data.length > 0) {
+    if (data && Array.isArray(data)) {
       return data;
     }
   } catch {
     // API endpoint indisponível
   }
-  return [...MOCK_MARCAS];
+  return [];
 }
 
 /**
- * Retorna a lista de produtos (peças) aplicando filtros opcionais via API (com fallback).
+ * Retorna a lista de produtos (peças) aplicando filtros opcionais via API.
  */
 export async function getProducts(filters?: ProductFilters): Promise<PecaItem[]> {
-  let pecas: PecaItem[] = [...MOCK_PECAS];
+  let pecas: PecaItem[] = [];
   try {
     const data = await api.get<PecaItem[]>('/products');
-    if (data && Array.isArray(data) && data.length > 0) {
+    if (data && Array.isArray(data)) {
       pecas = data;
     }
   } catch {
-    // Mantém o fallback de desenvolvimento caso a API não esteja ativa
+    pecas = [];
   }
 
   if (!filters) return pecas;
@@ -114,8 +107,7 @@ export async function getProductById(id: string): Promise<PecaItem | null> {
   } catch {
     // API endpoint indisponível
   }
-  const peca = MOCK_PECAS.find((p) => p.id === id);
-  return peca ? { ...peca } : null;
+  return null;
 }
 
 /**
@@ -125,14 +117,13 @@ export async function getCollections(marcaId?: string): Promise<ColecaoItem[]> {
   try {
     const endpoint = marcaId ? `/colecoes?marcaId=${marcaId}` : '/colecoes';
     const data = await api.get<ColecaoItem[]>(endpoint);
-    if (data && Array.isArray(data) && data.length > 0) {
+    if (data && Array.isArray(data)) {
       return data;
     }
   } catch {
     // API endpoint indisponível
   }
-  if (!marcaId) return [...MOCK_COLECOES];
-  return MOCK_COLECOES.filter((c) => c.marcaId === marcaId);
+  return [];
 }
 
 /**

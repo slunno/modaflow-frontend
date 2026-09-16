@@ -16,13 +16,6 @@ import { MultiSelectDropdown } from '../../../components/ui/MultiSelectDropdown'
 import { getProducts, getBrands, getCollections } from '../../../services/plmService';
 import { useAuth } from '../../../hooks/useAuth';
 
-import {
-  ETAPAS_OPTIONS,
-  TIPOS_PECAS_OPTIONS,
-  ESTACOES_OPTIONS,
-  COLECOES_OPTIONS,
-} from '../../../constants/pecasOptions';
-
 interface PecasTabProps {
   onSelectPeca?: (peca: PecaItem) => void;
 }
@@ -65,7 +58,7 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
     };
   }, []);
 
-  // OPÇÕES DINÂMICAS EXTRAÍDAS DA API, CONTEXTO DO USUÁRIO E DADOS DO BANCO
+  // OPÇÕES DINÂMICAS EXTRAÍDAS ESTRITAMENTE DA API E DOS REGISTROS REAIS DO BANCO DE DADOS
   const marcasOptions = useMemo(() => {
     const userMarcas = user?.marcas?.map((m) => m.nome) || [];
     const pecaMarcas = pecasList.map((p) => p.marcaNome).filter(Boolean);
@@ -75,38 +68,33 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
 
   const etapasOptions = useMemo(() => {
     const fromPecas = pecasList.map((p) => p.etapaAtual).filter(Boolean);
-    const combined = Array.from(new Set([...fromPecas, ...ETAPAS_OPTIONS]));
-    return combined.sort();
+    return Array.from(new Set(fromPecas)).sort();
   }, [pecasList]);
 
   const tiposOptions = useMemo(() => {
     const fromPecas = pecasList.map((p) => p.tipo).filter(Boolean);
-    const combined = Array.from(new Set([...fromPecas, ...TIPOS_PECAS_OPTIONS]));
-    return combined.sort();
+    return Array.from(new Set(fromPecas)).sort();
   }, [pecasList]);
 
   const statusPecaOptions = useMemo(() => {
     const fromPecas = pecasList.map((p) => p.status).filter(Boolean);
-    const defaults = ['Em andamento', 'Completa', 'A desenhar'];
-    return Array.from(new Set([...fromPecas, ...defaults])).sort();
+    return Array.from(new Set(fromPecas)).sort();
   }, [pecasList]);
 
   const statusColecaoOptions = useMemo(() => {
     const fromPecas = pecasList.map((p) => p.statusColecao).filter((s): s is string => Boolean(s));
-    const defaults = ['Em andamento', 'Completas', 'Arquivadas'];
-    return Array.from(new Set([...fromPecas, ...defaults])).sort();
+    return Array.from(new Set(fromPecas)).sort();
   }, [pecasList]);
 
   const colecoesOptions = useMemo(() => {
     const fromPecas = pecasList.map((p) => p.colecaoNome).filter(Boolean);
-    const combined = Array.from(new Set([...fetchedColecoes, ...fromPecas, ...COLECOES_OPTIONS]));
+    const combined = Array.from(new Set([...fetchedColecoes, ...fromPecas]));
     return combined.sort();
   }, [fetchedColecoes, pecasList]);
 
   const estacoesOptions = useMemo(() => {
     const fromPecas = pecasList.map((p) => p.estacao).filter((e): e is string => Boolean(e));
-    const combined = Array.from(new Set([...fromPecas, ...ESTACOES_OPTIONS]));
-    return combined.sort();
+    return Array.from(new Set(fromPecas)).sort();
   }, [pecasList]);
 
   // FILTRAGEM REATIVA DE PEÇAS
