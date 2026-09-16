@@ -11,6 +11,7 @@
 export interface PecaItem {
   id: string;
   colecaoId?: string;
+  marcaId?: string;
   codigo: string;
   nome: string;
   tipo: string;
@@ -19,6 +20,8 @@ export interface PecaItem {
   tema: string;
   colecaoNome: string;
   marcaNome: string;
+  statusColecao?: string;
+  estacao?: string;
   estilista: string;
   modelista?: string;
   tecidos: string[];

@@ -15,24 +15,37 @@ import { useAuth } from '../../hooks/useAuth';
 import { PecasTab } from '../Home/components/PecasTab';
 import { PecaFichaTecnicaView } from '../Home/components/PecaFichaTecnicaView';
 import { Shirt, Sparkles } from 'lucide-react';
-import { MOCK_MARCAS, MOCK_COLECOES } from '../../constants/mockData';
 
 export const ProductsPage: React.FC = () => {
-  const { activeMarca } = useAuth();
+  const { user, activeMarca } = useAuth();
   const [selectedPeca, setSelectedPeca] = useState<PecaItem | null>(null);
 
   // Se o usuário selecionou uma peça, abre a visão completa da ficha técnica
   if (selectedPeca) {
-    const fallbackMarca: MarcaSummary =
-      MOCK_MARCAS.find((m) => m.nome === selectedPeca.marcaNome) || activeMarca || MOCK_MARCAS[0]!;
+    const userMarca = user?.marcas?.find((m) => m.nome === selectedPeca.marcaNome);
+    const fallbackMarca: MarcaSummary = userMarca ||
+      activeMarca || {
+        id: selectedPeca.marcaId || 'marca-default',
+        nome: selectedPeca.marcaNome || 'Marca',
+        code: selectedPeca.marcaNome?.toUpperCase().substring(0, 3) || 'MRC',
+        initials: selectedPeca.marcaNome?.substring(0, 2).toUpperCase() || 'MC',
+        colecoesCount: 1,
+        pecasCount: 1,
+        heroImageUrl: '',
+        description: 'Marca do PLM',
+        badgeTag: 'Linha Principal',
+      };
 
-    const fallbackColecao: ColecaoItem = MOCK_COLECOES.find(
-      (c) => c.nome === selectedPeca.colecaoNome
-    ) || {
+    const colecaoStatus: ColecaoItem['status'] =
+      selectedPeca.statusColecao === 'Completas' || selectedPeca.statusColecao === 'Arquivadas'
+        ? selectedPeca.statusColecao
+        : 'Em andamento';
+
+    const fallbackColecao: ColecaoItem = {
       id: selectedPeca.colecaoId || 'col-default',
       nome: selectedPeca.colecaoNome,
       marcaNome: selectedPeca.marcaNome,
-      status: 'Em andamento',
+      status: colecaoStatus,
       progressoPercent: 50,
       pecasConcluidas: 12,
       pecasTotal: 24,

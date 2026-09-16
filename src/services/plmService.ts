@@ -18,8 +18,11 @@ import type {
   GraficoDimensaoMetric,
   ProductFilters,
 } from '../types/plm';
+import type { MarcaSummary } from '../types/auth';
+import { api } from './api';
 
 import {
+  MOCK_MARCAS,
   MOCK_PECAS,
   MOCK_COLECOES,
   MOCK_NOTIFICACOES,
@@ -31,13 +34,33 @@ import {
 let notificationsCache: NotificationItem[] = [...MOCK_NOTIFICACOES];
 
 /**
- * Retorna a lista de produtos (peças) aplicando filtros opcionais.
+ * Retorna as marcas cadastradas no sistema via API REST (com fallback seguro).
+ */
+export async function getBrands(): Promise<MarcaSummary[]> {
+  try {
+    const data = await api.get<MarcaSummary[]>('/marcas');
+    if (data && Array.isArray(data) && data.length > 0) {
+      return data;
+    }
+  } catch {
+    // API endpoint indisponível
+  }
+  return [...MOCK_MARCAS];
+}
+
+/**
+ * Retorna a lista de produtos (peças) aplicando filtros opcionais via API (com fallback).
  */
 export async function getProducts(filters?: ProductFilters): Promise<PecaItem[]> {
-  // Simulação assíncrona para compatibilidade com futuras chamadas à API
-  await new Promise((resolve) => setTimeout(resolve, 30));
-
-  let pecas = [...MOCK_PECAS];
+  let pecas: PecaItem[] = [...MOCK_PECAS];
+  try {
+    const data = await api.get<PecaItem[]>('/products');
+    if (data && Array.isArray(data) && data.length > 0) {
+      pecas = data;
+    }
+  } catch {
+    // Mantém o fallback de desenvolvimento caso a API não esteja ativa
+  }
 
   if (!filters) return pecas;
 
@@ -85,16 +108,29 @@ export async function getProducts(filters?: ProductFilters): Promise<PecaItem[]>
  * Busca uma peça específica por identificador.
  */
 export async function getProductById(id: string): Promise<PecaItem | null> {
-  await new Promise((resolve) => setTimeout(resolve, 20));
+  try {
+    const peca = await api.get<PecaItem>(`/products/${id}`);
+    if (peca) return peca;
+  } catch {
+    // API endpoint indisponível
+  }
   const peca = MOCK_PECAS.find((p) => p.id === id);
   return peca ? { ...peca } : null;
 }
 
 /**
- * Retorna as coleções da marca ou de todas as marcas.
+ * Retorna as coleções da marca ou de todas as marcas via API.
  */
 export async function getCollections(marcaId?: string): Promise<ColecaoItem[]> {
-  await new Promise((resolve) => setTimeout(resolve, 30));
+  try {
+    const endpoint = marcaId ? `/colecoes?marcaId=${marcaId}` : '/colecoes';
+    const data = await api.get<ColecaoItem[]>(endpoint);
+    if (data && Array.isArray(data) && data.length > 0) {
+      return data;
+    }
+  } catch {
+    // API endpoint indisponível
+  }
   if (!marcaId) return [...MOCK_COLECOES];
   return MOCK_COLECOES.filter((c) => c.marcaId === marcaId);
 }
@@ -103,7 +139,12 @@ export async function getCollections(marcaId?: string): Promise<ColecaoItem[]> {
  * Retorna as métricas detalhadas de permanência por etapa da produção.
  */
 export async function getDashboardMetrics(): Promise<Record<string, DashboardMetricDetail>> {
-  await new Promise((resolve) => setTimeout(resolve, 30));
+  try {
+    const data = await api.get<Record<string, DashboardMetricDetail>>('/dashboard/metrics');
+    if (data) return data;
+  } catch {
+    // Fallback
+  }
   return { ...MOCK_ETAPAS_METRICS };
 }
 
@@ -111,7 +152,12 @@ export async function getDashboardMetrics(): Promise<Record<string, DashboardMet
  * Retorna métricas analíticas agregadas por dimensão (BI).
  */
 export async function getBiMetrics(agrupamento: string): Promise<GraficoDimensaoMetric[]> {
-  await new Promise((resolve) => setTimeout(resolve, 30));
+  try {
+    const data = await api.get<GraficoDimensaoMetric[]>(`/bi/metrics?agrupamento=${agrupamento}`);
+    if (data && Array.isArray(data)) return data;
+  } catch {
+    // Fallback
+  }
   return MOCK_BI_DATA[agrupamento] || MOCK_BI_DATA['Marca'] || [];
 }
 
@@ -119,7 +165,12 @@ export async function getBiMetrics(agrupamento: string): Promise<GraficoDimensao
  * Retorna a lista de notificações da central.
  */
 export async function getNotifications(): Promise<NotificationItem[]> {
-  await new Promise((resolve) => setTimeout(resolve, 30));
+  try {
+    const data = await api.get<NotificationItem[]>('/notifications');
+    if (data && Array.isArray(data)) return data;
+  } catch {
+    // Fallback
+  }
   return [...notificationsCache];
 }
 
@@ -127,7 +178,11 @@ export async function getNotifications(): Promise<NotificationItem[]> {
  * Marca uma notificação individual como lida.
  */
 export async function markNotificationAsRead(id: string): Promise<void> {
-  await new Promise((resolve) => setTimeout(resolve, 20));
+  try {
+    await api.post(`/notifications/${id}/read`, {});
+  } catch {
+    // Fallback
+  }
   notificationsCache = notificationsCache.map((item) =>
     item.id === id ? { ...item, lida: true } : item
   );
@@ -137,11 +192,16 @@ export async function markNotificationAsRead(id: string): Promise<void> {
  * Marca todas as notificações como lidas.
  */
 export async function markAllNotificationsAsRead(): Promise<void> {
-  await new Promise((resolve) => setTimeout(resolve, 20));
+  try {
+    await api.post('/notifications/read-all', {});
+  } catch {
+    // Fallback
+  }
   notificationsCache = notificationsCache.map((item) => ({ ...item, lida: true }));
 }
 
 export const plmService = {
+  getBrands,
   getProducts,
   getProductById,
   getCollections,

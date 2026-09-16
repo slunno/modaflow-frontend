@@ -13,7 +13,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import type { PecaItem } from '../../../types/plm';
 import { Search, Filter, Loader2, Shirt } from 'lucide-react';
 import { MultiSelectDropdown } from '../../../components/ui/MultiSelectDropdown';
-import { getProducts } from '../../../services/plmService';
+import { getProducts, getBrands, getCollections } from '../../../services/plmService';
+import { useAuth } from '../../../hooks/useAuth';
 
 import {
   ETAPAS_OPTIONS,
@@ -27,8 +28,12 @@ interface PecasTabProps {
 }
 
 export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
-  // DADOS VIA SERVICE
+  const { user } = useAuth();
+
+  // DADOS VIA SERVICE / API
   const [pecasList, setPecasList] = useState<PecaItem[]>([]);
+  const [fetchedMarcas, setFetchedMarcas] = useState<string[]>([]);
+  const [fetchedColecoes, setFetchedColecoes] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // ESTADOS DOS FILTROS
@@ -44,12 +49,13 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
 
   useEffect(() => {
     let isMounted = true;
-    getProducts()
-      .then((data) => {
-        if (isMounted) {
-          setPecasList(data);
-          setIsLoading(false);
-        }
+    Promise.all([getProducts(), getBrands().catch(() => []), getCollections().catch(() => [])])
+      .then(([productsData, brandsData, collectionsData]) => {
+        if (!isMounted) return;
+        setPecasList(productsData);
+        setFetchedMarcas(brandsData.map((b) => b.nome));
+        setFetchedColecoes(collectionsData.map((c) => c.nome));
+        setIsLoading(false);
       })
       .catch(() => {
         if (isMounted) setIsLoading(false);
@@ -58,6 +64,50 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
       isMounted = false;
     };
   }, []);
+
+  // OPÇÕES DINÂMICAS EXTRAÍDAS DA API, CONTEXTO DO USUÁRIO E DADOS DO BANCO
+  const marcasOptions = useMemo(() => {
+    const userMarcas = user?.marcas?.map((m) => m.nome) || [];
+    const pecaMarcas = pecasList.map((p) => p.marcaNome).filter(Boolean);
+    const combined = Array.from(new Set([...userMarcas, ...fetchedMarcas, ...pecaMarcas]));
+    return combined.sort();
+  }, [user, fetchedMarcas, pecasList]);
+
+  const etapasOptions = useMemo(() => {
+    const fromPecas = pecasList.map((p) => p.etapaAtual).filter(Boolean);
+    const combined = Array.from(new Set([...fromPecas, ...ETAPAS_OPTIONS]));
+    return combined.sort();
+  }, [pecasList]);
+
+  const tiposOptions = useMemo(() => {
+    const fromPecas = pecasList.map((p) => p.tipo).filter(Boolean);
+    const combined = Array.from(new Set([...fromPecas, ...TIPOS_PECAS_OPTIONS]));
+    return combined.sort();
+  }, [pecasList]);
+
+  const statusPecaOptions = useMemo(() => {
+    const fromPecas = pecasList.map((p) => p.status).filter(Boolean);
+    const defaults = ['Em andamento', 'Completa', 'A desenhar'];
+    return Array.from(new Set([...fromPecas, ...defaults])).sort();
+  }, [pecasList]);
+
+  const statusColecaoOptions = useMemo(() => {
+    const fromPecas = pecasList.map((p) => p.statusColecao).filter((s): s is string => Boolean(s));
+    const defaults = ['Em andamento', 'Completas', 'Arquivadas'];
+    return Array.from(new Set([...fromPecas, ...defaults])).sort();
+  }, [pecasList]);
+
+  const colecoesOptions = useMemo(() => {
+    const fromPecas = pecasList.map((p) => p.colecaoNome).filter(Boolean);
+    const combined = Array.from(new Set([...fetchedColecoes, ...fromPecas, ...COLECOES_OPTIONS]));
+    return combined.sort();
+  }, [fetchedColecoes, pecasList]);
+
+  const estacoesOptions = useMemo(() => {
+    const fromPecas = pecasList.map((p) => p.estacao).filter((e): e is string => Boolean(e));
+    const combined = Array.from(new Set([...fromPecas, ...ESTACOES_OPTIONS]));
+    return combined.sort();
+  }, [pecasList]);
 
   // FILTRAGEM REATIVA DE PEÇAS
   const filteredPecas = useMemo(() => {
@@ -130,16 +180,18 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
               className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200"
             >
               <option value="">Selecionar marcas</option>
-              <option value="King & Joe">King & Joe</option>
-              <option value="K&J Black">K&J Black</option>
-              <option value="King & Joe Play">King & Joe Play</option>
+              {marcasOptions.map((marca) => (
+                <option key={marca} value={marca}>
+                  {marca}
+                </option>
+              ))}
             </select>
           </div>
 
           <MultiSelectDropdown
             label="Etapas"
             placeholder="Selecionar etapas"
-            options={ETAPAS_OPTIONS}
+            options={etapasOptions}
             selectedValues={selectedEtapas}
             onChange={setSelectedEtapas}
           />
@@ -147,7 +199,7 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
           <MultiSelectDropdown
             label="Tipos de Peças"
             placeholder="Selecionar tipos"
-            options={TIPOS_PECAS_OPTIONS}
+            options={tiposOptions}
             selectedValues={selectedTipos}
             onChange={setSelectedTipos}
           />
@@ -162,9 +214,11 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
               className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200"
             >
               <option value="">Selecionar status</option>
-              <option value="Em andamento">Em andamento</option>
-              <option value="Completa">Completa</option>
-              <option value="A desenhar">A desenhar</option>
+              {statusPecaOptions.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -180,17 +234,19 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
               onChange={(e) => setFilterStatusColecao(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none transition-all duration-200"
             >
-              <option value="">Selecione as coleções</option>
-              <option value="Em andamento">Em andamento</option>
-              <option value="Completas">Completas</option>
-              <option value="Arquivadas">Arquivadas</option>
+              <option value="">Selecione o status da coleção</option>
+              {statusColecaoOptions.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
             </select>
           </div>
 
           <MultiSelectDropdown
             label="Coleções"
             placeholder="Selecione as coleções"
-            options={COLECOES_OPTIONS}
+            options={colecoesOptions}
             selectedValues={selectedColecoes}
             onChange={setSelectedColecoes}
           />
@@ -198,7 +254,7 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
           <MultiSelectDropdown
             label="Estações"
             placeholder="Selecionar estações"
-            options={ESTACOES_OPTIONS}
+            options={estacoesOptions}
             selectedValues={selectedEstacoes}
             onChange={setSelectedEstacoes}
           />
