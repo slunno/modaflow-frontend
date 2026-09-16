@@ -236,14 +236,38 @@ export const UsuariosTab: React.FC<UsuariosTabProps> = ({
                           value={roleEntry.cargo}
                           onChange={(e) => {
                             const newCargo = e.target.value;
+                            let updatedBrandRoles = [...editingUserProfile.brandRoles];
+                            const existingRole = updatedBrandRoles.find(
+                              (r) => r.marcaId === marca.id
+                            );
+                            if (existingRole) {
+                              updatedBrandRoles = updatedBrandRoles.map((r) =>
+                                r.marcaId === marca.id ? { ...r, cargo: newCargo } : r
+                              );
+                            } else {
+                              updatedBrandRoles.push({
+                                marcaId: marca.id,
+                                marcaNome: marca.nome,
+                                cargo: newCargo,
+                                times: [],
+                              });
+                            }
+
+                            // Sincroniza o array marcas do usuário (1 a 3 marcas ativas)
+                            const activeBrandNames = marcas
+                              .filter((m) => {
+                                const role = updatedBrandRoles.find((r) => r.marcaId === m.id);
+                                return role && role.cargo !== 'Nenhum';
+                              })
+                              .map((m) => m.nome);
+
                             setEditingUserProfile({
                               ...editingUserProfile,
-                              brandRoles: editingUserProfile.brandRoles.map((r) =>
-                                r.marcaId === marca.id ? { ...r, cargo: newCargo } : r
-                              ),
+                              marcas: activeBrandNames.length > 0 ? activeBrandNames : [marca.nome],
+                              brandRoles: updatedBrandRoles,
                             });
                           }}
-                          className="bg-surface-muted border border-border text-primary rounded px-2 py-1 text-xs outline-none"
+                          className="bg-surface-muted border border-border text-primary rounded px-2 py-1 text-xs outline-none cursor-pointer"
                         >
                           {CARGOS_OPCOES.map((c) => (
                             <option key={c} value={c}>
@@ -252,8 +276,45 @@ export const UsuariosTab: React.FC<UsuariosTabProps> = ({
                           ))}
                         </select>
                       </td>
-                      <td className="py-3 px-4 text-muted">
-                        {roleEntry.times.join(', ') || 'Nenhum'}
+                      <td className="py-3 px-4">
+                        <select
+                          value={roleEntry.times[0] || 'Nenhum'}
+                          onChange={(e) => {
+                            const selectedTeam = e.target.value;
+                            const newTimes = selectedTeam === 'Nenhum' ? [] : [selectedTeam];
+                            const existingRole = editingUserProfile.brandRoles.find(
+                              (r) => r.marcaId === marca.id
+                            );
+
+                            let updatedBrandRoles = [...editingUserProfile.brandRoles];
+                            if (existingRole) {
+                              updatedBrandRoles = updatedBrandRoles.map((r) =>
+                                r.marcaId === marca.id ? { ...r, times: newTimes } : r
+                              );
+                            } else {
+                              updatedBrandRoles.push({
+                                marcaId: marca.id,
+                                marcaNome: marca.nome,
+                                cargo: 'Nenhum',
+                                times: newTimes,
+                              });
+                            }
+
+                            setEditingUserProfile({
+                              ...editingUserProfile,
+                              brandRoles: updatedBrandRoles,
+                            });
+                          }}
+                          className="bg-surface-muted border border-border text-primary rounded px-2 py-1 text-xs outline-none cursor-pointer"
+                        >
+                          <option value="Nenhum">Nenhum</option>
+                          <option value="Estilista">Estilista</option>
+                          <option value="Modelista">Modelista</option>
+                          <option value="Coordenador">Coordenador</option>
+                          <option value="Assistente">Assistente</option>
+                          <option value="Administrador">Administrador</option>
+                          <option value="Espectador">Espectador</option>
+                        </select>
                       </td>
                     </tr>
                   );

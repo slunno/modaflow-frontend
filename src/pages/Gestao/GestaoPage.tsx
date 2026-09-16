@@ -200,6 +200,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
       setNewUserIsFantasma(false);
       setNewUserSenha('');
       setNewUserConfirmarSenha('');
+      usuariosHook.setEditingUserProfile(newUser);
     } catch (err: unknown) {
       const errorData = err as { message?: string };
       alert(errorData.message || 'Erro ao cadastrar usuário no backend.');
@@ -440,6 +441,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
         {gestaoSubTab === 'marcas' && !usuariosHook.editingUserProfile ? (
           <MarcasTab
             marcas={marcasHook.marcasList}
+            usersList={usuariosHook.usersList}
             searchMarca={marcasHook.searchMarca}
             setSearchMarca={marcasHook.setSearchMarca}
             openMenuMarcaId={marcasHook.openMenuMarcaId}

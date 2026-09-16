@@ -19,9 +19,13 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 import type { MarcaSummary } from '../../../types/auth';
+import type { UserRecord } from '../../../types/gestao';
+import type { ColecaoItem } from '../../../types/plm';
+import { usePersistedState } from '../../../hooks/usePersistedState';
 
 interface MarcasTabProps {
   marcas: MarcaSummary[];
+  usersList?: UserRecord[];
   searchMarca: string;
   setSearchMarca: (value: string) => void;
   openMenuMarcaId: string | null;
@@ -35,6 +39,7 @@ interface MarcasTabProps {
 
 export const MarcasTab: React.FC<MarcasTabProps> = ({
   marcas,
+  usersList = [],
   searchMarca,
   setSearchMarca,
   openMenuMarcaId,
@@ -45,9 +50,49 @@ export const MarcasTab: React.FC<MarcasTabProps> = ({
   onOpenEditarUsuarios,
   onOpenAtualizarTimes,
 }) => {
+  const [allColecoes] = usePersistedState<ColecaoItem[]>('modaflow_user_colecoes', []);
+
   const filteredMarcas = marcas.filter((m) =>
     m.nome.toLowerCase().includes(searchMarca.toLowerCase())
   );
+
+  /**
+   * Método que calcula dinamicamente o total de coleções e de usuários para cada marca:
+   * 1. Coleções: Soma das 3 opções (Em andamento + Completas + Arquivadas).
+   * 2. Usuários: Quantidade de usuários que possuem esta marca indexada (pode ter de 1 a 3 marcas).
+   */
+  const calculateMarcaStats = (marca: MarcaSummary) => {
+    // 1. Filtra coleções pertencentes a esta marca
+    const brandColecoes = (allColecoes || []).filter(
+      (c) =>
+        c.marcaId === marca.id ||
+        (c.marcaNome && c.marcaNome.toLowerCase() === marca.nome.toLowerCase())
+    );
+
+    // Soma das 3 categorias do print (Em andamento, Completas, Arquivadas)
+    const emAndamento = brandColecoes.filter((c) => c.status === 'Em andamento').length;
+    const completas = brandColecoes.filter((c) => c.status === 'Completas').length;
+    const arquivadas = brandColecoes.filter((c) => c.status === 'Arquivadas').length;
+    const totalColecoesCalculado = emAndamento + completas + arquivadas;
+
+    // 2. Filtra usuários indexados com a marca (usuários podem ter entre 1 e 3 marcas)
+    const totalUsuariosCalculado = (usersList || []).filter(
+      (u) =>
+        u.marcas.includes(marca.nome) ||
+        u.marcas.includes(marca.id) ||
+        u.brandRoles?.some(
+          (r) =>
+            (r.marcaId === marca.id ||
+              (r.marcaNome && r.marcaNome.toLowerCase() === marca.nome.toLowerCase())) &&
+            r.cargo !== 'Nenhum'
+        )
+    ).length;
+
+    return {
+      totalColecoes: totalColecoesCalculado,
+      totalUsuarios: totalUsuariosCalculado,
+    };
+  };
 
   return (
     <>
@@ -93,80 +138,83 @@ export const MarcasTab: React.FC<MarcasTabProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-border-muted">
-              {filteredMarcas.map((marca) => (
-                <tr key={marca.id} className="hover:bg-surface-muted/30 transition">
-                  <td className="py-3 px-4">
-                    <div className="w-10 h-10 rounded-lg bg-surface-muted border border-border flex items-center justify-center overflow-hidden">
-                      {marca.heroImageUrl ? (
-                        <img
-                          src={marca.heroImageUrl}
-                          alt={marca.nome}
-                          className="w-full h-full object-cover img-brand-treated"
-                        />
-                      ) : (
-                        <ImageIcon className="w-5 h-5 text-muted opacity-50" strokeWidth={1.5} />
-                      )}
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 font-bold text-primary">{marca.nome}</td>
-                  <td className="py-3 px-4 text-muted-foreground font-medium">
-                    {marca.totalColecoes || marca.colecoesCount}
-                  </td>
-                  <td className="py-3 px-4 text-muted-foreground font-medium">
-                    {marca.totalUsuarios || 16}
-                  </td>
-                  <td className="py-3 px-4 text-right relative">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setOpenMenuMarcaId(openMenuMarcaId === marca.id ? null : marca.id)
-                      }
-                      className="p-1.5 rounded-lg text-muted hover:text-primary hover:bg-surface-muted transition cursor-pointer"
-                    >
-                      <MoreVertical className="w-4 h-4" strokeWidth={1.5} />
-                    </button>
-                    {openMenuMarcaId === marca.id && (
-                      <div className="absolute right-4 top-10 w-44 bg-surface border border-border rounded-xl shadow-xl z-50 p-1 text-left text-xs animate-in fade-in zoom-in-95 duration-150">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOpenMenuMarcaId(null);
-                            onOpenColecoes(marca);
-                          }}
-                          className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
-                        >
-                          <FolderOpen className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
-                          <span>Abrir</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => onOpenEditarMarca(marca)}
-                          className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
-                        >
-                          <Pencil className="w-4 h-4 text-muted" strokeWidth={1.5} />
-                          <span>Editar</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => onOpenEditarUsuarios(marca)}
-                          className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
-                        >
-                          <UserCog className="w-4 h-4 text-muted" strokeWidth={1.5} />
-                          <span>Usuários</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => onOpenAtualizarTimes(marca)}
-                          className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
-                        >
-                          <Users2 className="w-4 h-4 text-muted" strokeWidth={1.5} />
-                          <span>Atualizar Times</span>
-                        </button>
+              {filteredMarcas.map((marca) => {
+                const stats = calculateMarcaStats(marca);
+                return (
+                  <tr key={marca.id} className="hover:bg-surface-muted/30 transition">
+                    <td className="py-3 px-4">
+                      <div className="w-10 h-10 rounded-lg bg-surface-muted border border-border flex items-center justify-center overflow-hidden">
+                        {marca.heroImageUrl ? (
+                          <img
+                            src={marca.heroImageUrl}
+                            alt={marca.nome}
+                            className="w-full h-full object-cover img-brand-treated"
+                          />
+                        ) : (
+                          <ImageIcon className="w-5 h-5 text-muted opacity-50" strokeWidth={1.5} />
+                        )}
                       </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="py-3 px-4 font-bold text-primary">{marca.nome}</td>
+                    <td className="py-3 px-4 text-muted-foreground font-medium">
+                      {stats.totalColecoes}
+                    </td>
+                    <td className="py-3 px-4 text-muted-foreground font-medium">
+                      {stats.totalUsuarios}
+                    </td>
+                    <td className="py-3 px-4 text-right relative">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenMenuMarcaId(openMenuMarcaId === marca.id ? null : marca.id)
+                        }
+                        className="p-1.5 rounded-lg text-muted hover:text-primary hover:bg-surface-muted transition cursor-pointer"
+                      >
+                        <MoreVertical className="w-4 h-4" strokeWidth={1.5} />
+                      </button>
+                      {openMenuMarcaId === marca.id && (
+                        <div className="absolute right-4 top-10 w-44 bg-surface border border-border rounded-xl shadow-xl z-50 p-1 text-left text-xs animate-in fade-in zoom-in-95 duration-150">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOpenMenuMarcaId(null);
+                              onOpenColecoes(marca);
+                            }}
+                            className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
+                          >
+                            <FolderOpen className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                            <span>Abrir</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onOpenEditarMarca(marca)}
+                            className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
+                          >
+                            <Pencil className="w-4 h-4 text-muted" strokeWidth={1.5} />
+                            <span>Editar</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onOpenEditarUsuarios(marca)}
+                            className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
+                          >
+                            <UserCog className="w-4 h-4 text-muted" strokeWidth={1.5} />
+                            <span>Usuários</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onOpenAtualizarTimes(marca)}
+                            className="w-full text-left px-3 py-2 text-primary hover:bg-surface-muted font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
+                          >
+                            <Users2 className="w-4 h-4 text-muted" strokeWidth={1.5} />
+                            <span>Atualizar Times</span>
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
