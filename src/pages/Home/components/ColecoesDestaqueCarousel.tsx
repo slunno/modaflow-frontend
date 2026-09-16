@@ -13,6 +13,7 @@ import { CoverFlowCarousel, type CarouselItem } from '@/components/ui/3-d-coverf
 import type { MarcaSummary } from '@/types/auth';
 import { useAuth } from '@/hooks/useAuth';
 import { getBrands } from '@/services/plmService';
+import { MOCK_MARCAS } from '@/constants/mockData';
 
 interface ColecoesDestaqueCarouselProps {
   onSelectMarca?: (marca: MarcaSummary) => void;
@@ -45,7 +46,7 @@ export const ColecoesDestaqueCarousel: React.FC<ColecoesDestaqueCarouselProps> =
   const effectiveBrands = useMemo(() => {
     if (marcasList.length > 0) return marcasList;
     if (user?.marcas && user.marcas.length > 0) return user.marcas;
-    return [];
+    return MOCK_MARCAS;
   }, [marcasList, user]);
 
   const carouselItems: MarcaCarouselItem[] = useMemo(() => {
