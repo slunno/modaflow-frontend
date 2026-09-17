@@ -60,6 +60,34 @@ export interface TeamItem {
   designadoProduto: boolean;
 }
 
+export interface TecidoFornecedorItem {
+  id: string;
+  fornecedor: string;
+  codigo: string;
+}
+
+export interface TecidoComposicaoItem {
+  id: string;
+  porcentagem: string | number;
+  composicao: string;
+}
+
+export interface TecidoCorItem {
+  id: string;
+  nome: string;
+  codigo?: string;
+  hex: string;
+}
+
+export interface TecidoPropriedades {
+  gramatura: string;
+  largura: string;
+  rendimento1: string;
+  rendimento2: string;
+  encolhimento: string;
+  construcao: string;
+}
+
 export interface TecidoInsumoItem {
   id: string;
   nome: string;
@@ -69,6 +97,12 @@ export interface TecidoInsumoItem {
   fornecedores: string;
   custo: string;
   unidade: 'M' | 'Kg' | 'Metros' | 'Unidade';
+  fornecedoresList?: TecidoFornecedorItem[];
+  imagensList?: string[];
+  composicoesList?: TecidoComposicaoItem[];
+  coresList?: TecidoCorItem[];
+  propriedades?: TecidoPropriedades;
+  observacoes?: string;
 }
 
 export interface CaracteristicaItem {

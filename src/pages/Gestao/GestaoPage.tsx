@@ -47,9 +47,10 @@ import { AtualizarTimeModal } from './modals/AtualizarTimeModal';
 import { ImportarInsumosModal } from './modals/ImportarInsumosModal';
 import { CriarUsuarioModal } from './modals/CriarUsuarioModal';
 import { CriarCaracteristicaModal } from './modals/CriarCaracteristicaModal';
+import { CriarTecidoModal } from './modals/CriarTecidoModal';
 import { ModificarTimesMarcaModal } from './modals/ModificarTimesMarcaModal';
 import type { FormTabelaItem } from './modals/CriarCaracteristicaModal';
-import { Users2, X, Plus, Image as ImageIcon } from 'lucide-react';
+import { Users2, X } from 'lucide-react';
 
 export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   // Aba Ativa
@@ -80,11 +81,6 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   const [showCriandoInsumoModal, setShowCriandoInsumoModal] = useState(false);
   const [showInformacoesTecidoModal, setShowInformacoesTecidoModal] = useState(false);
   const [editingTecido, setEditingTecido] = useState<TecidoInsumoItem | null>(null);
-  const [insumoNome, setInsumoNome] = useState('');
-  const [insumoCodigo, setInsumoCodigo] = useState('');
-  const [insumoPreco, setInsumoPreco] = useState('0');
-  const [insumoUnidade, setInsumoUnidade] = useState<'Metros' | 'Kg'>('Metros');
-  const [insumoObservacoes, setInsumoObservacoes] = useState('');
 
   const [showCriandoAviamentoModal, setShowCriandoAviamentoModal] = useState(false);
   const [showInformacoesAviamentoModal, setShowInformacoesAviamentoModal] = useState(false);
@@ -214,46 +210,21 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   };
 
   // Handlers para Tecidos
-  const handleCreateInsumo = () => {
-    if (!insumoNome.trim()) return;
-    const newInsumo: TecidoInsumoItem = {
-      id: `tec-${Date.now()}`,
-      nome: insumoNome.trim(),
-      codigo: insumoCodigo.trim() || '3141592',
-      temErp: true,
-      fornecedores: 'FORNECEDOR PADRÃO',
-      custo: `R$ ${insumoPreco || '0'},0000 /${insumoUnidade === 'Metros' ? 'M' : 'KG'}`,
-      unidade: insumoUnidade,
-    };
-    tecidosHook.addTecido(newInsumo);
+  const handleSaveTecidoModal = (tecido: TecidoInsumoItem) => {
+    if (editingTecido) {
+      tecidosHook.updateTecido(tecido);
+    } else {
+      tecidosHook.addTecido(tecido);
+    }
     setShowCriandoInsumoModal(false);
-    setInsumoNome('');
-    setInsumoCodigo('');
-    setInsumoPreco('0');
-    setInsumoObservacoes('');
+    setShowInformacoesTecidoModal(false);
+    setEditingTecido(null);
   };
 
   const handleOpenEditarTecido = (tecido: TecidoInsumoItem) => {
     tecidosHook.setOpenMenuTecidoId(null);
     setEditingTecido(tecido);
-    setInsumoNome(tecido.nome);
-    setInsumoCodigo(tecido.codigo);
-    setInsumoPreco(tecido.custo.split(' ')[1]?.split(',')[0] || '0');
-    setInsumoUnidade(tecido.unidade === 'Kg' ? 'Kg' : 'Metros');
     setShowInformacoesTecidoModal(true);
-  };
-
-  const handleSaveEditTecido = () => {
-    if (!editingTecido) return;
-    tecidosHook.updateTecido({
-      ...editingTecido,
-      nome: insumoNome,
-      codigo: insumoCodigo,
-      custo: `R$ ${insumoPreco || '0'},0000 /${insumoUnidade === 'Metros' ? 'M' : 'KG'}`,
-      unidade: insumoUnidade,
-    });
-    setShowInformacoesTecidoModal(false);
-    setEditingTecido(null);
   };
 
   // Handlers para Aviamentos
@@ -655,145 +626,17 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
         onSave={handleCreateCaracteristica}
       />
 
-      {/* Modais de Criar/Editar Tecido e Aviamento */}
-      {(showCriandoInsumoModal || showInformacoesTecidoModal) && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-surface border border-border rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h3 className="text-base font-bold font-editorial text-primary">
-                {showInformacoesTecidoModal ? 'Informações' : 'Criando insumo'}
-              </h3>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowCriandoInsumoModal(false);
-                  setShowInformacoesTecidoModal(false);
-                }}
-                className="text-muted hover:text-primary transition cursor-pointer"
-              >
-                <X className="w-5 h-5" strokeWidth={1.5} />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-6 space-y-8 text-xs">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
-                <div>
-                  <h4 className="font-bold text-primary text-sm">Identificação</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">
-                    Nome do insumo e código de referência
-                  </p>
-                </div>
-                <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground block">
-                      Nome <span className="text-accent-bordo">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={insumoNome}
-                      onChange={(e) => setInsumoNome(e.target.value)}
-                      placeholder="Ex: Carmuça"
-                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground block">Código</label>
-                    <input
-                      type="text"
-                      value={insumoCodigo}
-                      onChange={(e) => setInsumoCodigo(e.target.value)}
-                      placeholder="Ex: 3141592"
-                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
-                <div>
-                  <h4 className="font-bold text-primary text-sm">Fornecedores</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">
-                    Cadastre ou selecione quais são todos os fornecedores deste insumo.
-                  </p>
-                </div>
-                <div className="md:col-span-2">
-                  <button
-                    type="button"
-                    className="px-3 py-1.5 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer flex items-center gap-1"
-                  >
-                    <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
-                    <span>Adicionar</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
-                <div>
-                  <h4 className="font-bold text-primary text-sm">Imagens</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">
-                    Imagens de referência
-                  </p>
-                </div>
-                <div className="md:col-span-2">
-                  <div className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-surface-muted hover:border-accent-camel transition cursor-pointer text-muted">
-                    <ImageIcon className="w-7 h-7" strokeWidth={1.5} />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start border-b border-border-muted pb-6">
-                <div>
-                  <h4 className="font-bold text-primary text-sm">Preço e observações</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">
-                    Informações de preço e observações do insumo cadastrado.
-                  </p>
-                </div>
-                <div className="md:col-span-2 space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="font-semibold text-muted-foreground block">Preço</label>
-                      <input
-                        type="text"
-                        value={insumoPreco}
-                        onChange={(e) => setInsumoPreco(e.target.value)}
-                        className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="font-semibold text-muted-foreground block">Unidade</label>
-                      <select
-                        value={insumoUnidade}
-                        onChange={(e) => setInsumoUnidade(e.target.value as 'Metros' | 'Kg')}
-                        className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none cursor-pointer"
-                      >
-                        <option value="Metros">Metros</option>
-                        <option value="Kg">Kg</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground block">Observações</label>
-                    <textarea
-                      rows={3}
-                      value={insumoObservacoes}
-                      onChange={(e) => setInsumoObservacoes(e.target.value)}
-                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center justify-start px-6 py-4 border-t border-border bg-surface-muted/30">
-              <button
-                type="button"
-                onClick={showInformacoesTecidoModal ? handleSaveEditTecido : handleCreateInsumo}
-                className="px-6 py-2.5 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs text-xs"
-              >
-                {showInformacoesTecidoModal ? 'Salvar alterações' : 'Criar insumo'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modal de Criar/Editar Tecido */}
+      <CriarTecidoModal
+        isOpen={showCriandoInsumoModal || showInformacoesTecidoModal}
+        editingTecido={editingTecido}
+        onClose={() => {
+          setShowCriandoInsumoModal(false);
+          setShowInformacoesTecidoModal(false);
+          setEditingTecido(null);
+        }}
+        onSave={handleSaveTecidoModal}
+      />
 
       {(showCriandoAviamentoModal || showInformacoesAviamentoModal) && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
