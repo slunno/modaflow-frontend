@@ -18,6 +18,89 @@ import type {
   TecidoCorItem,
 } from '../../../types/gestao';
 
+// Helper functions para converter Hex <-> HSV
+function hexToHsv(hex: string) {
+  let c = hex.replace('#', '');
+  if (c.length === 3) {
+    c = c
+      .split('')
+      .map((char) => char + char)
+      .join('');
+  }
+  if (c.length !== 6) return { h: 215, s: 47, v: 50 };
+  const r = parseInt(c.substring(0, 2), 16) / 255;
+  const g = parseInt(c.substring(2, 4), 16) / 255;
+  const b = parseInt(c.substring(4, 6), 16) / 255;
+
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const d = max - min;
+
+  let h = 0;
+  const s = max === 0 ? 0 : d / max;
+  const v = max;
+
+  if (max !== min) {
+    switch (max) {
+      case r:
+        h = (g - b) / d + (g < b ? 6 : 0);
+        break;
+      case g:
+        h = (b - r) / d + 2;
+        break;
+      case b:
+        h = (r - g) / d + 4;
+        break;
+    }
+    h /= 6;
+  }
+  return { h: Math.round(h * 360), s: Math.round(s * 100), v: Math.round(v * 100) };
+}
+
+function hsvToHex(h: number, s: number, v: number): string {
+  const sNorm = s / 100;
+  const vNorm = v / 100;
+  const c = vNorm * sNorm;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = vNorm - c;
+  let r = 0;
+  let g = 0;
+  let b = 0;
+
+  if (h >= 0 && h < 60) {
+    r = c;
+    g = x;
+    b = 0;
+  } else if (h >= 60 && h < 120) {
+    r = x;
+    g = c;
+    b = 0;
+  } else if (h >= 120 && h < 180) {
+    r = 0;
+    g = c;
+    b = x;
+  } else if (h >= 180 && h < 240) {
+    r = 0;
+    g = x;
+    b = c;
+  } else if (h >= 240 && h < 300) {
+    r = x;
+    g = 0;
+    b = c;
+  } else if (h >= 300 && h < 360) {
+    r = c;
+    g = 0;
+    b = x;
+  }
+
+  const toHex = (n: number) => {
+    const hex = Math.round((n + m) * 255).toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+  };
+
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
 interface CriarTecidoModalProps {
   isOpen: boolean;
   editingTecido: TecidoInsumoItem | null;
@@ -737,11 +820,11 @@ export const CriarTecidoModal: React.FC<CriarTecidoModalProps> = ({
       </div>
 
       {/* ========================================================================= */}
-      {/* SUB-MODAL / POPOVER DE SELEÇÃO DE CORES                                   */}
+      {/* SUB-MODAL / POPOVER DE SELEÇÃO DE CORES (Idêntico ao Print Referência)    */}
       {/* ========================================================================= */}
       {showColorPickerModal && (
         <div className="fixed inset-0 bg-black/50 z-60 flex items-center justify-center p-4">
-          <div className="bg-surface border border-border rounded-xl shadow-2xl w-full max-w-sm flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 p-4 space-y-4">
+          <div className="bg-white border border-gray-200 rounded-xl shadow-2xl w-full max-w-sm flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 p-4 space-y-4 text-gray-800">
             {/* 1. BARRA DE PESQUISA */}
             <div className="relative">
               <input
@@ -749,16 +832,16 @@ export const CriarTecidoModal: React.FC<CriarTecidoModalProps> = ({
                 value={searchColorQuery}
                 onChange={(e) => setSearchColorQuery(e.target.value)}
                 placeholder="Procure pelo nome da cor"
-                className="w-full bg-surface-muted border border-blue-500 rounded-lg px-3 py-2 text-xs text-primary focus:ring-2 focus:ring-blue-500/20 outline-none"
+                className="w-full bg-white border border-blue-500 rounded-lg px-3 py-2 text-xs text-gray-900 focus:ring-2 focus:ring-blue-500/20 outline-none"
               />
             </div>
 
-            {/* 2. LISTA DE CORES DO BANCO DE DADOS (CARREGADAS DO BACKEND/PROPS OU VAZIA SE NÃO HOUVER) */}
-            <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1 scrollbar-thin">
+            {/* 2. LISTA DE CORES DO BANCO DE DADOS */}
+            <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1 scrollbar-thin">
               {filteredCoresDb.length === 0 ? (
-                <div className="text-[11px] text-muted text-center py-4 italic">
+                <div className="text-[11px] text-gray-400 text-center py-2 italic">
                   Nenhuma cor pré-cadastrada no banco de dados. Utilize o campo abaixo para
-                  adicionar uma nova cor.
+                  adicionar.
                 </div>
               ) : (
                 filteredCoresDb.slice(0, visibleColorCount).map((preset) => (
@@ -766,14 +849,14 @@ export const CriarTecidoModal: React.FC<CriarTecidoModalProps> = ({
                     key={preset.id}
                     type="button"
                     onClick={() => handleAddPresetCor(preset)}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-surface-muted hover:bg-surface-muted/80 text-left transition cursor-pointer font-bold text-xs"
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-left transition cursor-pointer font-bold text-xs"
                   >
-                    <Plus className="w-3.5 h-3.5 text-muted shrink-0" strokeWidth={2} />
+                    <Plus className="w-3.5 h-3.5 text-gray-400 shrink-0" strokeWidth={2} />
                     <span
                       className="w-4 h-4 rounded-xs shrink-0 border border-black/10"
                       style={{ backgroundColor: preset.hex }}
                     />
-                    <span className="truncate uppercase text-[11px] text-primary">
+                    <span className="truncate uppercase text-[11px] text-gray-800">
                       {preset.nome}
                     </span>
                   </button>
@@ -791,64 +874,137 @@ export const CriarTecidoModal: React.FC<CriarTecidoModalProps> = ({
               )}
             </div>
 
-            {/* 3. SELETOR DE COR DINÂMICO E CAMPOS CUSTOMIZADOS */}
-            <div className="pt-3 border-t border-border space-y-3">
-              <div className="flex gap-3 items-center">
-                {/* CANVAS E PREVIEW DE COR */}
-                <div className="w-28 space-y-2">
-                  <div
-                    className="w-full h-10 rounded-lg shadow-inner border border-border"
-                    style={{ backgroundColor: selectedHex }}
-                  />
-                  {/* SELETOR DE GRADIENTE SIMULADO/INPUT COLOR */}
-                  <div className="relative w-full h-20 rounded-lg overflow-hidden border border-border">
-                    <input
-                      type="color"
-                      value={selectedHex}
-                      onChange={(e) => setSelectedHex(e.target.value)}
-                      className="absolute -inset-4 w-[150%] h-[150%] cursor-pointer opacity-100"
-                    />
+            {/* 3. SELETOR DE COR 2D + HUE SLIDER + CAMPOS BRANCOS */}
+            <div className="pt-3 border-t border-gray-200 space-y-4">
+              {(() => {
+                const hsv = hexToHsv(selectedHex);
+
+                const updateHsv = (h: number, s: number, v: number) => {
+                  const newHex = hsvToHex(h, s, v);
+                  setSelectedHex(newHex);
+                };
+
+                const handleSatValPointer = (e: React.MouseEvent<HTMLDivElement>) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+                  const y = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
+                  const s = Math.round((x / rect.width) * 100);
+                  const v = Math.round((1 - y / rect.height) * 100);
+                  updateHsv(hsv.h, s, v);
+                };
+
+                const handleHuePointer = (e: React.MouseEvent<HTMLDivElement>) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+                  const h = Math.round((x / rect.width) * 360);
+                  updateHsv(h, hsv.s, hsv.v);
+                };
+
+                const pureHueHex = hsvToHex(hsv.h, 100, 100);
+
+                return (
+                  <div className="flex gap-3 items-start">
+                    {/* LADO ESQUERDO: PREVIEW + QUADRADO 2D + BARRA DE HUE */}
+                    <div className="w-32 flex flex-col gap-2 shrink-0">
+                      {/* BLUSTOCK DE COR SELECIONADA */}
+                      <div
+                        className="w-full h-8 rounded-lg shadow-xs border border-gray-300 transition-colors"
+                        style={{ backgroundColor: selectedHex }}
+                      />
+
+                      {/* QUADRADO 2D (SATURAÇÃO / BRILHO) */}
+                      <div
+                        className="relative w-full h-28 rounded-lg overflow-hidden border border-gray-300 cursor-crosshair select-none"
+                        style={{ backgroundColor: pureHueHex }}
+                        onClick={handleSatValPointer}
+                        onMouseMove={(e) => {
+                          if (e.buttons === 1) handleSatValPointer(e);
+                        }}
+                      >
+                        <div
+                          className="absolute inset-0"
+                          style={{
+                            background: 'linear-gradient(to right, #ffffff, transparent)',
+                          }}
+                        />
+                        <div
+                          className="absolute inset-0"
+                          style={{
+                            background: 'linear-gradient(to top, #000000, transparent)',
+                          }}
+                        />
+                        {/* CÍRCULO INDICADOR NO QUADRADO 2D */}
+                        <div
+                          className="absolute w-4 h-4 border-2 border-white rounded-full shadow-md pointer-events-none transform -translate-x-1/2 -translate-y-1/2"
+                          style={{
+                            left: `${hsv.s}%`,
+                            top: `${100 - hsv.v}%`,
+                          }}
+                        />
+                      </div>
+
+                      {/* BARRA ARCO-ÍRIS (HUE SLIDER) */}
+                      <div
+                        className="relative w-full h-3 rounded-full overflow-visible border border-gray-300 cursor-pointer select-none"
+                        style={{
+                          background:
+                            'linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)',
+                        }}
+                        onClick={handleHuePointer}
+                        onMouseMove={(e) => {
+                          if (e.buttons === 1) handleHuePointer(e);
+                        }}
+                      >
+                        {/* CÍRCULO INDICADOR NO SLIDER DE HUE */}
+                        <div
+                          className="absolute top-1/2 w-4 h-4 border-2 border-white rounded-full shadow-md pointer-events-none transform -translate-x-1/2 -translate-y-1/2 bg-transparent"
+                          style={{
+                            left: `${(hsv.h / 360) * 100}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* LADO DIREITO: CAMPOS EM BRANCO + BOTÃO AZUL */}
+                    <div className="flex-1 flex flex-col justify-between space-y-2">
+                      <input
+                        type="text"
+                        value={selectedHex}
+                        onChange={(e) => setSelectedHex(e.target.value)}
+                        className="w-full bg-white border border-gray-300 text-gray-900 font-mono text-xs font-semibold rounded-lg px-3 py-1.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 outline-none"
+                      />
+                      <input
+                        type="text"
+                        value={customColorNome}
+                        onChange={(e) => setCustomColorNome(e.target.value)}
+                        placeholder="Nome da cor"
+                        className="w-full bg-white border border-gray-300 text-gray-900 text-xs rounded-lg px-3 py-1.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 outline-none placeholder:text-gray-400"
+                      />
+                      <input
+                        type="text"
+                        value={customColorCodigo}
+                        onChange={(e) => setCustomColorCodigo(e.target.value)}
+                        placeholder="Código da cor"
+                        className="w-full bg-white border border-gray-300 text-gray-900 text-xs rounded-lg px-3 py-1.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 outline-none placeholder:text-gray-400"
+                      />
+
+                      <button
+                        type="button"
+                        onClick={handleAddCustomCor}
+                        className="w-full py-2 bg-[#4361EE] hover:bg-[#3b54ce] text-white font-bold rounded-lg text-xs transition cursor-pointer shadow-xs"
+                      >
+                        Adicionar
+                      </button>
+                    </div>
                   </div>
-                </div>
+                );
+              })()}
 
-                {/* INPUTS DE HEX, NOME E CÓDIGO */}
-                <div className="flex-1 space-y-2">
-                  <input
-                    type="text"
-                    value={selectedHex}
-                    onChange={(e) => setSelectedHex(e.target.value)}
-                    className="w-full bg-surface-muted border border-border rounded-lg px-2.5 py-1.5 text-xs text-primary font-mono font-semibold"
-                  />
-                  <input
-                    type="text"
-                    value={customColorNome}
-                    onChange={(e) => setCustomColorNome(e.target.value)}
-                    placeholder="Nome da cor"
-                    className="w-full bg-surface-muted border border-border rounded-lg px-2.5 py-1.5 text-xs text-primary"
-                  />
-                  <input
-                    type="text"
-                    value={customColorCodigo}
-                    onChange={(e) => setCustomColorCodigo(e.target.value)}
-                    placeholder="Código da cor"
-                    className="w-full bg-surface-muted border border-border rounded-lg px-2.5 py-1.5 text-xs text-primary"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={handleAddCustomCor}
-                    className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg text-xs transition cursor-pointer shadow-xs"
-                  >
-                    Adicionar
-                  </button>
-                </div>
-              </div>
-
-              {/* BOTÃO FECHAR DA MODAL DE COR */}
+              {/* BOTÃO FECHAR */}
               <button
                 type="button"
                 onClick={() => setShowColorPickerModal(false)}
-                className="w-full py-2 border border-border hover:bg-surface-muted text-primary font-semibold rounded-lg text-xs transition cursor-pointer text-center"
+                className="w-full py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-800 font-semibold rounded-lg text-xs transition cursor-pointer text-center"
               >
                 Fechar
               </button>
