@@ -286,6 +286,7 @@ export const CriarTecidoModal: React.FC<CriarTecidoModalProps> = ({
     if (!coresList.some((c) => c.id === preset.id || c.nome === preset.nome)) {
       setCoresList((prev) => [...prev, preset]);
     }
+    setShowColorPickerModal(false);
   };
 
   const handleAddCustomCor = () => {
@@ -299,6 +300,7 @@ export const CriarTecidoModal: React.FC<CriarTecidoModalProps> = ({
     setCoresList((prev) => [...prev, newCor]);
     setCustomColorNome('');
     setCustomColorCodigo('');
+    setShowColorPickerModal(false);
   };
 
   // --- SUBMIT DA MODAL ---
