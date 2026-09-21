@@ -9,58 +9,26 @@
  */
 
 import React, { useState } from 'react';
-import type { PecaItem, ColecaoItem } from '../../types/plm';
-import type { MarcaSummary } from '../../types/auth';
-import { useAuth } from '../../hooks/useAuth';
+import type { LinxProdutoValido } from '../../types/linx';
 import { PecasTab } from '../Home/components/PecasTab';
-import { PecaFichaTecnicaView } from '../Home/components/PecaFichaTecnicaView';
+import { LinxProdutoDetailView } from './LinxProdutoDetailView';
 import { Shirt, Sparkles } from 'lucide-react';
 
+interface SelectedLinxProduct {
+  product: LinxProdutoValido;
+  sourceDatabase: string;
+}
+
 export const ProductsPage: React.FC = () => {
-  const { user, activeMarca } = useAuth();
-  const [selectedPeca, setSelectedPeca] = useState<PecaItem | null>(null);
+  const [selection, setSelection] = useState<SelectedLinxProduct | null>(null);
 
-  // Se o usuário selecionou uma peça, abre a visão completa da ficha técnica
-  if (selectedPeca) {
-    const userMarca = user?.marcas?.find((m) => m.nome === selectedPeca.marcaNome);
-    const fallbackMarca: MarcaSummary = userMarca ||
-      activeMarca || {
-        id: selectedPeca.marcaId || 'marca-default',
-        nome: selectedPeca.marcaNome || 'Marca',
-        code: selectedPeca.marcaNome?.toUpperCase().substring(0, 3) || 'MRC',
-        initials: selectedPeca.marcaNome?.substring(0, 2).toUpperCase() || 'MC',
-        colecoesCount: 1,
-        pecasCount: 1,
-        heroImageUrl: '',
-        description: 'Marca do PLM',
-        badgeTag: 'Linha Principal',
-      };
-
-    const colecaoStatus: ColecaoItem['status'] =
-      selectedPeca.statusColecao === 'Completas' || selectedPeca.statusColecao === 'Arquivadas'
-        ? selectedPeca.statusColecao
-        : 'Em andamento';
-
-    const fallbackColecao: ColecaoItem = {
-      id: selectedPeca.colecaoId || 'col-default',
-      nome: selectedPeca.colecaoNome,
-      marcaNome: selectedPeca.marcaNome,
-      status: colecaoStatus,
-      progressoPercent: 50,
-      pecasConcluidas: 12,
-      pecasTotal: 24,
-      dataEntrega: selectedPeca.previsaoEntrega,
-      diasAtraso: selectedPeca.diasAtraso || 0,
-    };
-
+  if (selection) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-200">
-        <PecaFichaTecnicaView
-          peca={selectedPeca}
-          marca={fallbackMarca}
-          colecao={fallbackColecao}
-          onBack={() => setSelectedPeca(null)}
-          onUpdatePeca={(updated) => setSelectedPeca(updated)}
+        <LinxProdutoDetailView
+          product={selection.product}
+          sourceDatabase={selection.sourceDatabase}
+          onBack={() => setSelection(null)}
         />
       </div>
     );
@@ -76,23 +44,25 @@ export const ProductsPage: React.FC = () => {
             <span>Catálogo Geral de Produtos</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold font-editorial text-primary tracking-wide">
-            Peças & Modelagens
+            Peças do Linx
           </h1>
           <p className="text-xs text-muted-foreground mt-1">
-            Gestão de peças, fichas técnicas, tecidos e percurso de etapas da produção AKR BRANDS.
+            Produtos existentes no Linx e vinculados a coleções das griffes autorizadas.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <span className="text-xs font-semibold text-muted bg-surface px-3 py-1.5 rounded-lg border border-border flex items-center gap-1.5 shadow-2xs">
             <Shirt className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
-            <span>Módulo PLM Oficial</span>
+            <span>Fonte oficial · somente leitura</span>
           </span>
         </div>
       </div>
 
       {/* COMPONENTE REAPROVEITADO DE CATÁLOGO & FILTROS */}
-      <PecasTab onSelectPeca={(peca) => setSelectedPeca(peca)} />
+      <PecasTab
+        onSelectPeca={(product, sourceDatabase) => setSelection({ product, sourceDatabase })}
+      />
     </div>
   );
 };

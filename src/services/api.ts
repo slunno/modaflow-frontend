@@ -32,6 +32,29 @@ function getHeaders(marcaId?: string): Record<string, string> {
   return headers;
 }
 
+async function readResponseBody(response: Response): Promise<unknown> {
+  const rawBody = await response.text();
+  if (!rawBody) return null;
+
+  try {
+    return JSON.parse(rawBody) as unknown;
+  } catch {
+    return rawBody;
+  }
+}
+
+function getHttpErrorMessage(response: Response, data: unknown): string {
+  if (typeof data === 'object' && data !== null && 'message' in data) {
+    const message = (data as { message?: unknown }).message;
+    if (typeof message === 'string' && message.trim()) return message;
+  }
+  if (typeof data === 'string' && data.trim()) return data;
+  if (response.status === 401 || response.status === 403) {
+    return 'Sessão não autenticada ou sem permissão para consultar este recurso.';
+  }
+  return 'Erro ' + response.status + ': ' + response.statusText;
+}
+
 /**
  * Realiza uma requisição POST genérica para a API.
  */
@@ -42,11 +65,10 @@ async function post<T>(path: string, body: unknown): Promise<T> {
     body: JSON.stringify(body),
   });
 
-  const data: unknown = await response.json();
+  const data = await readResponseBody(response);
 
   if (!response.ok) {
-    const errorData = data as { message?: string };
-    throw new Error(errorData.message ?? `Erro ${response.status}: ${response.statusText}`);
+    throw new Error(getHttpErrorMessage(response, data));
   }
 
   return data as T;
@@ -61,11 +83,10 @@ async function get<T>(path: string): Promise<T> {
     headers: getHeaders(),
   });
 
-  const data: unknown = await response.json();
+  const data = await readResponseBody(response);
 
   if (!response.ok) {
-    const errorData = data as { message?: string };
-    throw new Error(errorData.message ?? `Erro ${response.status}: ${response.statusText}`);
+    throw new Error(getHttpErrorMessage(response, data));
   }
 
   return data as T;

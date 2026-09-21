@@ -32,6 +32,19 @@ VITE_API_BASE_URL=http://localhost:8080/api/v1
 
 Caso a variável não seja fornecida, o cliente HTTP utilizará `http://localhost:8080/api/v1` como fallback padrão local.
 
+## Catálogo Linx
+
+A tela **Peças do Linx** consome os endpoints somente leitura do backend:
+
+- `/linx/conexao`;
+- `/linx/produtos-validos`;
+- `/linx/colecoes-validas`.
+
+Ela usa paginação do servidor e envia os filtros de griffe, coleção, produto,
+tipo/subgrupo e material ao backend. Ao abrir um item, os dados do Linx são
+exibidos em uma visão explicitamente somente leitura; a interface não envia
+alterações para o banco da empresa.
+
 ## 📜 Scripts Disponíveis
 
 - `npm run dev`: Inicia o servidor de desenvolvimento Vite.
