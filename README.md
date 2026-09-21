@@ -30,7 +30,9 @@ Crie um arquivo `.env.local` na raiz do projeto para configurar o endpoint da AP
 VITE_API_BASE_URL=http://localhost:8080/api/v1
 ```
 
-Caso a variável não seja fornecida, o cliente HTTP utilizará `http://localhost:8080/api/v1` como fallback padrão local.
+Caso a variável não seja fornecida, o cliente usa `/api/v1` e o proxy do Vite
+encaminha as chamadas para `http://localhost:8080`. Portanto, mantenha o backend
+em execução em outro PowerShell durante o desenvolvimento.
 
 ## Catálogo Linx
 
@@ -41,7 +43,10 @@ A tela **Peças do Linx** consome os endpoints somente leitura do backend:
 - `/linx/colecoes-validas`.
 
 Ela usa paginação do servidor e envia os filtros de griffe, coleção, produto,
-tipo/subgrupo e material ao backend. Ao abrir um item, os dados do Linx são
+tipo/subgrupo, etapa, status da peça, status da coleção e material ao backend.
+Os três filtros operacionais são cruzados com a base ModaFlow pelo código da
+peça, mantendo o Linx como fonte de validação da existência do produto. Ao abrir
+um item, os dados do Linx são
 exibidos em uma visão explicitamente somente leitura; a interface não envia
 alterações para o banco da empresa.
 

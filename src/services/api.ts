@@ -8,7 +8,9 @@
  * ============================================================================
  */
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
+// Em desenvolvimento, o Vite encaminha /api para o Spring em localhost:8080.
+// Uma URL absoluta continua disponível para ambientes implantados separadamente.
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
 /**
  * Retorna os headers padrão para todas as requisições à API.
@@ -51,6 +53,9 @@ function getHttpErrorMessage(response: Response, data: unknown): string {
   if (typeof data === 'string' && data.trim()) return data;
   if (response.status === 401 || response.status === 403) {
     return 'Sessão não autenticada ou sem permissão para consultar este recurso.';
+  }
+  if (response.status === 502) {
+    return 'Backend indisponível. Inicie o modaflow-backend na porta 8080 e tente novamente.';
   }
   return 'Erro ' + response.status + ': ' + response.statusText;
 }

@@ -41,6 +41,9 @@ export function getLinxProdutosValidos(
       colecao: params.colecao,
       tipo: params.tipo,
       material: params.material,
+      etapa: params.etapa,
+      statusPeca: params.statusPeca,
+      statusColecao: params.statusColecao,
     })
   );
 }

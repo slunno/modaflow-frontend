@@ -71,6 +71,9 @@ export interface LinxProdutosValidosParams {
   colecao?: string;
   tipo?: string;
   material?: string;
+  etapa?: string;
+  statusPeca?: 'EM_ANDAMENTO' | 'COMPLETA' | 'A_DESENHAR';
+  statusColecao?: 'EM_ANDAMENTO' | 'CONCLUIDO' | 'ARQUIVADO';
 }
 
 export interface LinxColecoesValidasParams {

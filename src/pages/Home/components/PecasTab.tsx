@@ -42,6 +42,44 @@ const GRIFFE_OPTIONS: ReadonlyArray<{ value: LinxGriffe; label: string }> = [
   { value: 'KING&JOE', label: 'King & Joe' },
   { value: 'KING&JOE PLAY', label: 'King & Joe Play' },
 ];
+const STAGE_OPTIONS: ReadonlyArray<{ value: string; label: string }> = [
+  { value: 'GERACAO_FICHA', label: '01 geração de ficha' },
+  { value: 'ENGENHARIA_RECEBIMENTO', label: '02 engenharia recebimento' },
+  { value: 'MODELAGEM', label: '03 modelagem' },
+  { value: 'MINI_RISCO_CONSUMO', label: '04 mini risco / consumo' },
+  { value: 'CHECAGEM_MP_LINX', label: '05 checagem de mp linx' },
+  { value: 'AGUARDANDO_TECIDO_FORNECEDOR', label: '06 aguardando tecido fornecedor' },
+  { value: 'ESTOQUE_TECIDOS_MATRIZ', label: '07 estoque de tecidos matriz' },
+  { value: 'REVISAO_INTEGRACAO_GERACAO_OP', label: '08 revisão/integração + geração de op' },
+  { value: 'ENCAIXE_RISCO', label: '09 encaixe / risco' },
+  { value: 'CORTE', label: '10 corte' },
+  { value: 'ESTAMPARIA', label: '11 estamparia' },
+  { value: 'BORDADO', label: '12 bordado' },
+  { value: 'ESTOQUE_AVIAMENTOS', label: '13 estoque de aviamentos' },
+  { value: 'PILOTAGEM_COSTURA', label: '14 pilotagem/costura' },
+  { value: 'CD_LAVANDERIA', label: '15 cd lavanderia' },
+  { value: 'LAVANDERIA', label: '16 lavanderia' },
+  { value: 'ACABAMENTO', label: '17 acabamento' },
+  { value: 'PRE_CUSTO_SEQUENCIA_OPERACIONAL', label: '18 pré-custo e sequência operacional' },
+  { value: 'APROVACAO_PILOTO_CM', label: '19 aprovação da piloto' },
+  { value: 'FINAL', label: 'Final' },
+  { value: 'INICIAL', label: 'Inicial' },
+  { value: 'INTEGRACAO_LINX', label: 'Integração linx' },
+  {
+    value: 'REVISAR_FICHA_TECNICA_LIBERAR_MOSTRUARIO',
+    label: 'Revisar ficha técnica (liberar mostruário)',
+  },
+];
+const PIECE_STATUS_OPTIONS = [
+  { value: 'EM_ANDAMENTO', label: 'Em andamento' },
+  { value: 'COMPLETA', label: 'Completas' },
+  { value: 'A_DESENHAR', label: 'A desenhar' },
+] as const;
+const COLLECTION_STATUS_OPTIONS = [
+  { value: 'EM_ANDAMENTO', label: 'Em andamento' },
+  { value: 'CONCLUIDO', label: 'Concluída' },
+  { value: 'ARQUIVADO', label: 'Arquivadas' },
+] as const;
 
 function useDebouncedValue<T>(value: T, delayMs: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -90,6 +128,9 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
   const [searchInput, setSearchInput] = useState('');
   const [type, setType] = useState('');
   const [materialInput, setMaterialInput] = useState('');
+  const [stage, setStage] = useState('');
+  const [pieceStatus, setPieceStatus] = useState('');
+  const [collectionStatus, setCollectionStatus] = useState('');
 
   const search = useDebouncedValue(searchInput.trim(), 350);
   const material = useDebouncedValue(materialInput.trim(), 350);
@@ -182,6 +223,11 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
       colecao: collectionCode || undefined,
       tipo: type || undefined,
       material: material || undefined,
+      etapa: stage || undefined,
+      statusPeca:
+        (pieceStatus as LinxProdutosValidosParams['statusPeca']) || undefined,
+      statusColecao:
+        (collectionStatus as LinxProdutosValidosParams['statusColecao']) || undefined,
     })
       .then((data) => {
         if (active && requestId === productRequestId.current) {
@@ -203,7 +249,18 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
     return () => {
       active = false;
     };
-  }, [collectionCode, griffe, material, page, reloadKey, search, type]);
+  }, [
+    collectionCode,
+    collectionStatus,
+    griffe,
+    material,
+    page,
+    pieceStatus,
+    reloadKey,
+    search,
+    stage,
+    type,
+  ]);
 
   const collectionOptions = useMemo(
     () =>
@@ -243,6 +300,9 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
     setSearchInput('');
     setType('');
     setMaterialInput('');
+    setStage('');
+    setPieceStatus('');
+    setCollectionStatus('');
     resetPage();
   };
 
@@ -387,6 +447,81 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
               {productTypes.map((productTypeOption) => (
                 <option key={productTypeOption} value={productTypeOption}>
                   {productTypeOption}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="linx-stage"
+              className="block text-xs font-semibold text-muted-foreground mb-1"
+            >
+              Etapas
+            </label>
+            <select
+              id="linx-stage"
+              value={stage}
+              onChange={(event) => {
+                setStage(event.target.value);
+                resetPage();
+              }}
+              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none"
+            >
+              <option value="">Todas as etapas</option>
+              {STAGE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="linx-piece-status"
+              className="block text-xs font-semibold text-muted-foreground mb-1"
+            >
+              Status da Peça
+            </label>
+            <select
+              id="linx-piece-status"
+              value={pieceStatus}
+              onChange={(event) => {
+                setPieceStatus(event.target.value);
+                resetPage();
+              }}
+              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none"
+            >
+              <option value="">Todos os status</option>
+              {PIECE_STATUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="linx-collection-status"
+              className="block text-xs font-semibold text-muted-foreground mb-1"
+            >
+              Status da Coleção
+            </label>
+            <select
+              id="linx-collection-status"
+              value={collectionStatus}
+              onChange={(event) => {
+                setCollectionStatus(event.target.value);
+                resetPage();
+              }}
+              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none"
+            >
+              <option value="">Todos os status</option>
+              {COLLECTION_STATUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
                 </option>
               ))}
             </select>
