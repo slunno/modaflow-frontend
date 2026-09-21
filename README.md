@@ -44,6 +44,8 @@ A tela **Peças do Linx** consome os endpoints somente leitura do backend:
 
 Ela usa paginação do servidor e envia os filtros de griffe, coleção, produto,
 tipo/subgrupo, etapa, status da peça, status da coleção e material ao backend.
+Os filtros de griffe, coleção, tipo, etapa e status aceitam uma ou mais opções
+por vez; opções do mesmo filtro são combinadas como alternativa.
 Os três filtros operacionais são cruzados com a base ModaFlow pelo código da
 peça, mantendo o Linx como fonte de validação da existência do produto. Ao abrir
 um item, os dados do Linx são

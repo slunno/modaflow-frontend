@@ -22,15 +22,16 @@ import {
   getLinxProdutosValidos,
   getLinxSubgrupos,
 } from '../../../services/linxService';
+import { MultiSelectDropdown } from '../../../components/ui/MultiSelectDropdown';
 import type {
   LinxColecaoValida,
   LinxConnectionInfo,
   LinxProdutoValido,
   LinxProdutosValidosPage,
-  LinxProdutosValidosParams,
+  LinxGriffe,
+  LinxStatusColecaoFiltro,
+  LinxStatusPecaFiltro,
 } from '../../../types/linx';
-
-type LinxGriffe = NonNullable<LinxProdutosValidosParams['griffe']>;
 
 interface PecasTabProps {
   onSelectPeca?: (peca: LinxProdutoValido, sourceDatabase: string) => void;
@@ -123,14 +124,14 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
   const [page, setPage] = useState(0);
   const [reloadKey, setReloadKey] = useState(0);
 
-  const [griffe, setGriffe] = useState<LinxGriffe | ''>('');
-  const [collectionCode, setCollectionCode] = useState('');
+  const [griffes, setGriffes] = useState<LinxGriffe[]>([]);
+  const [collectionCodes, setCollectionCodes] = useState<string[]>([]);
   const [searchInput, setSearchInput] = useState('');
-  const [type, setType] = useState('');
+  const [types, setTypes] = useState<string[]>([]);
   const [materialInput, setMaterialInput] = useState('');
-  const [stage, setStage] = useState('');
-  const [pieceStatus, setPieceStatus] = useState('');
-  const [collectionStatus, setCollectionStatus] = useState('');
+  const [stages, setStages] = useState<string[]>([]);
+  const [pieceStatuses, setPieceStatuses] = useState<LinxStatusPecaFiltro[]>([]);
+  const [collectionStatuses, setCollectionStatuses] = useState<LinxStatusColecaoFiltro[]>([]);
 
   const search = useDebouncedValue(searchInput.trim(), 350);
   const material = useDebouncedValue(materialInput.trim(), 350);
@@ -174,16 +175,12 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
   useEffect(() => {
     const requestId = ++collectionRequestId.current;
     let active = true;
-    if (!griffe) {
-      return;
-    }
-
     queueMicrotask(() => {
       if (active && requestId === collectionRequestId.current) {
         setIsLoadingCollections(true);
       }
     });
-    getLinxColecoesValidas({ griffe })
+    getLinxColecoesValidas({ griffe: griffes })
       .then((data) => {
         if (active && requestId === collectionRequestId.current) {
           setCollections(data);
@@ -203,7 +200,7 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
     return () => {
       active = false;
     };
-  }, [griffe, reloadKey]);
+  }, [griffes, reloadKey]);
 
   useEffect(() => {
     const requestId = ++productRequestId.current;
@@ -219,15 +216,13 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
       page,
       size: PAGE_SIZE,
       search: search || undefined,
-      griffe: griffe || undefined,
-      colecao: collectionCode || undefined,
-      tipo: type || undefined,
+      griffe: griffes.length > 0 ? griffes : undefined,
+      colecao: collectionCodes.length > 0 ? collectionCodes : undefined,
+      tipo: types.length > 0 ? types : undefined,
       material: material || undefined,
-      etapa: stage || undefined,
-      statusPeca:
-        (pieceStatus as LinxProdutosValidosParams['statusPeca']) || undefined,
-      statusColecao:
-        (collectionStatus as LinxProdutosValidosParams['statusColecao']) || undefined,
+      etapa: stages.length > 0 ? stages : undefined,
+      statusPeca: pieceStatuses.length > 0 ? pieceStatuses : undefined,
+      statusColecao: collectionStatuses.length > 0 ? collectionStatuses : undefined,
     })
       .then((data) => {
         if (active && requestId === productRequestId.current) {
@@ -250,16 +245,16 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
       active = false;
     };
   }, [
-    collectionCode,
-    collectionStatus,
-    griffe,
+    collectionCodes,
+    collectionStatuses,
+    griffes,
     material,
     page,
-    pieceStatus,
+    pieceStatuses,
     reloadKey,
     search,
-    stage,
-    type,
+    stages,
+    types,
   ]);
 
   const collectionOptions = useMemo(
@@ -284,25 +279,25 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
 
   const resetPage = () => setPage(0);
 
-  const handleGriffeChange = (value: string) => {
-    setGriffe(value as LinxGriffe | '');
-    setCollectionCode('');
+  const handleGriffeChange = (values: string[]) => {
+    setGriffes(values as LinxGriffe[]);
+    setCollectionCodes([]);
     setCollections([]);
-    setIsLoadingCollections(Boolean(value));
+    setIsLoadingCollections(true);
     resetPage();
   };
 
   const clearFilters = () => {
-    setGriffe('');
-    setCollectionCode('');
+    setGriffes([]);
+    setCollectionCodes([]);
     setCollections([]);
     setIsLoadingCollections(false);
     setSearchInput('');
-    setType('');
+    setTypes([]);
     setMaterialInput('');
-    setStage('');
-    setPieceStatus('');
-    setCollectionStatus('');
+    setStages([]);
+    setPieceStatuses([]);
+    setCollectionStatuses([]);
     resetPage();
   };
 
@@ -341,65 +336,31 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div>
-            <label
-              htmlFor="linx-griffe"
-              className="block text-xs font-semibold text-muted-foreground mb-1"
-            >
-              Griffe
-            </label>
-            <select
-              id="linx-griffe"
-              value={griffe}
-              onChange={(event) => handleGriffeChange(event.target.value)}
-              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none"
-            >
-              <option value="">Todas as griffes</option>
-              {GRIFFE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <MultiSelectDropdown
+            label="Griffes"
+            placeholder="Todas as griffes"
+            options={GRIFFE_OPTIONS}
+            selectedValues={griffes}
+            onChange={handleGriffeChange}
+          />
 
-          <div>
-            <label
-              htmlFor="linx-collection"
-              className="block text-xs font-semibold text-muted-foreground mb-1"
-            >
-              Coleção
-            </label>
-            <select
-              id="linx-collection"
-              value={collectionCode}
-              disabled={!griffe || isLoadingCollections}
-              onChange={(event) => {
-                setCollectionCode(event.target.value);
-                resetPage();
-              }}
-              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none disabled:opacity-60"
-            >
-              <option value="">
-                {!griffe
-                  ? 'Selecione uma griffe primeiro'
-                  : isLoadingCollections
-                    ? 'Carregando coleções...'
-                    : 'Todas as coleções'}
-              </option>
-              {collectionOptions.map((collection) => (
-                <option
-                  key={(collection.griffeProduto ?? griffe) + '-' + collection.codigo}
-                  value={collection.codigo ?? ''}
-                >
-                  {(collection.nome ?? collection.codigo) +
-                    ' (' +
-                    collection.quantidadeProdutos +
-                    ')'}
-                </option>
-              ))}
-            </select>
-          </div>
+          <MultiSelectDropdown
+            label="Coleções"
+            placeholder={isLoadingCollections ? 'Carregando coleções...' : 'Todas as coleções'}
+            options={collectionOptions.map((collection) => ({
+              value: collection.codigo ?? '',
+              label:
+                (collection.nome ?? collection.codigo ?? 'Coleção sem nome') +
+                ' (' +
+                collection.quantidadeProdutos +
+                ')',
+            })).filter((option) => Boolean(option.value))}
+            selectedValues={collectionCodes}
+            onChange={(values) => {
+              setCollectionCodes(values);
+              resetPage();
+            }}
+          />
 
           <div>
             <label
@@ -424,108 +385,49 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
             </div>
           </div>
 
-          <div>
-            <label
-              htmlFor="linx-product-type"
-              className="block text-xs font-semibold text-muted-foreground mb-1"
-            >
-              Tipos de Peças
-            </label>
-            <select
-              id="linx-product-type"
-              value={type}
-              disabled={isLoadingTypes}
-              onChange={(event) => {
-                setType(event.target.value);
-                resetPage();
-              }}
-              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none disabled:opacity-60"
-            >
-              <option value="">
-                {isLoadingTypes ? 'Carregando tipos...' : 'Todos os tipos de peças'}
-              </option>
-              {productTypes.map((productTypeOption) => (
-                <option key={productTypeOption} value={productTypeOption}>
-                  {productTypeOption}
-                </option>
-              ))}
-            </select>
-          </div>
+          <MultiSelectDropdown
+            label="Tipos de Peças"
+            placeholder={isLoadingTypes ? 'Carregando tipos...' : 'Todos os tipos de peças'}
+            options={productTypes}
+            selectedValues={types}
+            onChange={(values) => {
+              setTypes(values);
+              resetPage();
+            }}
+          />
 
-          <div>
-            <label
-              htmlFor="linx-stage"
-              className="block text-xs font-semibold text-muted-foreground mb-1"
-            >
-              Etapas
-            </label>
-            <select
-              id="linx-stage"
-              value={stage}
-              onChange={(event) => {
-                setStage(event.target.value);
-                resetPage();
-              }}
-              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none"
-            >
-              <option value="">Todas as etapas</option>
-              {STAGE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <MultiSelectDropdown
+            label="Etapas"
+            placeholder="Todas as etapas"
+            options={STAGE_OPTIONS}
+            selectedValues={stages}
+            onChange={(values) => {
+              setStages(values);
+              resetPage();
+            }}
+          />
 
-          <div>
-            <label
-              htmlFor="linx-piece-status"
-              className="block text-xs font-semibold text-muted-foreground mb-1"
-            >
-              Status da Peça
-            </label>
-            <select
-              id="linx-piece-status"
-              value={pieceStatus}
-              onChange={(event) => {
-                setPieceStatus(event.target.value);
-                resetPage();
-              }}
-              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none"
-            >
-              <option value="">Todos os status</option>
-              {PIECE_STATUS_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <MultiSelectDropdown
+            label="Status da Peça"
+            placeholder="Todos os status"
+            options={PIECE_STATUS_OPTIONS}
+            selectedValues={pieceStatuses}
+            onChange={(values) => {
+              setPieceStatuses(values as LinxStatusPecaFiltro[]);
+              resetPage();
+            }}
+          />
 
-          <div>
-            <label
-              htmlFor="linx-collection-status"
-              className="block text-xs font-semibold text-muted-foreground mb-1"
-            >
-              Status da Coleção
-            </label>
-            <select
-              id="linx-collection-status"
-              value={collectionStatus}
-              onChange={(event) => {
-                setCollectionStatus(event.target.value);
-                resetPage();
-              }}
-              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none"
-            >
-              <option value="">Todos os status</option>
-              {COLLECTION_STATUS_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <MultiSelectDropdown
+            label="Status da Coleção"
+            placeholder="Todos os status"
+            options={COLLECTION_STATUS_OPTIONS}
+            selectedValues={collectionStatuses}
+            onChange={(values) => {
+              setCollectionStatuses(values as LinxStatusColecaoFiltro[]);
+              resetPage();
+            }}
+          />
 
           <div>
             <label

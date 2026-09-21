@@ -7,10 +7,15 @@ import type {
   LinxProdutosValidosParams,
 } from '../types/linx';
 
-function withQuery(path: string, params: Record<string, string | number | undefined>): string {
+function withQuery(
+  path: string,
+  params: Record<string, string | number | string[] | undefined>
+): string {
   const query = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== '') {
+    if (Array.isArray(value)) {
+      value.filter(Boolean).forEach((item) => query.append(key, item));
+    } else if (value !== undefined && value !== '') {
       query.set(key, String(value));
     }
   });

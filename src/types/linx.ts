@@ -67,16 +67,20 @@ export interface LinxProdutosValidosParams {
   page?: number;
   size?: number;
   search?: string;
-  griffe?: 'K&J BLACK' | 'KING&JOE' | 'KING&JOE PLAY';
-  colecao?: string;
-  tipo?: string;
+  griffe?: LinxGriffe[];
+  colecao?: string[];
+  tipo?: string[];
   material?: string;
-  etapa?: string;
-  statusPeca?: 'EM_ANDAMENTO' | 'COMPLETA' | 'A_DESENHAR';
-  statusColecao?: 'EM_ANDAMENTO' | 'CONCLUIDO' | 'ARQUIVADO';
+  etapa?: string[];
+  statusPeca?: LinxStatusPecaFiltro[];
+  statusColecao?: LinxStatusColecaoFiltro[];
 }
 
 export interface LinxColecoesValidasParams {
   search?: string;
-  griffe?: 'K&J BLACK' | 'KING&JOE' | 'KING&JOE PLAY';
+  griffe?: LinxGriffe[];
 }
+
+export type LinxGriffe = 'K&J BLACK' | 'KING&JOE' | 'KING&JOE PLAY';
+export type LinxStatusPecaFiltro = 'EM_ANDAMENTO' | 'COMPLETA' | 'A_DESENHAR';
+export type LinxStatusColecaoFiltro = 'EM_ANDAMENTO' | 'CONCLUIDO' | 'ARQUIVADO';

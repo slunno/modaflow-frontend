@@ -15,10 +15,19 @@ import { Check, ChevronDown } from 'lucide-react';
 export interface MultiSelectDropdownProps {
   label: string;
   placeholder: string;
-  options: string[];
+  options: ReadonlyArray<string | MultiSelectOption>;
   selectedValues: string[];
   onChange: (selected: string[]) => void;
   className?: string;
+}
+
+export interface MultiSelectOption {
+  value: string;
+  label: string;
+}
+
+function toOption(option: string | MultiSelectOption): MultiSelectOption {
+  return typeof option === 'string' ? { value: option, label: option } : option;
 }
 
 export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
@@ -43,13 +52,18 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const isAllSelected = options.length > 0 && selectedValues.length === options.length;
+  const normalizedOptions = options.map(toOption);
+  const optionValues = normalizedOptions.map((option) => option.value);
+  const selectedLabels = normalizedOptions
+    .filter((option) => selectedValues.includes(option.value))
+    .map((option) => option.label);
+  const isAllSelected = optionValues.length > 0 && selectedValues.length === optionValues.length;
 
   const toggleSelectAll = () => {
     if (isAllSelected) {
       onChange([]);
     } else {
-      onChange([...options]);
+      onChange(optionValues);
     }
   };
 
@@ -65,7 +79,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
     selectedValues.length === 0
       ? placeholder
       : selectedValues.length === 1
-        ? selectedValues[0]
+        ? (selectedLabels[0] ?? selectedValues[0])
         : `${selectedValues.length} selecionados`;
 
   return (
@@ -103,12 +117,12 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
             <span>Selecionar todos</span>
           </div>
 
-          {options.map((opt, idx) => {
-            const checked = selectedValues.includes(opt);
+          {normalizedOptions.map((option) => {
+            const checked = selectedValues.includes(option.value);
             return (
               <div
-                key={`${opt}-${idx}`}
-                onClick={() => toggleItem(opt)}
+                key={option.value}
+                onClick={() => toggleItem(option.value)}
                 className={`px-3.5 py-2 hover:bg-surface-muted flex items-center gap-2.5 cursor-pointer font-medium text-muted-foreground transition-colors duration-200 ${
                   checked ? 'bg-surface-muted/80 font-bold text-primary' : ''
                 }`}
@@ -122,7 +136,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
                 >
                   {checked && <Check className="w-3 h-3" strokeWidth={2} />}
                 </div>
-                <span className="truncate">{opt}</span>
+                <span className="truncate">{option.label}</span>
               </div>
             );
           })}
