@@ -91,14 +91,8 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
   // Ordenação
   const [sortOrder] = useState<'progress_desc' | 'name_asc'>('name_asc');
 
-  // Estado da Coleção Selecionada para abrir os detalhes
-  const [selectedColecao, setSelectedColecao] = useState<ColecaoItem | null>(() => {
-    const savedColecaoId = localStorage.getItem('modaflow_selected_colecao_id');
-    if (savedColecaoId) {
-      return allColecoes.find((c) => c.id === savedColecaoId) || null;
-    }
-    return null;
-  });
+  // A coleção é escolhida durante a sessão atual; não restauramos a última tela ao iniciar.
+  const [selectedColecao, setSelectedColecao] = useState<ColecaoItem | null>(null);
 
   // Modal de Criar Nova Coleção
   const [isCriarColecaoOpen, setIsCriarColecaoOpen] = useState(false);
@@ -112,14 +106,6 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
 
   // Modal de Alternar Marca
   const [isBrandModalOpen, setIsBrandModalOpen] = useState(false);
-
-  useEffect(() => {
-    if (selectedColecao) {
-      localStorage.setItem('modaflow_selected_colecao_id', selectedColecao.id);
-    } else {
-      localStorage.removeItem('modaflow_selected_colecao_id');
-    }
-  }, [selectedColecao]);
 
   // Filtra as coleções vinculadas à marca atual
   const colecoesDaMarca = useMemo(() => {

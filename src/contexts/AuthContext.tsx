@@ -19,36 +19,10 @@ import { MOCK_MARCAS } from '../constants/mockData';
  * Componente Provider que envolve a aplicação e fornece o estado global de login e marca ativa.
  */
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Estado do Usuário Autenticado (persistido em LocalStorage)
-  const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('modaflow_user');
-    return saved ? (JSON.parse(saved) as User) : null;
-  });
-
-  // Estado da Marca Ativa no contexto Multi-Tenant (derivada do usuário autenticado ou fallback de dev)
-  const [activeMarca, setActiveMarcaState] = useState<MarcaSummary | null>(() => {
-    const saved = localStorage.getItem('modaflow_active_marca');
-    if (saved) {
-      try {
-        return JSON.parse(saved) as MarcaSummary;
-      } catch {
-        // Fallback silencioso caso JSON esteja inválido
-      }
-    }
-    const savedUserRaw = localStorage.getItem('modaflow_user');
-    if (savedUserRaw) {
-      try {
-        const savedUser = JSON.parse(savedUserRaw) as User;
-        if (savedUser.marcas && savedUser.marcas.length > 0) {
-          return savedUser.marcas[0] ?? null;
-        }
-      } catch {
-        // Ignora erro de deserialização
-      }
-    }
-    // Fallback controlado quando não há marca ativa salva
-    return null;
-  });
+  // Cada inicialização exige uma nova autenticação. Dados do PLM continuam persistidos,
+  // mas a sessão e o ponto de navegação anterior não são restaurados automaticamente.
+  const [user, setUser] = useState<User | null>(null);
+  const [activeMarca, setActiveMarcaState] = useState<MarcaSummary | null>(null);
 
   /**
    * Autentica o usuário chamando a API real do backend Spring Boot.
@@ -81,6 +55,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const initialMarca = userMarcas[0] ?? null;
 
+      localStorage.removeItem('modaflow_selected_marca_id');
+      localStorage.removeItem('modaflow_selected_colecao_id');
       setUser(loggedUser);
       setActiveMarcaState(initialMarca);
       localStorage.setItem('modaflow_user', JSON.stringify(loggedUser));
@@ -102,6 +78,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
 
       const initialMarca = userMarcas[0] ?? null;
+      localStorage.removeItem('modaflow_selected_marca_id');
+      localStorage.removeItem('modaflow_selected_colecao_id');
       setUser(loggedUser);
       setActiveMarcaState(initialMarca);
       localStorage.setItem('modaflow_user', JSON.stringify(loggedUser));

@@ -19,18 +19,8 @@ export const HomePage: React.FC = () => {
   const { user, setActiveMarca } = useAuth();
   const [allBrands, setAllBrands] = useState<MarcaSummary[]>([]);
 
-  // Marca selecionada recuperada do localStorage
-  const [selectedMarcaForView, setSelectedMarcaForView] = useState<MarcaSummary | null>(() => {
-    const savedMarcaRaw = localStorage.getItem('modaflow_active_marca');
-    if (savedMarcaRaw) {
-      try {
-        return JSON.parse(savedMarcaRaw) as MarcaSummary;
-      } catch {
-        // Ignora
-      }
-    }
-    return null;
-  });
+  // Após o login, a primeira tela protegida sempre é a escolha de marcas.
+  const [selectedMarcaForView, setSelectedMarcaForView] = useState<MarcaSummary | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -43,16 +33,6 @@ export const HomePage: React.FC = () => {
       isMounted = false;
     };
   }, []);
-
-  // Salvar selectedMarcaForView no localStorage
-  useEffect(() => {
-    if (selectedMarcaForView) {
-      localStorage.setItem('modaflow_selected_marca_id', selectedMarcaForView.id);
-    } else {
-      localStorage.removeItem('modaflow_selected_marca_id');
-      localStorage.removeItem('modaflow_selected_colecao_id');
-    }
-  }, [selectedMarcaForView]);
 
   // Escutar eventos de reset e de abertura de marca disparados pela navegação
   useEffect(() => {
