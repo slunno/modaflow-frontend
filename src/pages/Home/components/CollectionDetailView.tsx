@@ -8,9 +8,10 @@
  * ============================================================================
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import type { MarcaSummary } from '../../../types/auth';
 import type { ColecaoItem, PecaItem } from '../../../types/plm';
+import type { UserRecord } from '../../../types/gestao';
 import { usePersistedState } from '../../../hooks/usePersistedState';
 import {
   ChevronRight,
@@ -24,11 +25,14 @@ import {
   Grid,
   Download,
   ChevronDown,
+  Pencil,
+  SlidersHorizontal,
   X,
 } from 'lucide-react';
 
 import { MiniaturaModal } from './MiniaturaModal';
 import { PecaFichaTecnicaView } from './PecaFichaTecnicaView';
+import { PecaFluxoEtapasModal } from './PecaFluxoEtapasModal';
 
 interface CollectionDetailViewProps {
   marca: MarcaSummary;
@@ -66,6 +70,107 @@ const OPCOES_NOME_PECA = [
 // Opções de Temas
 const OPCOES_TEMA = ['Base', 'Verão', 'Inverno', 'Cápsula Nobre', 'Sport', 'Casual'];
 
+const GRUPOS_FILTROS = [
+  {
+    titulo: 'Informações Gerais',
+    opcoes: [
+      'Status',
+      'Sessões',
+      'Metas',
+      'Tipo de peça',
+      'Etapas',
+      'Estilista',
+      'Modelista',
+      'Cores',
+      'Estampas',
+    ],
+  },
+  { titulo: 'Fluxos de etapas', opcoes: ['Sem fluxo', 'Direto', 'OP CM', 'Perene', 'Piloto'] },
+  {
+    titulo: 'Insumos',
+    opcoes: [
+      'Tecidos',
+      'Aviamentos',
+      'Fornecedor de Tecido',
+      'Fornecedor de Aviamento',
+      'Fornecedor de Terceiros',
+      'Terceiros',
+    ],
+  },
+  {
+    titulo: 'Tags',
+    opcoes: [
+      'BASE',
+      'COMFORT',
+      'ENTREGAS',
+      'FICHA TÉCNICA',
+      'LINHA',
+      'REGULAR',
+      'SKINNY',
+      'SLIM',
+      'SUBCATEGORIA',
+      'TECIDO',
+      'TEMA',
+    ],
+  },
+  {
+    titulo: 'Campos Customizados',
+    opcoes: [
+      'Categoria',
+      'Grade',
+      'Griffe',
+      'Inspetor de qualidade',
+      'Lacre Referência',
+      'Linha',
+      'Nome do Produto',
+      'Observações de Corte',
+      'Observações Gerais',
+      'Observações Modelagem',
+      'Simbologia',
+      'Sub-grupo',
+      'Subcategoria',
+      'Tipo de matéria-prima',
+    ],
+  },
+  { titulo: 'Datas', opcoes: ['Data do desenho técnico', 'Data de entrega'] },
+  { titulo: 'Seções Customizadas', opcoes: ['Prova de Roupa', 'Data', 'Imagens', 'Observações'] },
+  {
+    titulo: 'Campos customizados em terceiros',
+    opcoes: ['Observações do terceiro', 'Tela', 'Tradução'],
+  },
+  { titulo: 'Responsáveis', opcoes: ['Responsável'] },
+  { titulo: 'Buscas gerais', opcoes: ['Tecidos', 'Aviamentos', 'Estampas'] },
+];
+
+type FilterKey =
+  | 'tema'
+  | 'status'
+  | 'tipo'
+  | 'etapa'
+  | 'estilista'
+  | 'modelista'
+  | 'tecido'
+  | 'responsavel'
+  | 'fluxo';
+
+const FILTRO_POR_NOME: Record<string, FilterKey> = {
+  Status: 'status',
+  'Tipo de peça': 'tipo',
+  Etapas: 'etapa',
+  Estilista: 'estilista',
+  Modelista: 'modelista',
+  Tecidos: 'tecido',
+  TEMA: 'tema',
+  Responsável: 'responsavel',
+  'Sem fluxo': 'fluxo',
+  Direto: 'fluxo',
+  'OP CM': 'fluxo',
+  Perene: 'fluxo',
+  Piloto: 'fluxo',
+};
+
+const FILTROS_PADRAO: FilterKey[] = ['status', 'tipo', 'etapa', 'estilista'];
+
 // Ícone de Cabide customizado do Print 5
 const CabideIcon = () => (
   <svg
@@ -99,6 +204,10 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
 
   // Estado para abrir a Ficha Técnica de uma peça específica (Prints 2, 3, 4, 5)
   const [selectedFichaPeca, setSelectedFichaPeca] = useState<PecaItem | null>(null);
+  const [pecaEmMovimentacao, setPecaEmMovimentacao] = useState<PecaItem | null>(null);
+
+  // Usuários internos: só usuários ativos, liberados e com cargo na marca podem ser responsáveis.
+  const [usuarios] = usePersistedState<UserRecord[]>('modaflow_users_data', []);
 
   // Modal Miniatura (Print 1)
   const [isMiniaturaModalOpen, setIsMiniaturaModalOpen] = useState(false);
@@ -128,26 +237,69 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
   // Busca de Peças
   const [searchPeca, setSearchPeca] = useState('');
 
-  // Filtros selecionados
-  const [selectedTemaFilter, setSelectedTemaFilter] = useState('Todas');
-  const [selectedStatusFilter, setSelectedStatusFilter] = useState('Todas');
+  // Os filtros são montados com valores das peças locais, nunca com opções do Linx.
+  const [isFiltrosMenuOpen, setIsFiltrosMenuOpen] = useState(false);
+  const [filtrosVisiveis, setFiltrosVisiveis] = useState<FilterKey[]>(FILTROS_PADRAO);
+  const [filtrosSelecionados, setFiltrosSelecionados] = useState<
+    Partial<Record<FilterKey, string>>
+  >({});
 
   // Filtra as peças da coleção atual
   const pecasDaColecao = allPecas.filter(
     (p) => p.colecaoId === colecao.id || p.colecaoNome === colecao.nome
   );
 
-  // Filtra por busca e seleções
+  const opcoesDeFiltro = useMemo(() => {
+    const unique = (values: (string | undefined)[]) =>
+      Array.from(
+        new Set(values.filter((value): value is string => Boolean(value && value !== '—')))
+      ).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+    return {
+      tema: unique(pecasDaColecao.map((peca) => peca.tema)),
+      status: unique(pecasDaColecao.map((peca) => peca.status)),
+      tipo: unique(pecasDaColecao.map((peca) => peca.tipo)),
+      etapa: unique(pecasDaColecao.map((peca) => peca.etapaAtual)),
+      estilista: unique(pecasDaColecao.map((peca) => peca.estilista)),
+      modelista: unique(pecasDaColecao.map((peca) => peca.modelista)),
+      tecido: unique(pecasDaColecao.flatMap((peca) => peca.tecidos)),
+      responsavel: unique(pecasDaColecao.map((peca) => peca.responsavel)),
+      fluxo: unique(pecasDaColecao.map((peca) => peca.fluxo)),
+    } satisfies Record<FilterKey, string[]>;
+  }, [pecasDaColecao]);
+
+  const rotuloDeFiltro: Record<FilterKey, string> = {
+    tema: 'Tema',
+    status: 'Status',
+    tipo: 'Tipo de peça',
+    etapa: 'Etapas',
+    estilista: 'Estilista',
+    modelista: 'Modelista',
+    tecido: 'Tecidos',
+    responsavel: 'Responsável',
+    fluxo: 'Fluxo',
+  };
+
+  const valorDoFiltro = (peca: PecaItem, filtro: FilterKey) => {
+    if (filtro === 'tecido') return peca.tecidos;
+    if (filtro === 'etapa') return peca.etapaAtual;
+    return peca[filtro];
+  };
+
+  // Filtros diferentes se cruzam (AND); cada linha compara com o valor local da peça.
   const pecasFiltradas = pecasDaColecao.filter((p) => {
     const matchesSearch =
       searchPeca === '' ||
       p.nome.toLowerCase().includes(searchPeca.toLowerCase()) ||
       p.codigo.toLowerCase().includes(searchPeca.toLowerCase());
 
-    const matchesTema = selectedTemaFilter === 'Todas' || p.tema === selectedTemaFilter;
-    const matchesStatus = selectedStatusFilter === 'Todas' || p.status === selectedStatusFilter;
+    const matchesFiltros = Object.entries(filtrosSelecionados).every(([key, value]) => {
+      if (!value) return true;
+      const valorDaPeca = valorDoFiltro(p, key as FilterKey);
+      return Array.isArray(valorDaPeca) ? valorDaPeca.includes(value) : valorDaPeca === value;
+    });
 
-    return matchesSearch && matchesTema && matchesStatus;
+    return matchesSearch && matchesFiltros;
   });
 
   // Handler para criar peças (suporta quantidade informada no modal)
@@ -189,6 +341,24 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
   const handleUpdatePecaInFicha = (updatedPeca: PecaItem) => {
     setAllPecas((prev) => prev.map((p) => (p.id === updatedPeca.id ? updatedPeca : p)));
     setSelectedFichaPeca(updatedPeca);
+  };
+
+  const toggleFiltroVisivel = (filtro: FilterKey) => {
+    setFiltrosVisiveis((atuais) =>
+      atuais.includes(filtro) ? atuais.filter((item) => item !== filtro) : [...atuais, filtro]
+    );
+    setFiltrosSelecionados((atuais) => {
+      const proximo = { ...atuais };
+      delete proximo[filtro];
+      return proximo;
+    });
+  };
+
+  const adicionarFiltroDoMenu = (nome: string) => {
+    const filtro = FILTRO_POR_NOME[nome];
+    if (!filtro) return;
+    if (!filtrosVisiveis.includes(filtro)) toggleFiltroVisivel(filtro);
+    setIsFiltrosMenuOpen(false);
   };
 
   // Se a Ficha Técnica de uma peça estiver aberta, renderiza a visão de Ficha Técnica
@@ -352,56 +522,55 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                 </button>
                 <button
                   type="button"
+                  onClick={() => setIsFiltrosMenuOpen(true)}
                   className="px-3 py-1 rounded-lg border border-border bg-surface hover:bg-surface-muted text-xs font-semibold text-muted-foreground shadow-2xs transition-all duration-200 cursor-pointer flex items-center gap-1"
                 >
-                  <span>⚙ Filtro</span>
+                  <SlidersHorizontal className="w-3.5 h-3.5" />
+                  <span>Filtros</span>
                 </button>
               </div>
             </div>
 
-            {/* LINHAS DE FILTROS */}
+            {/* Cada opção é derivada das peças já cadastradas nesta coleção. */}
             <div className="space-y-3 text-xs">
-              {/* Tema */}
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="w-28 font-semibold text-muted-foreground">Tema</span>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {['Todas', 'Base'].map((t) => (
+              {filtrosVisiveis.map((filtro) => (
+                <div key={filtro} className="flex flex-wrap items-center gap-3">
+                  <span className="w-28 font-semibold text-muted-foreground">
+                    {rotuloDeFiltro[filtro]}
+                  </span>
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <button
-                      key={t}
                       type="button"
-                      onClick={() => setSelectedTemaFilter(t)}
+                      onClick={() =>
+                        setFiltrosSelecionados((atuais) => ({ ...atuais, [filtro]: '' }))
+                      }
                       className={`px-3 py-0.5 rounded-md text-xs transition-all duration-200 cursor-pointer ${
-                        selectedTemaFilter === t
+                        !filtrosSelecionados[filtro]
                           ? 'bg-accent-camel text-white font-bold shadow-2xs'
                           : 'bg-surface-muted hover:bg-border-muted text-muted-foreground font-semibold border border-border'
                       }`}
                     >
-                      {t}
+                      Todos
                     </button>
-                  ))}
+                    {opcoesDeFiltro[filtro].map((opcao) => (
+                      <button
+                        key={opcao}
+                        type="button"
+                        onClick={() =>
+                          setFiltrosSelecionados((atuais) => ({ ...atuais, [filtro]: opcao }))
+                        }
+                        className={`px-3 py-0.5 rounded-md text-xs transition-all duration-200 cursor-pointer ${
+                          filtrosSelecionados[filtro] === opcao
+                            ? 'bg-accent-camel text-white font-bold shadow-2xs'
+                            : 'bg-surface-muted hover:bg-border-muted text-muted-foreground font-semibold border border-border'
+                        }`}
+                      >
+                        {opcao}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-
-              {/* Status */}
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="w-28 font-semibold text-muted-foreground">Status</span>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {['Todas', 'A desenhar', 'Em andamento', 'Completa'].map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => setSelectedStatusFilter(s)}
-                      className={`px-3 py-0.5 rounded-md text-xs transition-all duration-200 cursor-pointer ${
-                        selectedStatusFilter === s
-                          ? 'bg-accent-camel text-white font-bold shadow-2xs'
-                          : 'bg-surface-muted hover:bg-border-muted text-muted-foreground font-semibold border border-border'
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 
@@ -486,8 +655,18 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                 <div
                   key={peca.id}
                   onClick={() => setSelectedFichaPeca(peca)}
-                  className="bg-surface border border-border rounded-xl p-4 shadow-2xs hover:shadow-md hover:scale-[1.01] transition-all duration-200 space-y-3 font-sans cursor-pointer group"
+                  className="relative bg-surface border border-border rounded-xl p-4 shadow-2xs hover:shadow-md hover:scale-[1.01] transition-all duration-200 space-y-3 font-sans cursor-pointer group"
                 >
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setSelectedFichaPeca(peca);
+                    }}
+                    className="absolute right-3 top-3 z-10 flex translate-y-1 items-center gap-1.5 rounded-md bg-primary px-2.5 py-1.5 text-[11px] font-bold text-white opacity-0 shadow-sm transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 focus:translate-y-0 focus:opacity-100"
+                  >
+                    Ficha técnica <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
                   {/* Topo do Card: Nome e Código (ex: Camisa CS00011J.2) */}
                   <div>
                     <div className="flex items-center justify-between gap-1 text-sm font-bold text-primary group-hover:text-accent-camel transition-colors">
@@ -509,8 +688,19 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                     {miniaturaFields.includes('Status') && (
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground font-medium">Status</span>
-                        <span className="font-semibold text-primary">
+                        <span className="flex items-center gap-1 font-semibold text-primary">
                           {peca.status || 'Em andamento'}
+                          <button
+                            type="button"
+                            title="Editar status na ficha técnica"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setSelectedFichaPeca(peca);
+                            }}
+                            className="opacity-0 transition-opacity group-hover:opacity-100 hover:text-accent-camel"
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </button>
                         </span>
                       </div>
                     )}
@@ -525,15 +715,39 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                     {miniaturaFields.includes('Etapas') && (
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground font-medium">Etapas</span>
-                        <span className="text-primary font-medium">{peca.etapaAtual || '—'}</span>
+                        <span className="flex items-center gap-1 text-primary font-medium">
+                          {peca.etapaAtual || '—'}
+                          <button
+                            type="button"
+                            title="Mover etapa"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setPecaEmMovimentacao(peca);
+                            }}
+                            className="opacity-0 transition-opacity group-hover:opacity-100 hover:text-accent-camel"
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </button>
+                        </span>
                       </div>
                     )}
 
                     {miniaturaFields.includes('Previsão') && (
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground font-medium">Previsão</span>
-                        <span className="text-primary font-medium">
+                        <span className="flex items-center gap-1 text-primary font-medium">
                           {peca.previsaoEntrega || '—'}
+                          <button
+                            type="button"
+                            title="Editar previsão na ficha técnica"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setSelectedFichaPeca(peca);
+                            }}
+                            className="opacity-0 transition-opacity group-hover:opacity-100 hover:text-accent-camel"
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </button>
                         </span>
                       </div>
                     )}
@@ -541,7 +755,20 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                     {miniaturaFields.includes('Estilista') && (
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground font-medium">Estilista</span>
-                        <span className="text-primary font-medium">{peca.estilista || '—'}</span>
+                        <span className="flex items-center gap-1 text-primary font-medium">
+                          {peca.estilista || '—'}
+                          <button
+                            type="button"
+                            title="Editar estilista na ficha técnica"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setSelectedFichaPeca(peca);
+                            }}
+                            className="opacity-0 transition-opacity group-hover:opacity-100 hover:text-accent-camel"
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </button>
+                        </span>
                       </div>
                     )}
 
@@ -565,7 +792,20 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
 
                     {miniaturaFields.includes('Tecidos') && (
                       <div className="pt-1 border-t border-border-muted">
-                        <span className="text-muted-foreground font-medium block">Tecidos</span>
+                        <span className="flex items-center gap-1 text-muted-foreground font-medium">
+                          Tecidos
+                          <button
+                            type="button"
+                            title="Editar tecidos na ficha técnica"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setSelectedFichaPeca(peca);
+                            }}
+                            className="opacity-0 transition-opacity group-hover:opacity-100 hover:text-accent-camel"
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </button>
+                        </span>
                         <span className="text-primary font-medium text-[11px] block leading-tight mt-0.5">
                           {peca.tecidos && peca.tecidos.length > 0 ? peca.tecidos.join(', ') : '—'}
                         </span>
@@ -577,6 +817,74 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
             </div>
           )}
         </div>
+      )}
+
+      {isFiltrosMenuOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-neutral-950/50 p-4 pt-10 backdrop-blur-xs overflow-y-auto">
+          <div className="w-full max-w-2xl rounded-xl border border-border bg-surface p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-bold text-primary">Opções de filtros</h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Os valores são extraídos das peças desta coleção, sem consulta ao Linx.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsFiltrosMenuOpen(false)}
+                className="text-muted hover:text-primary"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              {GRUPOS_FILTROS.map((grupo) => (
+                <section key={grupo.titulo}>
+                  <h3 className="mb-2 text-xs font-bold text-primary">{grupo.titulo}</h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {grupo.opcoes.map((opcao) => {
+                      const filtro = FILTRO_POR_NOME[opcao];
+                      const selecionado = filtro ? filtrosVisiveis.includes(filtro) : false;
+                      return (
+                        <button
+                          key={opcao}
+                          type="button"
+                          disabled={!filtro}
+                          title={
+                            !filtro
+                              ? 'Este campo será ativado quando houver dados internos cadastrados na peça.'
+                              : undefined
+                          }
+                          onClick={() => adicionarFiltroDoMenu(opcao)}
+                          className={`rounded-md border px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                            selecionado
+                              ? 'border-accent-camel bg-accent-camel text-white'
+                              : filtro
+                                ? 'border-border bg-surface text-primary hover:border-accent-camel hover:text-accent-camel'
+                                : 'cursor-not-allowed border-border-muted bg-surface-muted text-muted'
+                          }`}
+                        >
+                          {opcao}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pecaEmMovimentacao && (
+        <PecaFluxoEtapasModal
+          peca={pecaEmMovimentacao}
+          marcaId={marca.id}
+          marcaNome={marca.nome}
+          usuarios={usuarios}
+          onClose={() => setPecaEmMovimentacao(null)}
+          onSave={handleUpdatePecaInFicha}
+        />
       )}
 
       {/* MODAL MINIATURA (PRINT 1) */}

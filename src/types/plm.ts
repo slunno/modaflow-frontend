@@ -29,6 +29,12 @@ export interface PecaItem {
   custo: number;
   preco: number;
   previsaoEntrega: string;
+  /** Fluxo operacional interno selecionado para a peça. */
+  fluxo?: string;
+  /** Usuário responsável pela etapa atual, validado pelo cadastro de usuários. */
+  responsavel?: string;
+  /** Registro livre da última movimentação de etapa. */
+  observacaoEtapa?: string;
   diasAtraso?: number;
 }
 

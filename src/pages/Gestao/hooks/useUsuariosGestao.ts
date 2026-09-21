@@ -38,7 +38,15 @@ export function useUsuariosGestao() {
             marcas: b.marcasPermitidas?.map((m) => m.nome) || [],
             status: b.ativo ? 'Ativo' : 'Inativo',
             acesso: b.ativo ? 'Permitido' : 'Bloqueado',
-            brandRoles: [],
+            // Mantém o cargo retornado pela API associado a cada marca permitida.
+            // Assim, telas operacionais podem validar se o usuário é elegível como responsável.
+            brandRoles:
+              b.marcasPermitidas?.map((marca) => ({
+                marcaId: marca.id,
+                marcaNome: marca.nome,
+                cargo: b.cargo || 'Nenhum',
+                times: [],
+              })) || [],
           }));
           setUsersList(mapped);
         }
