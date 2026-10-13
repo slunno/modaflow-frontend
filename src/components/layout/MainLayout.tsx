@@ -5,6 +5,7 @@ import {
   Bell,
   Building2,
   ChevronDown,
+  ChevronRight,
   CircleDollarSign,
   Gauge,
   GitBranch,
@@ -31,7 +32,9 @@ import './workspace.css';
 
 const groups = [
   {
+    id: 'cadastros',
     name: 'Cadastros',
+    icon: Layers,
     items: [
       ['/gestao/marcas', 'Marcas', Building2],
       ['/gestao/tecidos', 'Tecidos', SwatchBook],
@@ -43,7 +46,9 @@ const groups = [
     ],
   },
   {
+    id: 'operacao',
     name: 'Operação',
+    icon: CircleDollarSign,
     items: [
       ['/gestao/custos_fixos', 'Custos fixos', CircleDollarSign],
       ['/gestao/precificacao', 'Regras de precificação', Gauge],
@@ -51,7 +56,9 @@ const groups = [
     ],
   },
   {
+    id: 'administracao',
     name: 'Administração',
+    icon: Users,
     items: [
       ['/gestao/usuarios', 'Usuários', Users],
       ['/gestao/times', 'Times', Users],
@@ -68,6 +75,7 @@ export function MainLayout() {
   const products = useWorkspace<OperationalProduct>('products');
   const [mobile, setMobile] = useState(false);
   const [dropdown, setDropdown] = useState<'reports' | 'manage' | null>(null);
+  const [managementGroup, setManagementGroup] = useState<string | null>(null);
   const [profile, setProfile] = useState(false);
   const [contextOpen, setContextOpen] = useState(false);
   const [search, setSearch] = useState(params.get('q') ?? '');
@@ -76,6 +84,9 @@ export function MainLayout() {
   const mobileRef = useRef<HTMLButtonElement>(null);
   const reportsRef = useRef<HTMLButtonElement>(null);
   const manageRef = useRef<HTMLButtonElement>(null);
+  const groupTriggerRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const groupPanelRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const focusGroup = useRef(false);
   const contextRef = useRef<HTMLDivElement>(null);
   const contextTriggerRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -84,6 +95,12 @@ export function MainLayout() {
   useEffect(() => {
     if (contextOpen) contextRef.current?.querySelector<HTMLSelectElement>('select')?.focus();
   }, [contextOpen]);
+  useEffect(() => {
+    if (managementGroup && focusGroup.current) {
+      groupPanelRefs.current[managementGroup]?.querySelector<HTMLAnchorElement>('a[href]')?.focus();
+      focusGroup.current = false;
+    }
+  }, [managementGroup]);
   const brands = useMemo(() => user?.marcas ?? [], [user?.marcas]);
   useEffect(() => {
     const fromUrl = brands.find((b) => b.id === params.get('marca'));
@@ -93,12 +110,16 @@ export function MainLayout() {
   useEffect(() => {
     setMobile(false);
     setDropdown(null);
+    setManagementGroup(null);
     setContextOpen(false);
   }, [location.pathname, location.search]);
   useEffect(() => {
     const close = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        if (dropdown) {
+        if (managementGroup) {
+          groupTriggerRefs.current[managementGroup]?.focus();
+          setManagementGroup(null);
+        } else if (dropdown) {
           (dropdown === 'reports' ? reportsRef : manageRef).current?.focus();
           setDropdown(null);
         } else if (mobile) {
@@ -124,6 +145,7 @@ export function MainLayout() {
         !mobileRef.current?.contains(event.target as Node)
       ) {
         setDropdown(null);
+        setManagementGroup(null);
         setMobile(false);
       }
     };
@@ -133,7 +155,7 @@ export function MainLayout() {
       document.removeEventListener('keydown', close);
       document.removeEventListener('mousedown', outside);
     };
-  }, [dropdown, mobile, contextOpen]);
+  }, [dropdown, mobile, contextOpen, managementGroup]);
   const contextUrl = (path: string) => {
     const next = new URLSearchParams();
     if (activeMarca) next.set('marca', activeMarca.id);
@@ -176,6 +198,7 @@ export function MainLayout() {
               onBlur={(event) => {
                 if (!event.currentTarget.contains(event.relatedTarget)) {
                   setDropdown(null);
+                  setManagementGroup(null);
                   setMobile(false);
                 }
               }}
@@ -192,7 +215,10 @@ export function MainLayout() {
                   }
                   aria-expanded={dropdown === 'reports'}
                   aria-controls="workspace-reports"
-                  onClick={() => setDropdown(dropdown === 'reports' ? null : 'reports')}
+                  onClick={() => {
+                    setDropdown(dropdown === 'reports' ? null : 'reports');
+                    setManagementGroup(null);
+                  }}
                 >
                   Relatórios
                   <ChevronDown size={14} />
@@ -228,7 +254,10 @@ export function MainLayout() {
                   className={location.pathname.startsWith('/gestao') ? 'active' : ''}
                   aria-expanded={dropdown === 'manage'}
                   aria-controls="workspace-management"
-                  onClick={() => setDropdown(dropdown === 'manage' ? null : 'manage')}
+                  onClick={() => {
+                    setDropdown(dropdown === 'manage' ? null : 'manage');
+                    setManagementGroup(null);
+                  }}
                 >
                   Gestão
                   <ChevronDown size={14} />
@@ -236,17 +265,76 @@ export function MainLayout() {
                 {dropdown === 'manage' && (
                   <div className="akr-nav-popover akr-management-menu" id="workspace-management">
                     {groups.map((group) => (
-                      <div className="akr-nav-group" key={group.name}>
-                        <p>{group.name}</p>
-                        {group.items.map(([path, label, Icon]) => (
-                          <NavLink key={path} to={contextUrl(path)}>
-                            <Icon size={17} strokeWidth={1.6} />
-                            <span>{label}</span>
-                          </NavLink>
-                        ))}
+                      <div className="akr-nav-group" key={group.id}>
+                        <button
+                          ref={(node) => {
+                            groupTriggerRefs.current[group.id] = node;
+                          }}
+                          className="akr-group-trigger"
+                          aria-expanded={managementGroup === group.id}
+                          aria-controls={'workspace-group-' + group.id}
+                          onMouseEnter={(event) => {
+                            if (
+                              !mobile &&
+                              event.buttons === 0 &&
+                              window.matchMedia('(hover: hover)').matches
+                            )
+                              setManagementGroup(group.id);
+                          }}
+                          onClick={() =>
+                            setManagementGroup(
+                              mobile && managementGroup === group.id ? null : group.id
+                            )
+                          }
+                          onKeyDown={(event) => {
+                            if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+                              event.preventDefault();
+                              if (managementGroup === group.id)
+                                groupPanelRefs.current[group.id]
+                                  ?.querySelector<HTMLAnchorElement>('a[href]')
+                                  ?.focus();
+                              else {
+                                focusGroup.current = true;
+                                setManagementGroup(group.id);
+                              }
+                            }
+                          }}
+                        >
+                          <group.icon size={16} strokeWidth={1.7} />
+                          <span>{group.name}</span>
+                          <ChevronRight size={14} className="akr-submenu-arrow" />
+                        </button>
+                        {managementGroup === group.id && (
+                          <div
+                            id={'workspace-group-' + group.id}
+                            ref={(node) => {
+                              groupPanelRefs.current[group.id] = node;
+                            }}
+                            className="akr-group-menu"
+                            aria-label={group.name}
+                            onKeyDown={(event) => {
+                              if (event.key === 'ArrowLeft') {
+                                event.preventDefault();
+                                groupTriggerRefs.current[group.id]?.focus();
+                                setManagementGroup(null);
+                              }
+                            }}
+                          >
+                            {group.items.map(([path, label, Icon]) => (
+                              <NavLink key={path} to={contextUrl(path)}>
+                                <Icon size={16} strokeWidth={1.7} />
+                                <span>{label}</span>
+                              </NavLink>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ))}
-                    <NavLink className="akr-legacy-nav" to={contextUrl('/catalogo-legado')}>
+                    <NavLink
+                      className="akr-legacy-nav"
+                      to={contextUrl('/catalogo-legado')}
+                      onMouseEnter={() => setManagementGroup(null)}
+                    >
                       <Layers size={17} />
                       Acervo anterior<small>Rascunhos</small>
                     </NavLink>

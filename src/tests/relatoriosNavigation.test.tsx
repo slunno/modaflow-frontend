@@ -20,6 +20,27 @@ vi.mock('../hooks/useWorkspace', () => ({
   useWorkspace: () => ({ brand: '1', rows: [], loading: false, error: '', reload: vi.fn() }),
 }));
 vi.mock('../components/ui/ThemeToggle', () => ({ ThemeToggle: () => null }));
+function openManagementGroup(label: string) {
+  const cadastros = [
+    'Marcas',
+    'Tecidos',
+    'Aviamentos',
+    'Características e medidas',
+    'Tipos de peça',
+    'Tags',
+    'Campos customizados',
+  ];
+  const operacao = ['Custos fixos', 'Regras de precificação', 'Fluxos e etapas'];
+  fireEvent.click(
+    screen.getByRole('button', {
+      name: cadastros.includes(label)
+        ? 'Cadastros'
+        : operacao.includes(label)
+          ? 'Operação'
+          : 'Administração',
+    })
+  );
+}
 function CurrentRoute() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -59,7 +80,10 @@ describe('Navegação superior e continuidade do contexto', () => {
     mount(path);
     if (['/dashboard', '/bi', '/colecoes', '/pecas'].includes(path))
       fireEvent.click(screen.getByRole('button', { name: 'Relatórios' }));
-    if (path.startsWith('/gestao')) fireEvent.click(screen.getByRole('button', { name: 'Gestão' }));
+    if (path.startsWith('/gestao')) {
+      fireEvent.click(screen.getByRole('button', { name: 'Gestão' }));
+      openManagementGroup(label);
+    }
     const nav = within(screen.getByRole('navigation', { name: 'Navegação principal' }));
     expect(nav.getByRole('link', { name: label }).getAttribute('aria-current')).toBe('page');
     expect(screen.getByRole('heading', { name: path })).toBeDefined();
@@ -89,14 +113,17 @@ describe('Navegação superior e continuidade do contexto', () => {
       'Tecidos',
       'Aviamentos',
       'Características e medidas',
-    ])
+    ]) {
+      openManagementGroup(label);
       expect(nav.getByRole('link', { name: label }).getAttribute('href')).toMatch(/^\/gestao\//);
+    }
   });
   it('abre e fecha a navegação móvel ao escolher uma página', () => {
     mount();
     fireEvent.click(screen.getByRole('button', { name: 'Abrir navegação' }));
     expect(screen.getByRole('button', { name: 'Fechar navegação', expanded: true })).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Gestão' }));
+    openManagementGroup('Tags');
     fireEvent.click(screen.getByRole('link', { name: 'Tags' }));
     expect(
       screen.getByRole('button', { name: 'Abrir navegação' }).getAttribute('aria-expanded')
@@ -111,6 +138,32 @@ describe('Navegação superior e continuidade do contexto', () => {
     fireEvent.submit(screen.getByRole('search'));
     expect(screen.getByRole('heading', { name: '/pecas' })).toBeDefined();
     expect(screen.getByLabelText('Contexto atual').textContent).toContain('q=Bata');
+  });
+  it('Escape fecha primeiro a categoria e depois Gestão, restaurando o foco', () => {
+    mount();
+    fireEvent.click(screen.getByRole('button', { name: 'Gestão' }));
+    openManagementGroup('Tags');
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByRole('link', { name: 'Tags' })).toBeNull();
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Cadastros' }));
+    expect(screen.getByRole('button', { name: 'Gestão' }).getAttribute('aria-expanded')).toBe(
+      'true'
+    );
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Gestão' }));
+    expect(screen.getByRole('button', { name: 'Gestão' }).getAttribute('aria-expanded')).toBe(
+      'false'
+    );
+  });
+  it('setas entram e saem da categoria sem navegar nem perder o contexto', () => {
+    mount();
+    fireEvent.click(screen.getByRole('button', { name: 'Gestão' }));
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Operação' }), { key: 'ArrowRight' });
+    expect(document.activeElement).toBe(screen.getByRole('link', { name: 'Custos fixos' }));
+    fireEvent.keyDown(document.activeElement!, { key: 'ArrowLeft' });
+    expect(screen.queryByRole('link', { name: 'Custos fixos' })).toBeNull();
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Operação' }));
+    expect(screen.getByLabelText('Contexto atual').textContent).toBe('?marca=1&colecao=c1');
   });
   it('fecha a conta ao clicar fora e mantém logout funcional', () => {
     mount();
