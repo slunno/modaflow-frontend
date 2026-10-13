@@ -68,7 +68,7 @@
   font-size: 13px;
   letter-spacing: 0.18em;
   white-space: nowrap;
-  margin-right: 20px;
+  justify-self: start;
 }
 .akr-brand-dot {
   width: 4px;
@@ -79,27 +79,43 @@
 .akr-navigation {
   display: flex;
   align-items: center;
-  gap: 4px;
-  flex: 1;
+  gap: 22px;
+  justify-self: center;
 }
 .akr-navigation > a,
 .akr-nav-dropdown > button {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 12px;
-  border-radius: 7px;
+  position: relative;
+  padding: 8px 3px;
+  min-height: 40px;
   color: var(--color-muted);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 550;
 }
-.akr-navigation a:hover,
-.akr-nav-dropdown > button:hover,
-.akr-navigation a.active,
-.akr-nav-dropdown > button.active,
-.akr-nav-dropdown > button[aria-expanded='true'] {
+.akr-nav-popover a:hover,
+.akr-nav-popover a.active {
   background: var(--color-surface-muted);
   color: var(--color-primary);
+}
+.akr-navigation > a:hover,
+.akr-nav-dropdown > button:hover,
+.akr-navigation > a.active,
+.akr-nav-dropdown > button.active,
+.akr-nav-dropdown > button[aria-expanded='true'] {
+  color: var(--color-primary);
+}
+.akr-navigation > a.active::after,
+.akr-nav-dropdown > button.active::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  bottom: 1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--color-primary);
 }
 .akr-nav-dropdown {
   position: relative;
@@ -145,7 +161,7 @@
   grid-template-columns: 230px 215px 170px;
   gap: 8px;
   left: auto;
-  right: -160px;
+  right: -230px;
 }
 .akr-legacy-nav {
   grid-column: 1 / -1;
@@ -168,31 +184,76 @@
 }
 .akr-topbar {
   height: 56px;
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 24px;
+  padding: 0 24px;
+}
+.akr-header-actions {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 30px;
+  justify-self: end;
+  min-width: 0;
+  position: relative;
 }
 .akr-contextbar {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  min-width: 0;
-  margin-left: auto;
-  order: 2;
+  display: none;
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: min(380px, calc(100vw - 32px));
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  box-shadow: 0 8px 26px #0002;
 }
-.akr-topbar > button,
-.akr-topbar > .akr-notification,
-.akr-topbar > .akr-profile {
-  order: 3;
+.akr-contextbar.is-open {
+  display: grid;
+  gap: 12px;
+}
+.akr-contextbar .akr-search {
+  width: 100%;
+}
+.akr-contextbar .akr-context {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 8px;
+}
+.akr-contextbar .akr-context > svg,
+.akr-contextbar .akr-context-divider {
+  display: none;
+}
+.akr-contextbar .akr-context select {
+  width: 100%;
+  max-width: none;
+  background: var(--color-surface-muted);
+  border-radius: 6px;
+  padding: 0 8px;
+}
+.akr-contextbar .sr-only {
+  position: static;
+  width: auto;
+  height: auto;
+  clip: auto;
+  clip-path: none;
+  overflow: visible;
+  margin: 0 0 4px;
+  display: block;
+  color: var(--color-muted);
+  font-size: 11px;
+}
+.akr-header-actions > button,
+.akr-header-actions > .akr-notification,
+.akr-header-actions > .akr-profile {
   flex-shrink: 0;
 }
 .akr-icon-button.akr-context-toggle {
-  display: none;
-}
-.akr-topbar .akr-navigation {
-  flex: 1 0 auto;
-  order: 1;
+  display: inline-flex;
 }
 .akr-context {
   display: flex;
@@ -271,7 +332,7 @@
   align-items: center;
   gap: 5px;
 }
-.akr-profile-button > span {
+.akr-profile-button > span:first-child {
   width: 30px;
   height: 30px;
   display: grid;
@@ -282,6 +343,28 @@
   border-radius: 50%;
   font-size: 12px;
   font-weight: 700;
+}
+.akr-profile-name {
+  display: block;
+  font-size: 12px;
+  font-weight: 550;
+  max-width: 112px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.akr-header-actions > button {
+  border: 0;
+  background: transparent;
+  border-radius: 7px;
+  min-width: 32px;
+  width: 32px;
+  min-height: 32px;
+  height: 32px;
+  padding: 0;
+}
+.akr-header-actions > button:hover {
+  background: var(--color-surface-muted);
 }
 .akr-profile-menu {
   position: absolute;
@@ -985,59 +1068,6 @@
     min-height: 38px;
   }
 }
-@media (max-width: 1350px) {
-  .akr-icon-button.akr-context-toggle {
-    display: inline-flex;
-  }
-  .akr-contextbar {
-    display: none;
-    position: absolute;
-    top: 64px;
-    right: 16px;
-    width: min(380px, calc(100vw - 32px));
-    padding: 16px;
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    background: var(--color-surface);
-    box-shadow: 0 8px 26px #0002;
-  }
-  .akr-contextbar.is-open {
-    display: grid;
-    gap: 12px;
-  }
-  .akr-contextbar .akr-search {
-    display: flex;
-    width: 100%;
-  }
-  .akr-contextbar .akr-context {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .akr-contextbar .akr-context > svg,
-  .akr-contextbar .akr-context-divider {
-    display: none;
-  }
-  .akr-contextbar .akr-context select {
-    width: 100%;
-    max-width: none;
-    background: var(--color-surface-muted);
-    border-radius: 6px;
-    padding: 0 8px;
-  }
-  .akr-contextbar .sr-only {
-    position: static;
-    width: auto;
-    height: auto;
-    clip: auto;
-    clip-path: none;
-    overflow: visible;
-    margin: 0 0 4px;
-    display: block;
-    color: var(--color-muted);
-    font-size: 11px;
-  }
-}
 @media (max-width: 1200px) {
   .akr-search {
     width: 190px;
@@ -1067,7 +1097,13 @@
     padding: 24px;
   }
 }
-@media (max-width: 900px) {
+@media (max-width: 720px) {
+  .akr-profile-name {
+    display: none;
+  }
+  .akr-header-actions {
+    gap: 4px;
+  }
   .akr-mobile-menu {
     display: inline-flex;
   }
@@ -1078,6 +1114,7 @@
   }
   .akr-navigation {
     display: none;
+    justify-self: stretch;
     position: absolute;
     top: 56px;
     left: 8px;
@@ -1115,6 +1152,7 @@
     grid-template-columns: 1fr;
   }
   .akr-topbar {
+    grid-template-columns: minmax(0, 1fr) auto;
     padding: 0 12px;
     gap: 6px;
   }

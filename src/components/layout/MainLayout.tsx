@@ -79,7 +79,7 @@ export function MainLayout() {
   const contextRef = useRef<HTMLDivElement>(null);
   const contextTriggerRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    if (mobile) navigationRef.current?.querySelector<HTMLAnchorElement>('a[href]')?.focus();
+    if (mobile) navigationRef.current?.querySelector<HTMLButtonElement>('button')?.focus();
   }, [mobile]);
   useEffect(() => {
     if (contextOpen) contextRef.current?.querySelector<HTMLSelectElement>('select')?.focus();
@@ -160,8 +160,9 @@ export function MainLayout() {
           <div className="akr-topbar">
             <NavLink
               className="akr-wordmark"
-              to={contextUrl('/dashboard')}
-              aria-label="AKR Brands — Dashboard"
+              to={contextUrl('/colecoes')}
+              aria-label="AKR Brands — Coleções"
+              title="Voltar às coleções"
             >
               <strong>AKR</strong>
               <span className="akr-brand-dot" />
@@ -179,15 +180,11 @@ export function MainLayout() {
                 }
               }}
             >
-              <NavLink to={contextUrl('/colecoes')}>Coleções</NavLink>
-              <NavLink to={contextUrl('/pecas')} aria-label="Peças / Fichas técnicas">
-                Peças
-              </NavLink>
               <div className="akr-nav-dropdown">
                 <button
                   ref={reportsRef}
                   className={
-                    ['/dashboard', '/bi', '/relatorios', '/products'].some((p) =>
+                    ['/dashboard', '/bi', '/relatorios', '/products', '/pecas'].some((p) =>
                       location.pathname.startsWith(p)
                     )
                       ? 'active'
@@ -202,6 +199,14 @@ export function MainLayout() {
                 </button>
                 {dropdown === 'reports' && (
                   <div className="akr-nav-popover" id="workspace-reports">
+                    <NavLink to={contextUrl('/colecoes')}>
+                      <Layers size={17} />
+                      Coleções
+                    </NavLink>
+                    <NavLink to={contextUrl('/pecas')} aria-label="Peças / Fichas técnicas">
+                      <Shirt size={17} />
+                      Peças / Fichas técnicas
+                    </NavLink>
                     <NavLink to={contextUrl('/dashboard')}>
                       <LayoutDashboard size={17} />
                       Dashboard
@@ -250,146 +255,149 @@ export function MainLayout() {
               </div>
               <NavLink to={contextUrl('/kanban')}>Kanban</NavLink>
             </nav>
-            <button
-              ref={contextTriggerRef}
-              className="akr-icon-button akr-context-toggle"
-              aria-label="Marca, coleção e busca"
-              aria-expanded={contextOpen}
-              aria-controls="workspace-context"
-              onClick={() => {
-                setContextOpen(!contextOpen);
-                setMobile(false);
-              }}
-            >
-              <Search size={18} />
-            </button>
-            <button
-              ref={mobileRef}
-              className="akr-icon-button akr-mobile-menu"
-              aria-label={mobile ? 'Fechar navegação' : 'Abrir navegação'}
-              aria-expanded={mobile}
-              aria-controls="workspace-navigation"
-              onClick={() => {
-                setMobile(!mobile);
-                setContextOpen(false);
-              }}
-            >
-              {mobile ? <X size={20} /> : <Menu size={20} />}
-            </button>
-            <ThemeToggle />
-            <NavLink
-              className="akr-icon-button akr-notification"
-              to={contextUrl('/notifications')}
-              aria-label={
-                'Itens que precisam de atenção' +
-                (needsAttention ? ' (' + needsAttention + ')' : '')
-              }
-            >
-              <Bell size={19} />
-              {needsAttention > 0 && <i />}
-            </NavLink>
-            <div ref={profileRef} className="akr-profile">
+            <div className="akr-header-actions">
               <button
-                className="akr-profile-button"
-                onClick={() => setProfile(!profile)}
-                aria-expanded={profile}
-                aria-label={'Conta de ' + (user?.nome ?? 'Usuário')}
-              >
-                <span>{user?.nome.charAt(0) ?? 'U'}</span>
-                <ChevronDown size={13} />
-              </button>
-              {profile && (
-                <div className="akr-profile-menu">
-                  <strong>{user?.nome}</strong>
-                  <small>{user?.email}</small>
-                  <small>{user?.cargo}</small>
-                  <button
-                    onClick={() => {
-                      logout();
-                      navigate('/login');
-                    }}
-                  >
-                    <LogOut size={16} />
-                    Sair da conta
-                  </button>
-                </div>
-              )}
-            </div>
-            <div
-              ref={contextRef}
-              id="workspace-context"
-              className={'akr-contextbar ' + (contextOpen ? 'is-open' : '')}
-              onBlur={(event) => {
-                if (!event.currentTarget.contains(event.relatedTarget)) setContextOpen(false);
-              }}
-            >
-              <div className="akr-context">
-                <Building2 size={16} aria-hidden />
-                <label>
-                  <span className="sr-only">Marca da área de trabalho</span>
-                  <select
-                    value={activeMarca?.id ?? ''}
-                    onChange={(event) => {
-                      const brand = brands.find((b) => b.id === event.target.value);
-                      if (brand) {
-                        setActiveMarca(brand);
-                        setParams({ marca: brand.id });
-                      }
-                    }}
-                  >
-                    <option value="" disabled>
-                      Selecione uma marca
-                    </option>
-                    {brands.map((b) => (
-                      <option value={b.id} key={b.id}>
-                        {b.nome}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <span className="akr-context-divider">/</span>
-                <label>
-                  <span className="sr-only">Coleção da área de trabalho</span>
-                  <select
-                    value={selectedCollection}
-                    onChange={(event) => {
-                      const next = new URLSearchParams(params);
-                      if (event.target.value) next.set('colecao', event.target.value);
-                      else next.delete('colecao');
-                      setParams(next);
-                    }}
-                  >
-                    <option value="">Todas as coleções</option>
-                    {collections.rows.map((c) => (
-                      <option key={c.id} value={c.data.id}>
-                        {c.data.nome}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <form
-                className="akr-search"
-                role="search"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  navigate(
-                    contextUrl('/pecas') +
-                      (activeMarca ? '&' : '?') +
-                      'q=' +
-                      encodeURIComponent(search)
-                  );
+                ref={contextTriggerRef}
+                className="akr-icon-button akr-context-toggle"
+                aria-label="Marca, coleção e busca"
+                aria-expanded={contextOpen}
+                aria-controls="workspace-context"
+                onClick={() => {
+                  setContextOpen(!contextOpen);
+                  setMobile(false);
                 }}
               >
-                <Search size={16} />
-                <input
-                  aria-label="Buscar modelos ou códigos"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Buscar modelos ou códigos"
-                />
-                <kbd>↵</kbd>
-              </form>
+                <Search size={18} />
+              </button>
+              <button
+                ref={mobileRef}
+                className="akr-icon-button akr-mobile-menu"
+                aria-label={mobile ? 'Fechar navegação' : 'Abrir navegação'}
+                aria-expanded={mobile}
+                aria-controls="workspace-navigation"
+                onClick={() => {
+                  setMobile(!mobile);
+                  setContextOpen(false);
+                }}
+              >
+                {mobile ? <X size={20} /> : <Menu size={20} />}
+              </button>
+              <ThemeToggle />
+              <NavLink
+                className="akr-icon-button akr-notification"
+                to={contextUrl('/notifications')}
+                aria-label={
+                  'Itens que precisam de atenção' +
+                  (needsAttention ? ' (' + needsAttention + ')' : '')
+                }
+              >
+                <Bell size={19} />
+                {needsAttention > 0 && <i />}
+              </NavLink>
+              <div ref={profileRef} className="akr-profile">
+                <button
+                  className="akr-profile-button"
+                  onClick={() => setProfile(!profile)}
+                  aria-expanded={profile}
+                  aria-label={'Conta de ' + (user?.nome ?? 'Usuário')}
+                >
+                  <span>{user?.nome.charAt(0) ?? 'U'}</span>
+                  <span className="akr-profile-name">{user?.nome ?? 'Usuário'}</span>
+                  <ChevronDown size={13} />
+                </button>
+                {profile && (
+                  <div className="akr-profile-menu">
+                    <strong>{user?.nome}</strong>
+                    <small>{user?.email}</small>
+                    <small>{user?.cargo}</small>
+                    <button
+                      onClick={() => {
+                        logout();
+                        navigate('/login');
+                      }}
+                    >
+                      <LogOut size={16} />
+                      Sair da conta
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div
+                ref={contextRef}
+                id="workspace-context"
+                className={'akr-contextbar ' + (contextOpen ? 'is-open' : '')}
+                onBlur={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget)) setContextOpen(false);
+                }}
+              >
+                <div className="akr-context">
+                  <Building2 size={16} aria-hidden />
+                  <label>
+                    <span className="sr-only">Marca da área de trabalho</span>
+                    <select
+                      value={activeMarca?.id ?? ''}
+                      onChange={(event) => {
+                        const brand = brands.find((b) => b.id === event.target.value);
+                        if (brand) {
+                          setActiveMarca(brand);
+                          setParams({ marca: brand.id });
+                        }
+                      }}
+                    >
+                      <option value="" disabled>
+                        Selecione uma marca
+                      </option>
+                      {brands.map((b) => (
+                        <option value={b.id} key={b.id}>
+                          {b.nome}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <span className="akr-context-divider">/</span>
+                  <label>
+                    <span className="sr-only">Coleção da área de trabalho</span>
+                    <select
+                      value={selectedCollection}
+                      onChange={(event) => {
+                        const next = new URLSearchParams(params);
+                        if (event.target.value) next.set('colecao', event.target.value);
+                        else next.delete('colecao');
+                        setParams(next);
+                      }}
+                    >
+                      <option value="">Todas as coleções</option>
+                      {collections.rows.map((c) => (
+                        <option key={c.id} value={c.data.id}>
+                          {c.data.nome}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <form
+                  className="akr-search"
+                  role="search"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    navigate(
+                      contextUrl('/pecas') +
+                        (activeMarca ? '&' : '?') +
+                        'q=' +
+                        encodeURIComponent(search)
+                    );
+                  }}
+                >
+                  <Search size={16} />
+                  <input
+                    aria-label="Buscar modelos ou códigos"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Buscar modelos ou códigos"
+                  />
+                  <kbd>↵</kbd>
+                </form>
+              </div>
             </div>
           </div>
         </header>

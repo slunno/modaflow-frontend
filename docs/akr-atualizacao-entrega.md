@@ -2,7 +2,7 @@
 
 ## Resultado
 
-O portal mantém a ficha técnica e os editores especializados e passa a compartilhar os registros operacionais pela API. Coleções, modelos, cadastros, Kanban, dashboard e BI usam a mesma origem de dados. A navegação final segue a correção solicitada pelo usuário: menu superior em **uma única faixa compacta**, sem sidebar fixa e sem segunda barra. Gestão e Relatórios usam menus suspensos; marca, coleção e busca permanecem acessíveis, inclusive em telas pequenas. Tema claro e escuro preservados.
+O portal mantém a ficha técnica e os editores especializados e passa a compartilhar os registros operacionais pela API. Coleções, modelos, cadastros, Kanban, dashboard e BI usam a mesma origem de dados. A navegação final restaura a composição anterior escolhida pelo usuário: **AKR à esquerda, Relatórios/Gestão/Kanban centralizados e conta à direita**, em uma única faixa compacta. Coleções e peças ficam acessíveis pelo menu Relatórios; a marca também abre Coleções. Marca, coleção e busca permanecem disponíveis em um menu auxiliar, inclusive em telas pequenas. Tema claro e escuro preservados.
 
 O pedido final de “subir” foi esclarecido como atualização local e commit. Não foi solicitado deploy nem push. As consultas à Vercel foram somente de leitura; nenhum deployment ou configuração foi alterado.
 
@@ -61,13 +61,14 @@ Ambiente isolado: frontend `localhost:5174`, API `127.0.0.1:18080`, banco H2 sep
 
 ## Evidências visuais
 
+- `evidence/akr-menu-restaurado-desktop.jpg` — composição final: marca à esquerda, três menus centralizados e conta à direita. A correção passou nos 12 testes de navegação e foi conferida em desktop e celular.
 - `evidence/akr-dashboard-desktop.jpg`
 - `evidence/akr-dashboard-dark.jpg`
 - `evidence/akr-dashboard-mobile.jpg`
 - `evidence/akr-navegacao-desktop.jpg`
 - `evidence/akr-ficha-mobile.jpg`
 
-As capturas usam exclusivamente o cenário isolado de conferência, não números fictícios na base operacional normal.
+As capturas usam exclusivamente o cenário isolado de conferência, não números fictícios na base operacional normal. As capturas anteriores do dashboard e da ficha documentam a validação funcional; a imagem do menu restaurado registra a última correção do cabeçalho.
 
 ## Limites preservados
 

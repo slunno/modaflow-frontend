@@ -57,7 +57,7 @@ describe('Navegação superior e continuidade do contexto', () => {
     ['/gestao/fluxos', 'Fluxos e etapas'],
   ])('abre %s diretamente e sinaliza a rota ativa', (path, label) => {
     mount(path);
-    if (path === '/dashboard' || path === '/bi')
+    if (['/dashboard', '/bi', '/colecoes', '/pecas'].includes(path))
       fireEvent.click(screen.getByRole('button', { name: 'Relatórios' }));
     if (path.startsWith('/gestao')) fireEvent.click(screen.getByRole('button', { name: 'Gestão' }));
     const nav = within(screen.getByRole('navigation', { name: 'Navegação principal' }));
@@ -69,6 +69,7 @@ describe('Navegação superior e continuidade do contexto', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Relatórios' }));
     fireEvent.click(screen.getByRole('link', { name: 'Relatórios e BI' }));
     expect(screen.getByLabelText('Contexto atual').textContent).toBe('?marca=1&colecao=c1');
+    fireEvent.click(screen.getByRole('button', { name: 'Relatórios' }));
     fireEvent.click(screen.getByRole('link', { name: 'Peças / Fichas técnicas' }));
     expect(screen.getByRole('heading', { name: '/pecas' })).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Voltar no histórico' }));
@@ -103,6 +104,7 @@ describe('Navegação superior e continuidade do contexto', () => {
   });
   it('envia a busca à lista mantendo o contexto', () => {
     mount();
+    fireEvent.click(screen.getByRole('button', { name: 'Marca, coleção e busca' }));
     fireEvent.change(screen.getByRole('textbox', { name: 'Buscar modelos ou códigos' }), {
       target: { value: 'Bata' },
     });
