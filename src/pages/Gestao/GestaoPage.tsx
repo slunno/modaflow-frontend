@@ -4,24 +4,19 @@
  * ARQUIVO: src/pages/Gestao/GestaoPage.tsx
  * PROJETO: ModaFlow PLM — AKR BRANDS
  * DESCRIÇÃO: Interface de gerenciamento centralizado de Marcas, Usuários, Times,
- *            Tecidos, Aviamentos e Características.
- *            Refatorada com decomposição modular de abas, modais e custom hooks.
+ *            Tecidos, Aviamentos, Características e cadastros administrativos.
+ *            Conectado às APIs reais do backend com confirmação de salvamento,
+ *            tratamento de erros e diferenciação clara de módulos planejados.
  * ============================================================================
  */
 
 import React, { useState } from 'react';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import type { MarcaSummary } from '../../types/auth';
-import type {
-  GestaoPageProps,
-  GestaoSubTab,
-  TeamItem,
-  TecidoInsumoItem,
-  UserRecord,
-} from '../../types/gestao';
+import type { GestaoPageProps, GestaoSubTab, TeamItem, TecidoInsumoItem } from '../../types/gestao';
 
 import { useMarcasGestao } from './hooks/useMarcasGestao';
 import { useUsuariosGestao } from './hooks/useUsuariosGestao';
-import { registerUserApi } from '../../services/authService';
 import { useTimesGestao } from './hooks/useTimesGestao';
 import { useTecidosGestao } from './hooks/useTecidosGestao';
 import { useAviamentosGestao } from './hooks/useAviamentosGestao';
@@ -36,7 +31,6 @@ import { CaracteristicasTab } from './tabs/CaracteristicasTab';
 import { CustosFixosTab } from './tabs/CustosFixosTab';
 import { PrecificacaoTab } from './tabs/PrecificacaoTab';
 import { TiposPecaTab } from './tabs/TiposPecaTab';
-import { FornecedoresTab } from './tabs/FornecedoresTab';
 import { TagsTab } from './tabs/TagsTab';
 import { FluxosTab } from './tabs/FluxosTab';
 import { CamposCustomTab } from './tabs/CamposCustomTab';
@@ -44,17 +38,26 @@ import { CamposCustomTab } from './tabs/CamposCustomTab';
 import { CriarMarcaModal } from './modals/CriarMarcaModal';
 import { EditarMarcaModal } from './modals/EditarMarcaModal';
 import { AtualizarTimeModal } from './modals/AtualizarTimeModal';
-import { ImportarInsumosModal } from './modals/ImportarInsumosModal';
 import { CriarUsuarioModal } from './modals/CriarUsuarioModal';
 import { CriarCaracteristicaModal } from './modals/CriarCaracteristicaModal';
-import { CriarTecidoModal } from './modals/CriarTecidoModal';
 import { ModificarTimesMarcaModal } from './modals/ModificarTimesMarcaModal';
+import { CriarTecidoModal } from './modals/CriarTecidoModal';
+import { ImportarInsumosModal } from './modals/ImportarInsumosModal';
 import type { FormTabelaItem } from './modals/CriarCaracteristicaModal';
-import { Users2, X } from 'lucide-react';
 
 export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   // Aba Ativa
-  const [gestaoSubTab, setGestaoSubTab] = useState<GestaoSubTab>('marcas');
+  const { tab } = useParams();
+  const navigate = useNavigate();
+  const { search } = useLocation();
+  const gestaoSubTab = (
+    tab === 'caracteristicas-legado'
+      ? 'caracteristicas'
+      : tab === 'times-legado'
+        ? 'times'
+        : (tab ?? 'marcas')
+  ) as GestaoSubTab;
+  const setGestaoSubTab = (value: GestaoSubTab) => navigate('/gestao/' + value + search);
 
   // Custom Hooks por domínio
   const marcasHook = useMarcasGestao();
@@ -64,35 +67,21 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   const aviamentosHook = useAviamentosGestao();
   const caracteristicasHook = useCaracteristicasGestao();
 
-  // Estados de Modais
+  // Estados de Modais de Marcas
   const [showCriarMarcaModal, setShowCriarMarcaModal] = useState(false);
   const [editingMarca, setEditingMarca] = useState<MarcaSummary | null>(null);
   const [formMarcaNome, setFormMarcaNome] = useState('');
   const [formMarcaIntegracaoId, setFormMarcaIntegracaoId] = useState('');
 
+  // Estados de Modais de Times
   const [showAtualizarTimeModal, setShowAtualizarTimeModal] = useState(false);
   const [editingTeam, setEditingTeam] = useState<TeamItem | null>(null);
   const [teamFormNome, setTeamFormNome] = useState('');
   const [teamFormDesignado, setTeamFormDesignado] = useState(false);
   const [teamFormDescricao, setTeamFormDescricao] = useState('');
-
   const [updatingTeamsMarca, setUpdatingTeamsMarca] = useState<MarcaSummary | null>(null);
 
-  const [showCriandoInsumoModal, setShowCriandoInsumoModal] = useState(false);
-  const [showInformacoesTecidoModal, setShowInformacoesTecidoModal] = useState(false);
-  const [editingTecido, setEditingTecido] = useState<TecidoInsumoItem | null>(null);
-
-  const [showCriandoAviamentoModal, setShowCriandoAviamentoModal] = useState(false);
-  const [showInformacoesAviamentoModal, setShowInformacoesAviamentoModal] = useState(false);
-  const [editingAviamento, setEditingAviamento] = useState<TecidoInsumoItem | null>(null);
-  const [aviamentoNome, setAviamentoNome] = useState('');
-  const [aviamentoCodigo, setAviamentoCodigo] = useState('');
-  const [aviamentoPreco, setAviamentoPreco] = useState('0');
-  const [aviamentoUnidade, setAviamentoUnidade] = useState<'Unidade' | 'Metros'>('Unidade');
-  const [aviamentoObservacoes, setAviamentoObservacoes] = useState('');
-
-  const [showImportarInsumosModal, setShowImportarInsumosModal] = useState(false);
-
+  // Estados de Modais de Usuários
   const [showCriarUsuarioModal, setShowCriarUsuarioModal] = useState(false);
   const [newUserName, setNewUserName] = useState('');
   const [newUserCodigo, setNewUserCodigo] = useState('');
@@ -101,11 +90,18 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   const [newUserSenha, setNewUserSenha] = useState('');
   const [newUserConfirmarSenha, setNewUserConfirmarSenha] = useState('');
 
+  // Estados de Modais de Características
   const [showCriarCaracteristicaModal, setShowCriarCaracteristicaModal] = useState(false);
   const [caracteristicaFormNome, setCaracteristicaFormNome] = useState('');
   const [caracteristicaFormTabelas, setCaracteristicaFormTabelas] = useState<FormTabelaItem[]>([
     { id: 'tab-1', nomeTabela: '', medidas: '' },
   ]);
+
+  // Estados de Modais de Insumos (Tecidos & Aviamentos)
+  const [showCriarInsumoModal, setShowCriarInsumoModal] = useState(false);
+  const [editingInsumo, setEditingInsumo] = useState<TecidoInsumoItem | null>(null);
+  const [showImportarInsumosModal, setShowImportarInsumosModal] = useState(false);
+  const [tipoInsumoModal, setTipoInsumoModal] = useState<'TECIDO' | 'AVIAMENTO'>('TECIDO');
 
   // Handlers para Marcas
   const handleOpenEditarMarca = (marca: MarcaSummary) => {
@@ -124,6 +120,28 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   const handleOpenAtualizarTimes = (marca: MarcaSummary) => {
     marcasHook.setOpenMenuMarcaId(null);
     setUpdatingTeamsMarca(marca);
+  };
+
+  const handleSaveMarca = async () => {
+    if (!formMarcaNome.trim()) return;
+    await marcasHook.addMarca({
+      nome: formMarcaNome.trim(),
+      code: formMarcaIntegracaoId.trim() || formMarcaNome.slice(0, 4).toUpperCase(),
+    });
+    setShowCriarMarcaModal(false);
+    setFormMarcaNome('');
+    setFormMarcaIntegracaoId('');
+  };
+
+  const handleUpdateMarca = async () => {
+    if (!editingMarca || !formMarcaNome.trim()) return;
+    await marcasHook.updateMarca(editingMarca.id, {
+      nome: formMarcaNome.trim(),
+      code: formMarcaIntegracaoId.trim() || editingMarca.code,
+    });
+    setEditingMarca(null);
+    setFormMarcaNome('');
+    setFormMarcaIntegracaoId('');
   };
 
   // Handlers para Times
@@ -161,113 +179,27 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   const handleCreateUser = async () => {
     if (!newUserName.trim() || !newUserEmail.trim()) return;
 
-    try {
-      // 1. Cadastra o novo usuário na API backend (com Hash BCrypt)
-      const created = await registerUserApi({
-        nome: newUserName.trim(),
-        email: newUserEmail.trim(),
-        senha: newUserSenha || '123456',
-        cargo: 'Estilista',
-        empresa: 'AKR BRANDS',
-      });
-
-      // 2. Adiciona o usuário recém-criado na lista local
-      const newUser: UserRecord = {
-        id: String(created.id || Date.now()),
-        nome: newUserName.trim(),
-        email: newUserEmail.trim(),
-        codigo: newUserCodigo.trim() || undefined,
-        marcas: marcasHook.marcasList.map((m) => m.nome),
-        status: 'Ativo',
-        acesso: 'Permitido',
-        isFantasma: newUserIsFantasma,
-        brandRoles: marcasHook.marcasList.map((m) => ({
-          marcaId: m.id,
-          marcaNome: m.nome,
-          cargo: 'Nenhum',
-          times: [],
-        })),
-      };
-      usuariosHook.addUser(newUser);
-      setShowCriarUsuarioModal(false);
-      setNewUserName('');
-      setNewUserCodigo('');
-      setNewUserEmail('');
-      setNewUserIsFantasma(false);
-      setNewUserSenha('');
-      setNewUserConfirmarSenha('');
-      usuariosHook.setEditingUserProfile(newUser);
-    } catch (err: unknown) {
-      const errorData = err as { message?: string };
-      alert(errorData.message || 'Erro ao cadastrar usuário no backend.');
-    }
-  };
-
-  const handleSaveUserProfile = () => {
-    if (!usuariosHook.editingUserProfile) return;
-    usuariosHook.updateUser(usuariosHook.editingUserProfile);
-    usuariosHook.setEditingUserProfile(null);
-  };
-
-  // Handlers para Tecidos
-  const handleSaveTecidoModal = (tecido: TecidoInsumoItem) => {
-    if (editingTecido) {
-      tecidosHook.updateTecido(tecido);
-    } else {
-      tecidosHook.addTecido(tecido);
-    }
-    setShowCriandoInsumoModal(false);
-    setShowInformacoesTecidoModal(false);
-    setEditingTecido(null);
-  };
-
-  const handleOpenEditarTecido = (tecido: TecidoInsumoItem) => {
-    tecidosHook.setOpenMenuTecidoId(null);
-    setEditingTecido(tecido);
-    setShowInformacoesTecidoModal(true);
-  };
-
-  // Handlers para Aviamentos
-  const handleCreateAviamento = () => {
-    if (!aviamentoNome.trim()) return;
-    const newAviamento: TecidoInsumoItem = {
-      id: `avi-${Date.now()}`,
-      nome: aviamentoNome.trim(),
-      codigo: aviamentoCodigo.trim() || '1234',
-      temErp: true,
-      fornecedores: 'FORNECEDOR PADRÃO',
-      custo: `R$ ${aviamentoPreco || '0'},0000 /${aviamentoUnidade === 'Metros' ? 'M' : 'UN'}`,
-      unidade: aviamentoUnidade,
-    };
-    aviamentosHook.addAviamento(newAviamento);
-    setShowCriandoAviamentoModal(false);
-    setAviamentoNome('');
-    setAviamentoCodigo('');
-    setAviamentoPreco('0');
-    setAviamentoObservacoes('');
-  };
-
-  const handleOpenEditarAviamento = (aviamento: TecidoInsumoItem) => {
-    aviamentosHook.setOpenMenuAviamentoId(null);
-    setEditingAviamento(aviamento);
-    setAviamentoNome(aviamento.nome);
-    setAviamentoCodigo(aviamento.codigo);
-    setAviamentoPreco(aviamento.custo.split(' ')[1]?.split(',')[0] || '0');
-    setAviamentoUnidade(aviamento.unidade === 'Metros' ? 'Metros' : 'Unidade');
-    setShowInformacoesAviamentoModal(true);
-  };
-
-  const handleSaveEditAviamento = () => {
-    if (!editingAviamento) return;
-    aviamentosHook.updateAviamento({
-      ...editingAviamento,
-      nome: aviamentoNome,
-      codigo: aviamentoCodigo,
-      custo: `R$ ${aviamentoPreco || '0'},0000 /${aviamentoUnidade === 'Metros' ? 'M' : 'UN'}`,
-      unidade: aviamentoUnidade,
+    await usuariosHook.createUser({
+      nome: newUserName.trim(),
+      email: newUserEmail.trim(),
+      senha: newUserSenha,
+      cargo: newUserIsFantasma ? 'Fantasma' : 'Estilista',
+      empresa: 'AKR BRANDS',
     });
-    setShowInformacoesAviamentoModal(false);
-    setEditingAviamento(null);
+
+    setShowCriarUsuarioModal(false);
+    setNewUserName('');
+    setNewUserCodigo('');
+    setNewUserEmail('');
+    setNewUserIsFantasma(false);
+    setNewUserSenha('');
+    setNewUserConfirmarSenha('');
+  };
+
+  const handleSaveUserProfile = async () => {
+    if (!usuariosHook.editingUserProfile) return;
+    await usuariosHook.updateUser(usuariosHook.editingUserProfile);
+    usuariosHook.setEditingUserProfile(null);
   };
 
   // Handlers para Características
@@ -295,112 +227,42 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
     setCaracteristicaFormTabelas((prev) => prev.filter((t) => t.id !== id));
   };
 
+  const subTabsList: Array<{ id: GestaoSubTab; label: string }> = [
+    { id: 'marcas', label: 'Marcas' },
+    { id: 'usuarios', label: 'Usuários' },
+    { id: 'times', label: 'Times' },
+    { id: 'tecidos', label: 'Tecidos' },
+    { id: 'aviamentos', label: 'Aviamentos' },
+    { id: 'caracteristicas', label: 'Características' },
+    { id: 'custos_fixos', label: 'Custos Fixos' },
+    { id: 'precificacao', label: 'Precificação' },
+    { id: 'tipos_peca', label: 'Tipos de Peça' },
+    { id: 'tags', label: 'Tags' },
+    { id: 'fluxos', label: 'Fluxos' },
+    { id: 'campos_custom', label: 'Campos Customizados' },
+  ];
+
   return (
     <div className="w-full min-h-screen bg-bg text-primary pb-16 font-sans">
       {/* 1. SUB-NAVEGAÇÃO DE GESTÃO & CADASTROS BASE */}
-      <div className="bg-surface border-b border-border shadow-2xs sticky top-16 z-40">
+      <div className="hidden" aria-hidden="true">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-6 overflow-x-auto py-3 text-xs font-semibold scrollbar-none">
-            <button
-              type="button"
-              onClick={() => {
-                usuariosHook.setEditingUserProfile(null);
-                setGestaoSubTab('marcas');
-              }}
-              className={`whitespace-nowrap transition cursor-pointer pb-1 ${
-                gestaoSubTab === 'marcas' && !usuariosHook.editingUserProfile
-                  ? 'text-primary font-bold border-b-2 border-primary'
-                  : 'text-muted hover:text-primary'
-              }`}
-            >
-              Marcas
-            </button>
-            <button
-              type="button"
-              onClick={() => setGestaoSubTab('usuarios')}
-              className={`whitespace-nowrap transition cursor-pointer pb-1 ${
-                gestaoSubTab === 'usuarios' || usuariosHook.editingUserProfile
-                  ? 'text-primary font-bold border-b-2 border-primary'
-                  : 'text-muted hover:text-primary'
-              }`}
-            >
-              Usuários
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                usuariosHook.setEditingUserProfile(null);
-                setGestaoSubTab('times');
-              }}
-              className={`whitespace-nowrap transition cursor-pointer pb-1 ${
-                gestaoSubTab === 'times'
-                  ? 'text-primary font-bold border-b-2 border-primary'
-                  : 'text-muted hover:text-primary'
-              }`}
-            >
-              Times
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                usuariosHook.setEditingUserProfile(null);
-                setGestaoSubTab('tecidos');
-              }}
-              className={`whitespace-nowrap transition cursor-pointer pb-1 ${
-                gestaoSubTab === 'tecidos'
-                  ? 'text-primary font-bold border-b-2 border-primary'
-                  : 'text-muted hover:text-primary'
-              }`}
-            >
-              Tecidos
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                usuariosHook.setEditingUserProfile(null);
-                setGestaoSubTab('aviamentos');
-              }}
-              className={`whitespace-nowrap transition cursor-pointer pb-1 ${
-                gestaoSubTab === 'aviamentos'
-                  ? 'text-primary font-bold border-b-2 border-primary'
-                  : 'text-muted hover:text-primary'
-              }`}
-            >
-              Aviamentos
-            </button>
-            <button
-              type="button"
-              onClick={() => setGestaoSubTab('caracteristicas')}
-              className={`whitespace-nowrap transition cursor-pointer pb-1 ${
-                gestaoSubTab === 'caracteristicas'
-                  ? 'text-primary font-bold border-b-2 border-primary'
-                  : 'text-muted hover:text-primary'
-              }`}
-            >
-              Características
-            </button>
-            {(
-              [
-                'custos_fixos',
-                'precificacao',
-                'tipos_peca',
-                'fornecedores',
-                'tags',
-                'fluxos',
-                'campos_custom',
-              ] as const
-            ).map((tab) => (
+            {subTabsList.map((tab) => (
               <button
-                key={tab}
+                key={tab.id}
                 type="button"
-                onClick={() => setGestaoSubTab(tab)}
-                className={`whitespace-nowrap transition cursor-pointer pb-1 capitalize ${
-                  gestaoSubTab === tab
+                onClick={() => {
+                  if (tab.id !== 'usuarios') usuariosHook.setEditingUserProfile(null);
+                  setGestaoSubTab(tab.id);
+                }}
+                className={`whitespace-nowrap transition cursor-pointer pb-1 ${
+                  gestaoSubTab === tab.id
                     ? 'text-primary font-bold border-b-2 border-primary'
                     : 'text-muted hover:text-primary'
                 }`}
               >
-                {tab.replace('_', ' ')}
+                {tab.label}
               </button>
             ))}
           </div>
@@ -482,9 +344,17 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
             setOpcoesTecidoSubMenu={tecidosHook.setOpcoesTecidoSubMenu}
             openMenuTecidoId={tecidosHook.openMenuTecidoId}
             setOpenMenuTecidoId={tecidosHook.setOpenMenuTecidoId}
-            onOpenCriandoInsumoModal={() => setShowCriandoInsumoModal(true)}
+            onOpenCriandoInsumoModal={() => {
+              setEditingInsumo(null);
+              setTipoInsumoModal('TECIDO');
+              setShowCriarInsumoModal(true);
+            }}
             onOpenImportarInsumosModal={() => setShowImportarInsumosModal(true)}
-            onOpenEditarTecido={handleOpenEditarTecido}
+            onOpenEditarTecido={(item) => {
+              setEditingInsumo(item);
+              setTipoInsumoModal('TECIDO');
+              setShowCriarInsumoModal(true);
+            }}
             onDeleteTecido={tecidosHook.deleteTecido}
           />
         ) : gestaoSubTab === 'aviamentos' ? (
@@ -503,14 +373,16 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
             openMenuAviamentoId={aviamentosHook.openMenuAviamentoId}
             setOpenMenuAviamentoId={aviamentosHook.setOpenMenuAviamentoId}
             onOpenCriandoAviamentoModal={() => {
-              setAviamentoNome('');
-              setAviamentoCodigo('');
-              setAviamentoPreco('0');
-              setAviamentoUnidade('Unidade');
-              setShowCriandoAviamentoModal(true);
+              setEditingInsumo(null);
+              setTipoInsumoModal('AVIAMENTO');
+              setShowCriarInsumoModal(true);
             }}
             onOpenImportarInsumosModal={() => setShowImportarInsumosModal(true)}
-            onOpenEditarAviamento={handleOpenEditarAviamento}
+            onOpenEditarAviamento={(item) => {
+              setEditingInsumo(item);
+              setTipoInsumoModal('AVIAMENTO');
+              setShowCriarInsumoModal(true);
+            }}
             onDeleteAviamento={aviamentosHook.deleteAviamento}
           />
         ) : gestaoSubTab === 'caracteristicas' ? (
@@ -536,28 +408,16 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
           <PrecificacaoTab />
         ) : gestaoSubTab === 'tipos_peca' ? (
           <TiposPecaTab />
-        ) : gestaoSubTab === 'fornecedores' ? (
-          <FornecedoresTab />
         ) : gestaoSubTab === 'tags' ? (
           <TagsTab />
         ) : gestaoSubTab === 'fluxos' ? (
           <FluxosTab />
-        ) : gestaoSubTab === 'campos_custom' ? (
-          <CamposCustomTab />
         ) : (
-          <div className="p-12 rounded-xl bg-surface border border-border shadow-2xs text-center space-y-3">
-            <Users2 className="w-12 h-12 text-accent-camel mx-auto opacity-80" strokeWidth={1.5} />
-            <h3 className="text-xl font-bold font-editorial text-primary uppercase tracking-wider">
-              {gestaoSubTab.replace('_', ' ')}
-            </h3>
-            <p className="text-xs text-muted-foreground max-w-md mx-auto">
-              Gerenciamento de {gestaoSubTab.replace('_', ' ')} para a holding AKR BRANDS.
-            </p>
-          </div>
+          <CamposCustomTab />
         )}
       </div>
 
-      {/* MODAIS */}
+      {/* MODAIS DE MARCA */}
       <CriarMarcaModal
         isOpen={showCriarMarcaModal}
         onClose={() => setShowCriarMarcaModal(false)}
@@ -565,7 +425,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
         setFormMarcaNome={setFormMarcaNome}
         formMarcaIntegracaoId={formMarcaIntegracaoId}
         setFormMarcaIntegracaoId={setFormMarcaIntegracaoId}
-        onSave={() => setShowCriarMarcaModal(false)}
+        onSave={handleSaveMarca}
       />
 
       <EditarMarcaModal
@@ -575,9 +435,10 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
         setFormMarcaNome={setFormMarcaNome}
         formMarcaIntegracaoId={formMarcaIntegracaoId}
         setFormMarcaIntegracaoId={setFormMarcaIntegracaoId}
-        onSave={() => setEditingMarca(null)}
+        onSave={handleUpdateMarca}
       />
 
+      {/* MODAL DE TIME */}
       <AtualizarTimeModal
         isOpen={showAtualizarTimeModal}
         onClose={() => setShowAtualizarTimeModal(false)}
@@ -591,11 +452,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
         onSave={handleSaveTeam}
       />
 
-      <ImportarInsumosModal
-        isOpen={showImportarInsumosModal}
-        onClose={() => setShowImportarInsumosModal(false)}
-      />
-
+      {/* MODAL DE CRIAÇÃO DE USUÁRIO */}
       <CriarUsuarioModal
         isOpen={showCriarUsuarioModal}
         onClose={() => setShowCriarUsuarioModal(false)}
@@ -614,6 +471,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
         onSave={handleCreateUser}
       />
 
+      {/* MODAL DE CARACTERÍSTICA */}
       <CriarCaracteristicaModal
         isOpen={showCriarCaracteristicaModal}
         onClose={() => setShowCriarCaracteristicaModal(false)}
@@ -626,130 +484,7 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
         onSave={handleCreateCaracteristica}
       />
 
-      {/* Modal de Criar/Editar Tecido */}
-      <CriarTecidoModal
-        isOpen={showCriandoInsumoModal || showInformacoesTecidoModal}
-        editingTecido={editingTecido}
-        onClose={() => {
-          setShowCriandoInsumoModal(false);
-          setShowInformacoesTecidoModal(false);
-          setEditingTecido(null);
-        }}
-        onSave={handleSaveTecidoModal}
-      />
-
-      {(showCriandoAviamentoModal || showInformacoesAviamentoModal) && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-surface border border-border rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h3 className="text-base font-bold font-editorial text-primary">
-                {showInformacoesAviamentoModal ? 'Informações' : 'Criando insumo'}
-              </h3>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowCriandoAviamentoModal(false);
-                  setShowInformacoesAviamentoModal(false);
-                }}
-                className="text-muted hover:text-primary transition cursor-pointer"
-              >
-                <X className="w-5 h-5" strokeWidth={1.5} />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-6 space-y-8 text-xs">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-6 border-b border-border-muted">
-                <div>
-                  <h4 className="font-bold text-primary text-sm">Identificação</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">
-                    Nome do insumo e código de referência
-                  </p>
-                </div>
-                <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground block">
-                      Nome <span className="text-accent-bordo">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={aviamentoNome}
-                      onChange={(e) => setAviamentoNome(e.target.value)}
-                      placeholder="Ex: Zíper Médio"
-                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground block">Código</label>
-                    <input
-                      type="text"
-                      value={aviamentoCodigo}
-                      onChange={(e) => setAviamentoCodigo(e.target.value)}
-                      placeholder="Ex: 1234"
-                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-                <div>
-                  <h4 className="font-bold text-primary text-sm">Preço e observações</h4>
-                  <p className="text-[11px] text-muted leading-tight mt-0.5">
-                    Informações de preço e observações do insumo cadastrado.
-                  </p>
-                </div>
-                <div className="md:col-span-2 space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="font-semibold text-muted-foreground block">Preço</label>
-                      <input
-                        type="text"
-                        value={aviamentoPreco}
-                        onChange={(e) => setAviamentoPreco(e.target.value)}
-                        className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="font-semibold text-muted-foreground block">Unidade</label>
-                      <select
-                        value={aviamentoUnidade}
-                        onChange={(e) =>
-                          setAviamentoUnidade(e.target.value as 'Unidade' | 'Metros')
-                        }
-                        className="w-full bg-surface-muted border border-border text-primary font-medium rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none cursor-pointer"
-                      >
-                        <option value="Unidade">Unidade</option>
-                        <option value="Metros">Metros</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground block">Observações</label>
-                    <textarea
-                      rows={3}
-                      value={aviamentoObservacoes}
-                      onChange={(e) => setAviamentoObservacoes(e.target.value)}
-                      placeholder="Ex.: Lembrar de adicionar uma versão sintética"
-                      className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center justify-start px-6 py-4 border-t border-border bg-surface-muted/30">
-              <button
-                type="button"
-                onClick={
-                  showInformacoesAviamentoModal ? handleSaveEditAviamento : handleCreateAviamento
-                }
-                className="px-6 py-2.5 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs text-xs"
-              >
-                {showInformacoesAviamentoModal ? 'Salvar alterações' : 'Criar insumo'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* MODAL DE TIMES DA MARCA */}
       <ModificarTimesMarcaModal
         updatingTeamsMarca={updatingTeamsMarca}
         onClose={() => setUpdatingTeamsMarca(null)}
@@ -760,6 +495,46 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
           );
         }}
       />
+
+      {/* MODAL DE INSUMO (TECIDO / AVIAMENTO) */}
+      <CriarTecidoModal
+        isOpen={showCriarInsumoModal}
+        editingTecido={editingInsumo}
+        tipo={tipoInsumoModal === 'TECIDO' ? 'tecido' : 'aviamento'}
+        onClose={() => {
+          setShowCriarInsumoModal(false);
+          setEditingInsumo(null);
+        }}
+        onSave={(item) => {
+          if (tipoInsumoModal === 'TECIDO') {
+            if (editingInsumo) {
+              tecidosHook.updateTecido(item);
+            } else {
+              tecidosHook.addTecido(item);
+            }
+          } else {
+            if (editingInsumo) {
+              aviamentosHook.updateAviamento(item);
+            } else {
+              aviamentosHook.addAviamento(item);
+            }
+          }
+          setShowCriarInsumoModal(false);
+          setEditingInsumo(null);
+        }}
+      />
+
+      {/* MODAL DE IMPORTAÇÃO DE INSUMOS */}
+      <ImportarInsumosModal
+        isOpen={showImportarInsumosModal}
+        onClose={() => setShowImportarInsumosModal(false)}
+        onImportSuccess={() => {
+          tecidosHook.reloadTecidos();
+          aviamentosHook.reloadAviamentos();
+        }}
+      />
     </div>
   );
 };
+
+export default GestaoPage;

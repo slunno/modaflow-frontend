@@ -1,0 +1,138 @@
+/* A ficha usa a mesma escala e os mesmos tokens do restante do app. */
+.home-workspace:has(.ficha-tecnica) {
+  max-width: var(--container-app);
+}
+.ficha-tecnica {
+  font-size: var(--text-base);
+  line-height: 1.45;
+}
+.ficha-tecnica .text-red-600 {
+  color: var(--color-status-error);
+}
+.ficha-tecnica :is(.text-\[9px\], .text-\[10px\], .text-\[11px\]) {
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+.ficha-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+body:has(nav[aria-label='Navegação principal']) .ficha-sticky {
+  top: var(--spacing-app-header);
+}
+.ficha-sticky > header {
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+}
+.ficha-sticky .ficha-navigation {
+  border-top: 0;
+  border-radius: 0 0 var(--radius-card) var(--radius-card);
+}
+.ficha-navigation button[aria-pressed='true'] {
+  box-shadow: inset 0 -2px var(--color-accent-camel);
+}
+.ficha-summary-chip {
+  display: flex;
+  min-height: var(--spacing-control-compact);
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--color-border-muted);
+  border-radius: var(--radius-control);
+  padding: 0.25rem 0.625rem;
+  background: var(--color-surface-muted);
+}
+.ficha-submenus-compact :is(h3, h4) {
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+.ficha-submenus-compact
+  :is(input:not([type='checkbox']):not([type='radio']):not([type='file']), select, textarea) {
+  font-size: var(--text-base);
+  line-height: 1.45;
+  min-height: var(--spacing-control);
+  padding: 0.375rem 0.625rem;
+}
+.ficha-submenus-compact :is(button, summary),
+.ficha-sticky :is(button, summary) {
+  min-height: var(--spacing-control-compact);
+  min-width: var(--spacing-hit);
+  font-size: var(--text-xs);
+}
+.ficha-submenus-compact :is(.p-5, .p-6) {
+  padding: var(--spacing-card);
+}
+.ficha-submenus-compact :is(.space-y-5, .space-y-6) > :not(:last-child) {
+  margin-block-end: var(--spacing-section);
+}
+.ficha-submenus-compact table {
+  font-size: var(--text-xs);
+}
+.ficha-submenus-compact table :is(th, td):is(.text-right, .tabular-nums) {
+  font-family: ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.ficha-submenus-compact table thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--color-surface-muted);
+}
+.ficha-submenus-compact table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--color-surface-muted) 65%, transparent);
+}
+.ficha-submenus-compact table td:focus-within {
+  background: color-mix(in srgb, var(--color-accent-camel) 8%, var(--color-surface));
+}
+.ficha-submenus-compact .min-h-36 {
+  min-height: var(--spacing-gallery-empty);
+}
+.ficha-insumo-actions {
+  opacity: 0;
+  transition: opacity var(--transition-ui);
+}
+.ficha-insumo-card:is(:hover, :focus-within) .ficha-insumo-actions {
+  opacity: 1;
+}
+.ficha-linx-sync[data-pendente='true'] {
+  border-color: var(--color-accent-camel);
+  color: var(--color-accent-camel);
+  background: var(--color-surface);
+}
+.ficha-linx-sync[data-pendente='false'] {
+  background: var(--color-surface-muted);
+  color: var(--color-muted);
+}
+.ficha-variant-enter {
+  animation: ficha-reveal var(--transition-ui) ease-out;
+}
+@keyframes ficha-reveal {
+  from {
+    opacity: 0.6;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (pointer: coarse), (hover: none) {
+  .ficha-insumo-actions {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ficha-variant-enter {
+    animation: none;
+  }
+}
+@media print {
+  .ficha-sticky,
+  .ficha-navigation,
+  .ficha-save-footer {
+    position: static !important;
+  }
+  button {
+    display: none !important;
+  }
+}

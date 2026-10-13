@@ -1,242 +1,408 @@
-/**
- * ============================================================================
- * MÓDULO: Layout Principal & Header Corporativo
- * ARQUIVO: src/components/layout/MainLayout.tsx
- * PROJETO: ModaFlow PLM — AKR BRANDS
- * DESCRIÇÃO: Componente de Layout global exibido após a autenticação.
- *            Integra React Router para navegação declarativa entre as áreas da aplicação.
- * ============================================================================
- */
-
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate, useLocation, Outlet } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { NavLink, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  ArrowUpRight,
+  Bell,
+  Building2,
+  ChevronDown,
+  CircleDollarSign,
+  Gauge,
+  GitBranch,
+  Layers,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Ruler,
+  Search,
+  Shirt,
+  SlidersHorizontal,
+  SwatchBook,
+  Tags,
+  Users,
+  X,
+} from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { useWorkspace } from '../../hooks/useWorkspace';
 import type { MarcaSummary } from '../../types/auth';
-import { LogOut, Bell, ChevronDown, Layers, BarChart2, PieChart } from 'lucide-react';
+import type { OperationalCollection, OperationalProduct } from '../../types/workspace';
+import { attention } from '../../services/workspaceDomain';
+import { ThemeToggle } from '../ui/ThemeToggle';
+import './workspace.css';
 
-export const MainLayout: React.FC = () => {
-  const { user, logout } = useAuth();
+const groups = [
+  {
+    name: 'Cadastros',
+    items: [
+      ['/gestao/marcas', 'Marcas', Building2],
+      ['/gestao/tecidos', 'Tecidos', SwatchBook],
+      ['/gestao/aviamentos', 'Aviamentos', Layers],
+      ['/gestao/caracteristicas', 'Características e medidas', Ruler],
+      ['/gestao/tipos_peca', 'Tipos de peça', Shirt],
+      ['/gestao/tags', 'Tags', Tags],
+      ['/gestao/campos_custom', 'Campos customizados', SlidersHorizontal],
+    ],
+  },
+  {
+    name: 'Operação',
+    items: [
+      ['/gestao/custos_fixos', 'Custos fixos', CircleDollarSign],
+      ['/gestao/precificacao', 'Regras de precificação', Gauge],
+      ['/gestao/fluxos', 'Fluxos e etapas', GitBranch],
+    ],
+  },
+  {
+    name: 'Administração',
+    items: [
+      ['/gestao/usuarios', 'Usuários', Users],
+      ['/gestao/times', 'Times', Users],
+    ],
+  },
+] as const;
+
+export function MainLayout() {
+  const { user, activeMarca, setActiveMarca, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
-  // NAVEGAÇÃO INTERNA DA GESTÃO PARA COLEÇÕES DA MARCA SELECIONADA
-  const handleOpenColecoesFromGestao = (marca: MarcaSummary) => {
-    localStorage.setItem('modaflow_selected_marca_id', marca.id);
-    navigate('/');
-    setTimeout(() => {
-      window.dispatchEvent(new CustomEvent('modaflow_open_marca_colecoes', { detail: marca.id }));
-    }, 50);
-  };
-
-  // Estado dos Dropdowns
-  const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
-  const [relatoriosDropdownOpen, setRelatoriosDropdownOpen] = useState(false);
-
-  const relatoriosRef = useRef<HTMLDivElement>(null);
-  const userProfileRef = useRef<HTMLDivElement>(null);
-
+  const [params, setParams] = useSearchParams();
+  const collections = useWorkspace<OperationalCollection>('collections');
+  const products = useWorkspace<OperationalProduct>('products');
+  const [mobile, setMobile] = useState(false);
+  const [dropdown, setDropdown] = useState<'reports' | 'manage' | null>(null);
+  const [profile, setProfile] = useState(false);
+  const [contextOpen, setContextOpen] = useState(false);
+  const [search, setSearch] = useState(params.get('q') ?? '');
+  const profileRef = useRef<HTMLDivElement>(null);
+  const navigationRef = useRef<HTMLElement>(null);
+  const mobileRef = useRef<HTMLButtonElement>(null);
+  const reportsRef = useRef<HTMLButtonElement>(null);
+  const manageRef = useRef<HTMLButtonElement>(null);
+  const contextRef = useRef<HTMLDivElement>(null);
+  const contextTriggerRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (relatoriosRef.current && !relatoriosRef.current.contains(event.target as Node)) {
-        setRelatoriosDropdownOpen(false);
-      }
-      if (userProfileRef.current && !userProfileRef.current.contains(event.target as Node)) {
-        setBrandDropdownOpen(false);
+    if (mobile) navigationRef.current?.querySelector<HTMLAnchorElement>('a[href]')?.focus();
+  }, [mobile]);
+  useEffect(() => {
+    if (contextOpen) contextRef.current?.querySelector<HTMLSelectElement>('select')?.focus();
+  }, [contextOpen]);
+  const brands = useMemo(() => user?.marcas ?? [], [user?.marcas]);
+  useEffect(() => {
+    const fromUrl = brands.find((b) => b.id === params.get('marca'));
+    if (fromUrl && fromUrl.id !== activeMarca?.id) setActiveMarca(fromUrl);
+    else if (!activeMarca && brands[0]) setActiveMarca(brands[0]);
+  }, [params, activeMarca, brands, setActiveMarca]);
+  useEffect(() => {
+    setMobile(false);
+    setDropdown(null);
+    setContextOpen(false);
+  }, [location.pathname, location.search]);
+  useEffect(() => {
+    const close = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (dropdown) {
+          (dropdown === 'reports' ? reportsRef : manageRef).current?.focus();
+          setDropdown(null);
+        } else if (mobile) {
+          setMobile(false);
+          mobileRef.current?.focus();
+        }
+        setProfile(false);
+        if (contextOpen) {
+          setContextOpen(false);
+          contextTriggerRef.current?.focus();
+        }
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const getTabClass = (path: string) => {
-    const isActive =
-      path === '/'
-        ? location.pathname === '/' || location.pathname === ''
-        : location.pathname.startsWith(path);
-    return `py-2 transition cursor-pointer ${
-      isActive
-        ? 'text-primary font-bold border-b-2 border-primary'
-        : 'text-muted hover:text-primary'
-    }`;
+    const outside = (event: MouseEvent) => {
+      if (!profileRef.current?.contains(event.target as Node)) setProfile(false);
+      if (
+        !contextRef.current?.contains(event.target as Node) &&
+        !contextTriggerRef.current?.contains(event.target as Node)
+      )
+        setContextOpen(false);
+      if (
+        !navigationRef.current?.contains(event.target as Node) &&
+        !mobileRef.current?.contains(event.target as Node)
+      ) {
+        setDropdown(null);
+        setMobile(false);
+      }
+    };
+    document.addEventListener('keydown', close);
+    document.addEventListener('mousedown', outside);
+    return () => {
+      document.removeEventListener('keydown', close);
+      document.removeEventListener('mousedown', outside);
+    };
+  }, [dropdown, mobile, contextOpen]);
+  const contextUrl = (path: string) => {
+    const next = new URLSearchParams();
+    if (activeMarca) next.set('marca', activeMarca.id);
+    if (
+      params.get('colecao') &&
+      ['/dashboard', '/pecas', '/bi', '/kanban', '/notifications'].includes(path)
+    )
+      next.set('colecao', params.get('colecao')!);
+    return path + (next.size ? '?' + next.toString() : '');
   };
-
-  const isRelatoriosActive =
-    location.pathname.startsWith('/products') ||
-    location.pathname.startsWith('/dashboard') ||
-    location.pathname.startsWith('/bi') ||
-    location.pathname.startsWith('/relatorios');
-
+  const needsAttention = products.rows.filter((p) => attention(p.data).length).length;
+  const selectedCollection = params.get('colecao') ?? '';
+  const handleOpenColecoesFromGestao = (marca: MarcaSummary) => {
+    setActiveMarca(marca);
+    navigate('/colecoes?marca=' + encodeURIComponent(marca.id));
+  };
   return (
-    <div className="min-h-screen bg-bg text-primary flex flex-col font-sans selection:bg-accent-camel selection:text-white">
-      {/* 1. NAVEGAÇÃO DO TOPO (HEADER CORPORATIVO AKR BRANDS) */}
-      <header className="bg-surface border-b border-border sticky top-0 z-50 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Esquerda: AKR BRANDS (Branding Editorial Clicável) */}
-            <div className="flex items-center gap-4">
-              <button
-                type="button"
-                onClick={() => {
-                  navigate('/');
-                  localStorage.removeItem('modaflow_selected_marca_id');
-                  localStorage.removeItem('modaflow_selected_colecao_id');
-                  window.dispatchEvent(new Event('modaflow_reset_to_home'));
-                }}
-                className="font-editorial text-base font-semibold tracking-[0.25em] text-primary uppercase hover:text-accent-camel transition cursor-pointer flex items-center gap-2"
-                title="Voltar para o Menu Inicial"
-              >
-                <span>AKR</span>
-                <span className="w-1 h-1 rounded-full bg-accent-camel"></span>
-                <span className="font-light tracking-[0.3em]">BRANDS</span>
-              </button>
-            </div>
-
-            {/* Centro: Navegação com Dropdown de Relatórios, Gestão e Kanban */}
-            <nav className="flex items-center gap-2 sm:gap-6 text-sm font-semibold">
-              {/* DROPDOWN MENU: RELATÓRIOS & ANALYTICS */}
-              <div className="relative" ref={relatoriosRef}>
+    <div className="akr-app">
+      <a href="#workspace-main" className="akr-skip">
+        Pular para o conteúdo
+      </a>
+      <div className="akr-shell">
+        <header className="akr-header">
+          <div className="akr-topbar">
+            <NavLink
+              className="akr-wordmark"
+              to={contextUrl('/dashboard')}
+              aria-label="AKR Brands — Dashboard"
+            >
+              <strong>AKR</strong>
+              <span className="akr-brand-dot" />
+              <span>BRANDS</span>
+            </NavLink>
+            <nav
+              ref={navigationRef}
+              id="workspace-navigation"
+              aria-label="Navegação principal"
+              className={'akr-navigation ' + (mobile ? 'is-open' : '')}
+              onBlur={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) {
+                  setDropdown(null);
+                  setMobile(false);
+                }
+              }}
+            >
+              <NavLink to={contextUrl('/colecoes')}>Coleções</NavLink>
+              <NavLink to={contextUrl('/pecas')} aria-label="Peças / Fichas técnicas">
+                Peças
+              </NavLink>
+              <div className="akr-nav-dropdown">
                 <button
-                  type="button"
-                  onClick={() => setRelatoriosDropdownOpen(!relatoriosDropdownOpen)}
-                  className={`flex items-center gap-1.5 py-2 transition cursor-pointer ${
-                    isRelatoriosActive
-                      ? 'text-primary font-bold border-b-2 border-primary'
-                      : 'text-muted hover:text-primary'
-                  }`}
+                  ref={reportsRef}
+                  className={
+                    ['/dashboard', '/bi', '/relatorios', '/products'].some((p) =>
+                      location.pathname.startsWith(p)
+                    )
+                      ? 'active'
+                      : ''
+                  }
+                  aria-expanded={dropdown === 'reports'}
+                  aria-controls="workspace-reports"
+                  onClick={() => setDropdown(dropdown === 'reports' ? null : 'reports')}
                 >
-                  <span>Relatórios</span>
-                  <ChevronDown
-                    className={`w-4 h-4 transition-transform duration-200 ${
-                      relatoriosDropdownOpen ? 'rotate-180' : ''
-                    }`}
-                  />
+                  Relatórios
+                  <ChevronDown size={14} />
                 </button>
-
-                {/* Sub-menu suspenso (Peças, Dashboard, Gráficos) */}
-                {relatoriosDropdownOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-surface border border-border rounded-xl shadow-xl z-50 p-1.5 text-xs animate-in fade-in zoom-in-95 duration-150">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigate('/products');
-                        setRelatoriosDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-2 rounded-lg flex items-center gap-2.5 transition cursor-pointer ${
-                        location.pathname.startsWith('/products')
-                          ? 'bg-accent-camel/10 text-accent-camel font-bold'
-                          : 'text-muted-foreground hover:bg-surface-muted hover:text-primary'
-                      }`}
-                    >
-                      <Layers className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
-                      <span>Peças</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigate('/dashboard');
-                        setRelatoriosDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-2 rounded-lg flex items-center gap-2.5 transition cursor-pointer ${
-                        location.pathname.startsWith('/dashboard')
-                          ? 'bg-accent-camel/10 text-accent-camel font-bold'
-                          : 'text-muted-foreground hover:bg-surface-muted hover:text-primary'
-                      }`}
-                    >
-                      <BarChart2 className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
-                      <span>Dashboard</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigate('/bi');
-                        setRelatoriosDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-2 rounded-lg flex items-center gap-2.5 transition cursor-pointer ${
-                        location.pathname.startsWith('/bi')
-                          ? 'bg-accent-camel/10 text-accent-camel font-bold'
-                          : 'text-muted-foreground hover:bg-surface-muted hover:text-primary'
-                      }`}
-                    >
-                      <PieChart className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
-                      <span>Gráficos</span>
-                    </button>
+                {dropdown === 'reports' && (
+                  <div className="akr-nav-popover" id="workspace-reports">
+                    <NavLink to={contextUrl('/dashboard')}>
+                      <LayoutDashboard size={17} />
+                      Dashboard
+                    </NavLink>
+                    <NavLink to={contextUrl('/bi')}>
+                      <Gauge size={17} />
+                      Relatórios e BI
+                    </NavLink>
+                    <NavLink to={contextUrl('/products')}>
+                      <ArrowUpRight size={17} />
+                      Catálogo Linx<small>Consulta</small>
+                    </NavLink>
                   </div>
                 )}
               </div>
-
-              {/* GESTÃO */}
-              <button onClick={() => navigate('/gestao')} className={getTabClass('/gestao')}>
-                Gestão
-              </button>
-
-              {/* KANBAN */}
-              <button onClick={() => navigate('/kanban')} className={getTabClass('/kanban')}>
-                Kanban
-              </button>
-            </nav>
-
-            {/* Direita: Perfil do Usuário e Notificação com Badge '2' */}
-            <div className="flex items-center gap-4">
-              <button
-                type="button"
-                onClick={() => navigate('/notifications')}
-                className="p-1.5 rounded-full text-muted-foreground hover:text-primary transition relative cursor-pointer"
-                title="Notificações Internas"
-              >
-                <Bell className="w-5 h-5 text-muted-foreground" />
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-accent-camel text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-surface">
-                  2
-                </span>
-              </button>
-
-              {/* Seletor de Perfil do Usuário */}
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-primary text-amber-200 font-bold text-xs flex items-center justify-center shadow-2xs border border-neutral-800">
-                  {user?.nome.charAt(0) || 'J'}
-                </div>
-
-                <div className="relative" ref={userProfileRef}>
-                  <button
-                    type="button"
-                    onClick={() => setBrandDropdownOpen(!brandDropdownOpen)}
-                    className="flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-primary transition cursor-pointer"
-                  >
-                    <span>{user?.nome || 'Juliano'}</span>
-                    <ChevronDown className="w-3.5 h-3.5 text-muted" />
-                  </button>
-
-                  {/* Dropdown de Opções do Perfil / Logout */}
-                  {brandDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-2 w-48 bg-surface border border-border rounded-xl shadow-xl z-50 p-2 text-xs">
-                      <div className="px-3 py-1.5 text-[10px] font-extrabold text-muted uppercase tracking-wider border-b border-border-muted mb-1">
-                        Conta Corporativa
+              <div className="akr-nav-dropdown">
+                <button
+                  ref={manageRef}
+                  className={location.pathname.startsWith('/gestao') ? 'active' : ''}
+                  aria-expanded={dropdown === 'manage'}
+                  aria-controls="workspace-management"
+                  onClick={() => setDropdown(dropdown === 'manage' ? null : 'manage')}
+                >
+                  Gestão
+                  <ChevronDown size={14} />
+                </button>
+                {dropdown === 'manage' && (
+                  <div className="akr-nav-popover akr-management-menu" id="workspace-management">
+                    {groups.map((group) => (
+                      <div className="akr-nav-group" key={group.name}>
+                        <p>{group.name}</p>
+                        {group.items.map(([path, label, Icon]) => (
+                          <NavLink key={path} to={contextUrl(path)}>
+                            <Icon size={17} strokeWidth={1.6} />
+                            <span>{label}</span>
+                          </NavLink>
+                        ))}
                       </div>
-                      <div className="px-3 py-1.5 font-bold text-primary">{user?.email}</div>
-                      <button
-                        onClick={() => {
-                          logout();
-                          navigate('/login');
-                        }}
-                        className="w-full text-left px-3 py-2 text-accent-bordo hover:bg-accent-bordo/10 font-bold rounded-lg flex items-center gap-2 transition cursor-pointer"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        <span>Sair do Sistema</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
+                    ))}
+                    <NavLink className="akr-legacy-nav" to={contextUrl('/catalogo-legado')}>
+                      <Layers size={17} />
+                      Acervo anterior<small>Rascunhos</small>
+                    </NavLink>
+                  </div>
+                )}
               </div>
+              <NavLink to={contextUrl('/kanban')}>Kanban</NavLink>
+            </nav>
+            <button
+              ref={contextTriggerRef}
+              className="akr-icon-button akr-context-toggle"
+              aria-label="Marca, coleção e busca"
+              aria-expanded={contextOpen}
+              aria-controls="workspace-context"
+              onClick={() => {
+                setContextOpen(!contextOpen);
+                setMobile(false);
+              }}
+            >
+              <Search size={18} />
+            </button>
+            <button
+              ref={mobileRef}
+              className="akr-icon-button akr-mobile-menu"
+              aria-label={mobile ? 'Fechar navegação' : 'Abrir navegação'}
+              aria-expanded={mobile}
+              aria-controls="workspace-navigation"
+              onClick={() => {
+                setMobile(!mobile);
+                setContextOpen(false);
+              }}
+            >
+              {mobile ? <X size={20} /> : <Menu size={20} />}
+            </button>
+            <ThemeToggle />
+            <NavLink
+              className="akr-icon-button akr-notification"
+              to={contextUrl('/notifications')}
+              aria-label={
+                'Itens que precisam de atenção' +
+                (needsAttention ? ' (' + needsAttention + ')' : '')
+              }
+            >
+              <Bell size={19} />
+              {needsAttention > 0 && <i />}
+            </NavLink>
+            <div ref={profileRef} className="akr-profile">
+              <button
+                className="akr-profile-button"
+                onClick={() => setProfile(!profile)}
+                aria-expanded={profile}
+                aria-label={'Conta de ' + (user?.nome ?? 'Usuário')}
+              >
+                <span>{user?.nome.charAt(0) ?? 'U'}</span>
+                <ChevronDown size={13} />
+              </button>
+              {profile && (
+                <div className="akr-profile-menu">
+                  <strong>{user?.nome}</strong>
+                  <small>{user?.email}</small>
+                  <small>{user?.cargo}</small>
+                  <button
+                    onClick={() => {
+                      logout();
+                      navigate('/login');
+                    }}
+                  >
+                    <LogOut size={16} />
+                    Sair da conta
+                  </button>
+                </div>
+              )}
+            </div>
+            <div
+              ref={contextRef}
+              id="workspace-context"
+              className={'akr-contextbar ' + (contextOpen ? 'is-open' : '')}
+              onBlur={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) setContextOpen(false);
+              }}
+            >
+              <div className="akr-context">
+                <Building2 size={16} aria-hidden />
+                <label>
+                  <span className="sr-only">Marca da área de trabalho</span>
+                  <select
+                    value={activeMarca?.id ?? ''}
+                    onChange={(event) => {
+                      const brand = brands.find((b) => b.id === event.target.value);
+                      if (brand) {
+                        setActiveMarca(brand);
+                        setParams({ marca: brand.id });
+                      }
+                    }}
+                  >
+                    <option value="" disabled>
+                      Selecione uma marca
+                    </option>
+                    {brands.map((b) => (
+                      <option value={b.id} key={b.id}>
+                        {b.nome}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <span className="akr-context-divider">/</span>
+                <label>
+                  <span className="sr-only">Coleção da área de trabalho</span>
+                  <select
+                    value={selectedCollection}
+                    onChange={(event) => {
+                      const next = new URLSearchParams(params);
+                      if (event.target.value) next.set('colecao', event.target.value);
+                      else next.delete('colecao');
+                      setParams(next);
+                    }}
+                  >
+                    <option value="">Todas as coleções</option>
+                    {collections.rows.map((c) => (
+                      <option key={c.id} value={c.data.id}>
+                        {c.data.nome}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <form
+                className="akr-search"
+                role="search"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  navigate(
+                    contextUrl('/pecas') +
+                      (activeMarca ? '&' : '?') +
+                      'q=' +
+                      encodeURIComponent(search)
+                  );
+                }}
+              >
+                <Search size={16} />
+                <input
+                  aria-label="Buscar modelos ou códigos"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Buscar modelos ou códigos"
+                />
+                <kbd>↵</kbd>
+              </form>
             </div>
           </div>
-        </div>
-      </header>
-
-      {/* 2. CONTEÚDO PRINCIPAL DE NAVEGAÇÃO DA APLICAÇÃO */}
-      <main className="flex-1 w-full">
-        <Outlet context={{ handleOpenColecoesFromGestao }} />
-      </main>
+        </header>
+        <main id="workspace-main" className="akr-main">
+          {import.meta.env.VITE_TEST_ENVIRONMENT === 'true' && (
+            <div className="akr-notice" role="status">
+              Validação isolada · dados de teste · sem conexão com o ERP
+            </div>
+          )}
+          <Outlet context={{ handleOpenColecoesFromGestao }} />
+        </main>
+      </div>
     </div>
   );
-};
+}
+export default MainLayout;

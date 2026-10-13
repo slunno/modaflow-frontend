@@ -85,7 +85,7 @@ export const UsuariosTab: React.FC<UsuariosTabProps> = ({
           <button
             type="button"
             onClick={onSaveUserProfile}
-            className="px-5 py-2 bg-primary hover:bg-neutral-800 text-white font-bold text-xs rounded-lg transition shadow-2xs cursor-pointer"
+            className="px-5 py-2 bg-action hover:bg-action-hover text-action-foreground font-bold text-xs rounded-lg transition shadow-2xs cursor-pointer"
           >
             Atualizar
           </button>
@@ -263,7 +263,7 @@ export const UsuariosTab: React.FC<UsuariosTabProps> = ({
 
                             setEditingUserProfile({
                               ...editingUserProfile,
-                              marcas: activeBrandNames.length > 0 ? activeBrandNames : [marca.nome],
+                              marcas: activeBrandNames,
                               brandRoles: updatedBrandRoles,
                             });
                           }}
@@ -405,7 +405,7 @@ export const UsuariosTab: React.FC<UsuariosTabProps> = ({
           <button
             type="button"
             onClick={onOpenCriarUsuario}
-            className="px-4 py-2 bg-primary hover:bg-neutral-800 text-white font-bold text-xs rounded-lg transition shadow-2xs flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2 bg-action hover:bg-action-hover text-action-foreground font-bold text-xs rounded-lg transition shadow-2xs flex items-center gap-1.5 cursor-pointer"
           >
             <Plus className="w-4 h-4" strokeWidth={1.5} />
             <span>Criar Usuário</span>
@@ -439,7 +439,7 @@ export const UsuariosTab: React.FC<UsuariosTabProps> = ({
                       <span
                         className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
                           u.status === 'Ativo'
-                            ? 'bg-emerald-500/10 text-emerald-600'
+                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                             : 'bg-surface-muted text-muted'
                         }`}
                       >
@@ -451,7 +451,7 @@ export const UsuariosTab: React.FC<UsuariosTabProps> = ({
                         className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
                           u.acesso === 'Permitido'
                             ? 'bg-accent-camel/10 text-accent-camel'
-                            : 'bg-rose-500/10 text-rose-600'
+                            : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
                         }`}
                       >
                         {u.acesso}

@@ -3,12 +3,12 @@
  * MODAL: Editar Marca (EditarMarcaModal)
  * ARQUIVO: src/pages/Gestao/modals/EditarMarcaModal.tsx
  * PROJETO: ModaFlow PLM — AKR BRANDS
- * DESCRIÇÃO: Modal para edição de marcas existentes.
+ * DESCRIÇÃO: Modal acessível para edição de dados de marcas via PUT /marcas/{id}.
  * ============================================================================
  */
 
-import React from 'react';
-import { X, Image as ImageIcon } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import type { MarcaSummary } from '../../../types/auth';
 
 interface EditarMarcaModalProps {
@@ -18,7 +18,7 @@ interface EditarMarcaModalProps {
   setFormMarcaNome: (v: string) => void;
   formMarcaIntegracaoId: string;
   setFormMarcaIntegracaoId: (v: string) => void;
-  onSave: () => void;
+  onSave: () => Promise<void> | void;
 }
 
 export const EditarMarcaModal: React.FC<EditarMarcaModalProps> = ({
@@ -30,66 +30,137 @@ export const EditarMarcaModal: React.FC<EditarMarcaModalProps> = ({
   setFormMarcaIntegracaoId,
   onSave,
 }) => {
+  const [formError, setFormError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const [prevEditingMarca, setPrevEditingMarca] = useState(editingMarca);
+  if (editingMarca !== prevEditingMarca) {
+    setPrevEditingMarca(editingMarca);
+    if (editingMarca) {
+      setFormError('');
+      setSubmitting(false);
+    }
+  }
+
   if (!editingMarca) return null;
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError('');
+
+    if (!formMarcaNome.trim()) {
+      setFormError('O nome da marca é obrigatório.');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await onSave();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Falha ao atualizar marca no servidor.';
+      setFormError(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-      <div className="bg-surface border border-border rounded-xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-editar-marca-title"
+      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+      className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
+    >
+      <div className="bg-surface border border-border rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden font-sans">
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-          <h3 className="text-base font-bold font-editorial text-primary">Edição de marca</h3>
+          <h3
+            id="modal-editar-marca-title"
+            className="text-base font-bold font-editorial text-primary"
+          >
+            Edição de Marca
+          </h3>
           <button
             type="button"
             onClick={onClose}
-            className="text-muted hover:text-primary transition cursor-pointer"
+            aria-label="Fechar modal"
+            className="text-muted hover:text-primary transition cursor-pointer p-1"
           >
             <X className="w-5 h-5" strokeWidth={1.5} />
           </button>
         </div>
-        <div className="p-6 space-y-5 text-xs">
-          <div className="space-y-1.5">
-            <label className="font-bold text-muted-foreground block">Imagem</label>
-            <div className="w-16 h-16 rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-surface-muted hover:border-accent-camel transition cursor-pointer text-muted">
-              <ImageIcon className="w-6 h-6" strokeWidth={1.5} />
+
+        {formError && (
+          <div
+            role="alert"
+            className="mx-6 mt-4 p-3 rounded-xl bg-accent-bordo/10 border border-accent-bordo/30 text-accent-bordo text-xs font-semibold flex items-center gap-2"
+          >
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{formError}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <div className="p-6 space-y-4 text-xs">
+            <div className="space-y-1.5">
+              <label className="font-bold text-muted-foreground block">Imagem da Marca</label>
+              <div className="w-16 h-16 rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-surface-muted text-muted">
+                <ImageIcon className="w-6 h-6" strokeWidth={1.5} />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label htmlFor="editar-marca-nome" className="font-bold text-muted-foreground block">
+                Nome da Marca <span className="text-accent-bordo">*</span>
+              </label>
+              <input
+                id="editar-marca-nome"
+                type="text"
+                value={formMarcaNome}
+                onChange={(e) => setFormMarcaNome(e.target.value)}
+                className="w-full bg-surface-muted border border-border text-primary font-semibold rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label htmlFor="editar-marca-code" className="font-bold text-muted-foreground block">
+                Código / ID de Integração
+              </label>
+              <input
+                id="editar-marca-code"
+                type="text"
+                value={formMarcaIntegracaoId}
+                onChange={(e) => setFormMarcaIntegracaoId(e.target.value)}
+                className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
+              />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <label className="font-bold text-muted-foreground block">Nome *</label>
-            <input
-              type="text"
-              value={formMarcaNome}
-              onChange={(e) => setFormMarcaNome(e.target.value)}
-              className="w-full bg-surface-muted border border-border text-primary font-semibold rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
-            />
+
+          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-surface-muted/30">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={submitting}
+              className="px-4 py-2 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer text-xs disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-5 py-2 font-bold bg-action text-action-foreground rounded-lg hover:bg-action-hover transition cursor-pointer shadow-2xs text-xs flex items-center gap-2 disabled:opacity-50"
+            >
+              {submitting && (
+                <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              )}
+              <span>Salvar Alterações</span>
+            </button>
           </div>
-          <div className="space-y-1.5">
-            <label className="font-bold text-muted-foreground block">
-              ID de integração da marca
-            </label>
-            <input
-              type="text"
-              value={formMarcaIntegracaoId}
-              onChange={(e) => setFormMarcaIntegracaoId(e.target.value)}
-              className="w-full bg-surface-muted border border-border text-primary rounded-lg px-3 py-2.5 text-xs focus:ring-1 focus:ring-accent-camel/20 focus:border-accent-camel transition outline-none"
-            />
-          </div>
-        </div>
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-surface-muted/30">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 font-bold border border-border rounded-lg text-primary hover:bg-surface-muted transition cursor-pointer text-xs"
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={onSave}
-            className="px-4 py-2 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs text-xs"
-          >
-            Atualizar
-          </button>
-        </div>
+        </form>
       </div>
     </div>
   );
 };
+
+export default EditarMarcaModal;

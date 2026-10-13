@@ -13,6 +13,7 @@ import { X, UploadCloud, Info } from 'lucide-react';
 interface ImportarInsumosModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onImportSuccess?: () => void;
 }
 
 export const ImportarInsumosModal: React.FC<ImportarInsumosModalProps> = ({ isOpen, onClose }) => {

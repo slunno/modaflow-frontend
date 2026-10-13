@@ -95,7 +95,7 @@ export const LinxProdutoDetailView: React.FC<LinxProdutoDetailViewProps> = ({
             <Database className="w-3.5 h-3.5" />
             {sourceDatabase}
           </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-[11px] font-bold text-emerald-700">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
             <LockKeyhole className="w-3.5 h-3.5" />
             Somente leitura
           </span>

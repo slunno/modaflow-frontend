@@ -8,48 +8,47 @@
  * ============================================================================
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useMemo, useCallback, useSyncExternalStore } from 'react';
+import {
+  getLocalStateSnapshot,
+  parseLocalState,
+  saveLocalState,
+  subscribeLocalState,
+} from '../services/localStateStorage';
+
+const getServerSnapshot = () => null;
 
 export function usePersistedState<T>(
   key: string,
   initialValue: T | (() => T)
 ): [T, (value: T | ((prev: T) => T)) => void] {
-  const getValue = useCallback((): T => {
-    try {
-      const item = localStorage.getItem(key);
-      if (item !== null) {
-        return JSON.parse(item) as T;
-      }
-    } catch {
-      // Fallback em caso de erro de parsing ou acesso ao localStorage
-    }
-    return typeof initialValue === 'function' ? (initialValue as () => T)() : initialValue;
-  }, [key, initialValue]);
-
-  const [state, setState] = useState<T>(getValue);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(key, JSON.stringify(state));
-    } catch {
-      // Silencia erros de quota excedida ou storage bloqueado
-    }
-  }, [key, state]);
+  const [fallback] = useState<T>(() =>
+    typeof initialValue === 'function' ? (initialValue as () => T)() : initialValue
+  );
+  const subscribe = useCallback(
+    (onChange: () => void) => subscribeLocalState(key, onChange),
+    [key]
+  );
+  const getSnapshot = useCallback(() => getLocalStateSnapshot(key), [key]);
+  const snapshot = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const state = useMemo(() => parseLocalState(snapshot, fallback), [snapshot, fallback]);
 
   const setPersistedState = useCallback(
     (value: T | ((prev: T) => T)) => {
-      setState((prevState) => {
-        const nextValue =
-          typeof value === 'function' ? (value as (prev: T) => T)(prevState) : value;
-        try {
-          localStorage.setItem(key, JSON.stringify(nextValue));
-        } catch {
-          // Silencia erros de storage
-        }
-        return nextValue;
-      });
+      const previous = parseLocalState(getLocalStateSnapshot(key), fallback);
+      const nextValue = typeof value === 'function' ? (value as (prev: T) => T)(previous) : value;
+      try {
+        saveLocalState(key, nextValue);
+      } catch (error) {
+        if (
+          error instanceof DOMException &&
+          (error.name === 'QuotaExceededError' || error.code === 22)
+        )
+          console.error(`[usePersistedState] Quota de armazenamento excedida para chave: ${key}`);
+        else console.error(`[usePersistedState] Falha ao persistir chave ${key}:`, error);
+      }
     },
-    [key]
+    [key, fallback]
   );
 
   return [state, setPersistedState];

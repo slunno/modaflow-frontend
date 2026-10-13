@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-10-13T19:29:17.434Z",
+  "environment": "http://127.0.0.1:18080/api/v1",
+  "product": "47eaf864-39a1-40b7-b074-c8b1f495a322",
+  "checks": {
+    "realPersistence": true,
+    "revisionConflict409": true,
+    "crossBrandNotFound404": true,
+    "attachmentRoundTrip": true
+  },
+  "note": "Apply the fixed-cost and pricing rules in the UI to complete the 80/200/8000 scenario."
+}

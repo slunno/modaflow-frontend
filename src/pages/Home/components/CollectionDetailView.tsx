@@ -8,31 +8,56 @@
  * ============================================================================
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, useContext } from 'react';
+import { AuthContext } from '../../../contexts/authContextInstance';
+import { registrarCriacaoPeca, registrarAlteracoesFicha } from '../../../services/fichaAlteracoes';
+import { atualizarRevisao } from '../../../services/fichaProcesso';
+import { ETAPA_INICIAL_FICHA } from '../../../services/fichaFluxos';
 import type { MarcaSummary } from '../../../types/auth';
 import type { ColecaoItem, PecaItem } from '../../../types/plm';
 import type { UserRecord } from '../../../types/gestao';
 import { usePersistedState } from '../../../hooks/usePersistedState';
+import { LOCAL_PECAS_KEY, savePecaLocal } from '../../../services/localPecasStorage';
+import { getCollectionThemes } from '../../../services/collectionThemes';
+import type { CollectionTheme } from '../../../services/collectionThemes';
+import { getUsuariosApi } from '../../../services/authService';
+import { mapUsuarioDtoToRecord } from '../../../services/contractMappers';
+import {
+  getLinxProdutosDaColecao,
+  getLinxSubgrupos,
+  resolveLinxGriffe,
+  getLinxFichasResumo,
+} from '../../../services/linxService';
+import type { LinxFichaResumo } from '../../../types/linx';
+import { getPecaInsumoLabels, hasPecaInsumosConfirmados } from '../../../services/linxFichaMappers';
+import { mapLinxProdutoToPeca } from '../../../services/contractMappers';
+import { getPecaFichaValues } from '../../../services/pecaFichaSelectors';
 import {
   ChevronRight,
   ArrowLeft,
   Search,
-  Calendar,
-  CheckCircle2,
   Plus,
-  Sun,
-  Filter,
   Grid,
   Download,
   ChevronDown,
-  Pencil,
   SlidersHorizontal,
-  X,
+  Copy,
 } from 'lucide-react';
 
+import { Button, EmptyState, SectionHeader } from '../../../components/ui/FichaPrimitives';
+import { CollectionDialog } from './CollectionPresentation';
+import { CollectionSchedule } from './CollectionSchedule';
+import { CollectionOverview } from './CollectionOverview';
 import { MiniaturaModal } from './MiniaturaModal';
+import { PecaMiniaturaFields } from './PecaMiniaturaFields';
 import { PecaFichaTecnicaView } from './PecaFichaTecnicaView';
 import { PecaFluxoEtapasModal } from './PecaFluxoEtapasModal';
+import {
+  CollectionThemesTab,
+  CollectionColorsTab,
+  CollectionPrintsTab,
+  CollectionReservationsTab,
+} from './CollectionManagementTabs';
 
 interface CollectionDetailViewProps {
   marca: MarcaSummary;
@@ -40,35 +65,6 @@ interface CollectionDetailViewProps {
   onBackToBrand: () => void;
   onBackToHome: () => void;
 }
-
-// Opções de Nomes de Peças conforme o Print 4
-const OPCOES_NOME_PECA = [
-  'Acessórios',
-  'Bata',
-  'Bermuda',
-  'Blazer',
-  'Blusa',
-  'Calça',
-  'Camisa',
-  'Camiseta',
-  'Casaco',
-  'Conjunto',
-  'Cueca',
-  'Jaqueta',
-  'Macacão',
-  'Malhão',
-  'Meia',
-  'Moletom',
-  'Overshirt',
-  'Polo',
-  'Regata',
-  'Short',
-  'Sunga',
-  'Tricot',
-];
-
-// Opções de Temas
-const OPCOES_TEMA = ['Base', 'Verão', 'Inverno', 'Cápsula Nobre', 'Sport', 'Casual'];
 
 const GRUPOS_FILTROS = [
   {
@@ -142,16 +138,41 @@ const GRUPOS_FILTROS = [
   { titulo: 'Buscas gerais', opcoes: ['Tecidos', 'Aviamentos', 'Estampas'] },
 ];
 
-type FilterKey =
-  | 'tema'
-  | 'status'
-  | 'tipo'
-  | 'etapa'
-  | 'estilista'
-  | 'modelista'
-  | 'tecido'
-  | 'responsavel'
-  | 'fluxo';
+const ROTULOS_FILTRO = {
+  tema: 'TEMA',
+  status: 'Status',
+  tipo: 'Tipo de peça',
+  etapa: 'Etapas',
+  estilista: 'Estilista',
+  modelista: 'Modelista',
+  tecido: 'Tecidos',
+  aviamento: 'Aviamentos',
+  responsavel: 'Responsável',
+  fluxo: 'Fluxo',
+  cor: 'Cores',
+  estampa: 'Estampas',
+  fornecedorTecido: 'Fornecedor de Tecido',
+  fornecedorAviamento: 'Fornecedor de Aviamento',
+  fornecedorTerceiro: 'Fornecedor de Terceiros',
+  terceiro: 'Terceiros',
+  categoria: 'Categoria',
+  grade: 'Grade',
+  griffe: 'Griffe',
+  linha: 'Linha',
+  nomeProduto: 'Nome do Produto',
+  observacaoCorte: 'Observações de Corte',
+  observacaoGeral: 'Observações Gerais',
+  observacaoModelagem: 'Observações Modelagem',
+  simbologia: 'Simbologia',
+  subgrupo: 'Sub-grupo',
+  subcategoria: 'Subcategoria',
+  materiaPrima: 'Tipo de matéria-prima',
+  entrega: 'Data de entrega',
+  observacaoTerceiro: 'Observações do terceiro',
+  tela: 'Tela',
+  traducao: 'Tradução',
+} as const;
+type FilterKey = keyof typeof ROTULOS_FILTRO;
 
 const FILTRO_POR_NOME: Record<string, FilterKey> = {
   Status: 'status',
@@ -160,6 +181,7 @@ const FILTRO_POR_NOME: Record<string, FilterKey> = {
   Estilista: 'estilista',
   Modelista: 'modelista',
   Tecidos: 'tecido',
+  Aviamentos: 'aviamento',
   TEMA: 'tema',
   Responsável: 'responsavel',
   'Sem fluxo': 'fluxo',
@@ -167,6 +189,12 @@ const FILTRO_POR_NOME: Record<string, FilterKey> = {
   'OP CM': 'fluxo',
   Perene: 'fluxo',
   Piloto: 'fluxo',
+  ...Object.fromEntries(
+    Object.entries(ROTULOS_FILTRO).map(([key, label]) => [label, key as FilterKey])
+  ),
+  LINHA: 'linha',
+  TECIDO: 'tecido',
+  SUBCATEGORIA: 'subcategoria',
 };
 
 const FILTROS_PADRAO: FilterKey[] = ['status', 'tipo', 'etapa', 'estilista'];
@@ -193,8 +221,18 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
   onBackToBrand,
   onBackToHome,
 }) => {
+  const autor = useContext(AuthContext)?.user;
   // Lista de Peças persistida no LocalStorage
-  const [allPecas, setAllPecas] = usePersistedState<PecaItem[]>('modaflow_collection_pecas', []);
+  const [allPecas, setAllPecas] = usePersistedState<PecaItem[]>(LOCAL_PECAS_KEY, []);
+  const [allThemes, setAllThemes] = usePersistedState<CollectionTheme[]>(
+    'modaflow_collection_themes',
+    []
+  );
+  const [linxPecas, setLinxPecas] = useState<PecaItem[]>([]);
+  const [isLoadingLinxPecas, setIsLoadingLinxPecas] = useState(false);
+  const [linxPecasError, setLinxPecasError] = useState('');
+  const [linxResumos, setLinxResumos] = useState<LinxFichaResumo[]>([]);
+  const [linxResumoError, setLinxResumoError] = useState('');
 
   // Campos selecionados no Modal de Miniaturas (Print 1)
   const [miniaturaFields, setMiniaturaFields] = usePersistedState<string[]>(
@@ -206,19 +244,48 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
   const [selectedFichaPeca, setSelectedFichaPeca] = useState<PecaItem | null>(null);
   const [pecaEmMovimentacao, setPecaEmMovimentacao] = useState<PecaItem | null>(null);
 
-  // Usuários internos: só usuários ativos, liberados e com cargo na marca podem ser responsáveis.
-  const [usuarios] = usePersistedState<UserRecord[]>('modaflow_users_data', []);
+  // Carrega responsáveis e seus vínculos de marca da mesma API usada por Gestão.
+  const [usuarios, setUsuarios] = useState<UserRecord[]>([]);
+  const [usuariosCarregando, setUsuariosCarregando] = useState(true);
+  const [erroUsuarios, setErroUsuarios] = useState('');
+  const [tentativaCarregamentoUsuarios, setTentativaCarregamentoUsuarios] = useState(0);
+  const tentarCarregarUsuarios = useCallback(
+    () => setTentativaCarregamentoUsuarios((atual) => atual + 1),
+    []
+  );
+
+  useEffect(() => {
+    let ativo = true;
+    setUsuariosCarregando(true);
+    setErroUsuarios('');
+    void getUsuariosApi()
+      .then((resposta) => {
+        if (!ativo) return;
+        setUsuarios(Array.isArray(resposta) ? resposta.map(mapUsuarioDtoToRecord) : []);
+      })
+      .catch(() => {
+        if (!ativo) return;
+        setUsuarios([]);
+        setErroUsuarios('Não foi possível carregar os responsáveis. Tente novamente.');
+      })
+      .finally(() => {
+        if (ativo) setUsuariosCarregando(false);
+      });
+    return () => {
+      ativo = false;
+    };
+  }, [tentativaCarregamentoUsuarios]);
 
   // Modal Miniatura (Print 1)
   const [isMiniaturaModalOpen, setIsMiniaturaModalOpen] = useState(false);
 
   // Modal "Adicionar peças" (Print 4)
   const [isAdicionarPecasOpen, setIsAdicionarPecasOpen] = useState(false);
-  const [formQuantidade, setFormQuantidade] = useState<number>(1);
-  const [formNomePeca, setFormNomePeca] = useState('Camisa');
+  const [formQuantidade, setFormQuantidade] = useState('1');
+  const [formNomePeca, setFormNomePeca] = useState('');
   const [formTema, setFormTema] = useState('Base');
-  const [formEstilista, setFormEstilista] = useState('Ivonete Barbosa');
-  const [formTecido, setFormTecido] = useState('CAMBRAIA VISCO LINEN P11LN0077 (01030198)');
+  const [nomesPecaLinx, setNomesPecaLinx] = useState<string[]>([]);
+  const [nomesPecaError, setNomesPecaError] = useState('');
 
   // Sub-abas (Peças, Temas, Cores, etc.)
   const [activeTab, setActiveTab] = useState<
@@ -236,18 +303,135 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
 
   // Busca de Peças
   const [searchPeca, setSearchPeca] = useState('');
+  const [mostrarCanceladas, setMostrarCanceladas] = useState(false);
+  const [isOpcoesMenuOpen, setIsOpcoesMenuOpen] = useState(false);
+  const [copiadoFeedback, setCopiadoFeedback] = useState(false);
 
-  // Os filtros são montados com valores das peças locais, nunca com opções do Linx.
+  // Os filtros são montados com os valores reais das peças vinculadas à coleção.
   const [isFiltrosMenuOpen, setIsFiltrosMenuOpen] = useState(false);
   const [filtrosVisiveis, setFiltrosVisiveis] = useState<FilterKey[]>(FILTROS_PADRAO);
   const [filtrosSelecionados, setFiltrosSelecionados] = useState<
     Partial<Record<FilterKey, string>>
   >({});
 
-  // Filtra as peças da coleção atual
-  const pecasDaColecao = allPecas.filter(
-    (p) => p.colecaoId === colecao.id || p.colecaoNome === colecao.nome
-  );
+  const codigoColecaoLinx = colecao.id.startsWith('linx-') ? colecao.codigoPill?.trim() : undefined;
+  const griffeLinx = resolveLinxGriffe(marca);
+
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      await Promise.resolve();
+      if (!active) return;
+      setLinxResumos([]);
+      setLinxResumoError('');
+      if (!codigoColecaoLinx || !griffeLinx) return;
+      try {
+        const resumos = await getLinxFichasResumo(
+          codigoColecaoLinx,
+          griffeLinx,
+          colecao.nome,
+          colecao.regraFicha !== 'integracao-colecao-v1'
+        );
+        if (active) setLinxResumos(resumos);
+      } catch {
+        if (active)
+          setLinxResumoError(
+            'Não foi possível consultar as fichas vinculadas à coleção. A lista de peças foi mantida.'
+          );
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [codigoColecaoLinx, griffeLinx, colecao.nome, colecao.regraFicha]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void (async () => {
+      await Promise.resolve();
+      if (!isMounted) return;
+
+      if (!codigoColecaoLinx || !griffeLinx) {
+        setLinxPecas([]);
+        setLinxPecasError('');
+        setIsLoadingLinxPecas(false);
+        return;
+      }
+
+      setIsLoadingLinxPecas(true);
+      setLinxPecasError('');
+
+      try {
+        const products = await getLinxProdutosDaColecao(codigoColecaoLinx, griffeLinx);
+        if (!isMounted) return;
+        setLinxPecas(
+          products.map((product, index) =>
+            mapLinxProdutoToPeca(product, colecao.id, colecao.nome, marca.id, marca.nome, index)
+          )
+        );
+      } catch {
+        if (!isMounted) return;
+        setLinxPecas([]);
+        setLinxPecasError('Não foi possível carregar as peças desta coleção no Linx.');
+      } finally {
+        if (isMounted) setIsLoadingLinxPecas(false);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [codigoColecaoLinx, colecao.id, colecao.nome, griffeLinx, marca.id, marca.nome]);
+
+  useEffect(() => {
+    if (!isAdicionarPecasOpen) return;
+    let active = true;
+    getLinxSubgrupos()
+      .then((names) => {
+        if (!active) return;
+        setNomesPecaLinx(names);
+        setNomesPecaError('');
+      })
+      .catch(() => {
+        if (active) setNomesPecaError('Não foi possível consultar os nomes de peça no Linx.');
+      });
+    return () => {
+      active = false;
+    };
+  }, [isAdicionarPecasOpen]);
+
+  const pecasDaColecao = useMemo(() => {
+    const pecasLocais = allPecas.filter(
+      (peca) => peca.colecaoId === colecao.id && (!peca.marcaId || peca.marcaId === marca.id)
+    );
+    const idsLocais = new Set(pecasLocais.map((peca) => peca.id));
+    const pecasLinxSemEdicaoLocal = linxPecas.filter((peca) => !idsLocais.has(peca.id));
+    const resumos = new Map(linxResumos.map((item) => [item.produto, item]));
+    const originais = new Map(linxPecas.map((item) => [item.id, item]));
+    return [...pecasLocais, ...pecasLinxSemEdicaoLocal].map((peca) => {
+      const original = originais.get(peca.id);
+      const origem = peca.linxOrigem ?? original?.linxOrigem;
+      const resumo = resumos.get(origem?.codigoProduto ?? peca.codigo);
+      const updated = { ...peca, linxOrigem: origem, linxFichaResumo: resumo };
+      return {
+        ...updated,
+        tecidos: getPecaInsumoLabels(updated, 'tecidos'),
+        aviamentos: getPecaInsumoLabels(updated, 'aviamentos'),
+      };
+    });
+  }, [allPecas, colecao.id, marca.id, linxPecas, linxResumos]);
+
+  const temasDaColecao = getCollectionThemes(colecao.id, allThemes, pecasDaColecao);
+
+  const handleSaveTheme = (theme: CollectionTheme, previousId: string | null) => {
+    setAllThemes((previous) => [...previous.filter((item) => item.id !== previousId), theme]);
+  };
+
+  const handleAbrirAdicionarPecas = () => {
+    setFormTema('Base');
+    setIsAdicionarPecasOpen(true);
+  };
 
   const opcoesDeFiltro = useMemo(() => {
     const unique = (values: (string | undefined)[]) =>
@@ -255,39 +439,26 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
         new Set(values.filter((value): value is string => Boolean(value && value !== '—')))
       ).sort((a, b) => a.localeCompare(b, 'pt-BR'));
 
-    return {
-      tema: unique(pecasDaColecao.map((peca) => peca.tema)),
-      status: unique(pecasDaColecao.map((peca) => peca.status)),
-      tipo: unique(pecasDaColecao.map((peca) => peca.tipo)),
-      etapa: unique(pecasDaColecao.map((peca) => peca.etapaAtual)),
-      estilista: unique(pecasDaColecao.map((peca) => peca.estilista)),
-      modelista: unique(pecasDaColecao.map((peca) => peca.modelista)),
-      tecido: unique(pecasDaColecao.flatMap((peca) => peca.tecidos)),
-      responsavel: unique(pecasDaColecao.map((peca) => peca.responsavel)),
-      fluxo: unique(pecasDaColecao.map((peca) => peca.fluxo)),
-    } satisfies Record<FilterKey, string[]>;
+    return Object.fromEntries(
+      Object.entries(ROTULOS_FILTRO).map(([key, label]) => [
+        key,
+        unique(pecasDaColecao.flatMap((peca) => getPecaFichaValues(peca, label))),
+      ])
+    ) as Record<FilterKey, string[]>;
   }, [pecasDaColecao]);
 
-  const rotuloDeFiltro: Record<FilterKey, string> = {
-    tema: 'Tema',
-    status: 'Status',
-    tipo: 'Tipo de peça',
-    etapa: 'Etapas',
-    estilista: 'Estilista',
-    modelista: 'Modelista',
-    tecido: 'Tecidos',
-    responsavel: 'Responsável',
-    fluxo: 'Fluxo',
-  };
+  const rotuloDeFiltro: Record<FilterKey, string> = { ...ROTULOS_FILTRO, tema: 'Tema' };
 
   const valorDoFiltro = (peca: PecaItem, filtro: FilterKey) => {
-    if (filtro === 'tecido') return peca.tecidos;
-    if (filtro === 'etapa') return peca.etapaAtual;
-    return peca[filtro];
+    return getPecaFichaValues(peca, ROTULOS_FILTRO[filtro]);
   };
 
   // Filtros diferentes se cruzam (AND); cada linha compara com o valor local da peça.
   const pecasFiltradas = pecasDaColecao.filter((p) => {
+    if (!mostrarCanceladas && p.status === 'Cancelada') {
+      return false;
+    }
+
     const matchesSearch =
       searchPeca === '' ||
       p.nome.toLowerCase().includes(searchPeca.toLowerCase()) ||
@@ -296,6 +467,13 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
     const matchesFiltros = Object.entries(filtrosSelecionados).every(([key, value]) => {
       if (!value) return true;
       const valorDaPeca = valorDoFiltro(p, key as FilterKey);
+      if (value === '__com_insumo__' || value === '__sem_insumo__') {
+        return (
+          hasPecaInsumosConfirmados(p) &&
+          Array.isArray(valorDaPeca) &&
+          (value === '__com_insumo__' ? valorDaPeca.length > 0 : valorDaPeca.length === 0)
+        );
+      }
       return Array.isArray(valorDaPeca) ? valorDaPeca.includes(value) : valorDaPeca === value;
     });
 
@@ -305,42 +483,120 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
   // Handler para criar peças (suporta quantidade informada no modal)
   const handleAdicionarPecasSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const qty = Math.max(1, formQuantidade);
+    const qty = Math.max(1, Number.parseInt(formQuantidade, 10) || 1);
+    if (!nomesPecaLinx.includes(formNomePeca)) return;
+    if (!temasDaColecao.some((theme) => theme.name === formTema)) return;
     const novasPecas: PecaItem[] = [];
 
-    const prefix =
-      formNomePeca.substring(0, 2).toUpperCase() +
-      Math.floor(1000 + Math.random() * 9000).toString();
-
     for (let i = 0; i < qty; i++) {
-      const codeSuffix = qty > 1 ? `J.${i + 1}` : 'J.2';
-      novasPecas.push({
-        id: `peca-${Date.now()}-${i}`,
-        colecaoId: colecao.id,
-        codigo: `${prefix}${codeSuffix}`,
-        nome: `${formNomePeca} ${prefix}${codeSuffix}`,
-        tipo: formNomePeca,
-        status: 'Em andamento',
-        etapaAtual: '—',
-        tema: formTema || 'Base',
-        colecaoNome: colecao.nome,
-        marcaNome: marca.nome,
-        estilista: formEstilista || 'Ivonete Barbosa',
-        tecidos: formTecido ? [formTecido] : [],
-        custo: 120,
-        preco: 349.9,
-        previsaoEntrega: '—',
-      });
+      novasPecas.push(
+        registrarCriacaoPeca(
+          {
+            id: crypto.randomUUID(),
+            colecaoId: colecao.id,
+            marcaId: marca.id,
+            codigo: '',
+            nome: formNomePeca,
+            tipo: formNomePeca,
+            status: 'Em andamento',
+            etapaAtual: ETAPA_INICIAL_FICHA,
+            tema: formTema,
+            colecaoNome: colecao.nome,
+            marcaNome: marca.nome,
+            estilista: '',
+            tecidos: [],
+            custo: undefined,
+            preco: undefined,
+            previsaoEntrega: '—',
+          },
+          autor
+        )
+      );
     }
 
     setAllPecas((prev) => [...novasPecas, ...prev]);
     setIsAdicionarPecasOpen(false);
+    setFormQuantidade('1');
+    setFormNomePeca('');
+    setFormTema('Base');
+  };
+
+  // Exportação CSV segura das peças filtradas
+  const handleExportarCsv = () => {
+    const headers = [
+      'Código',
+      'Nome',
+      'Tipo',
+      'Status',
+      'Etapa',
+      'Tema',
+      'Estilista',
+      'Tecidos',
+      'Custo',
+      'Preço',
+      'Previsão Entrega',
+    ];
+    const rows = pecasFiltradas.map((p) => [
+      p.codigo,
+      p.nome,
+      p.tipo,
+      p.status || '',
+      p.etapaAtual || '',
+      p.tema || '',
+      p.estilista || '',
+      (p.tecidos || []).join('; '),
+      p.custo !== undefined ? p.custo.toFixed(2) : '',
+      p.preco !== undefined ? p.preco.toFixed(2) : '',
+      p.previsaoEntrega || '',
+    ]);
+
+    const csvContent = [
+      headers.join(';'),
+      ...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(';')),
+    ].join('\r\n');
+
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute(
+      'download',
+      `pecas_${(colecao.nome || 'colecao').toLowerCase().replace(/\s+/g, '_')}.csv`
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleCopiarCodigo = () => {
+    const code = colecao.codigoPill || colecao.id;
+    void navigator.clipboard.writeText(code).then(() => {
+      setCopiadoFeedback(true);
+      setTimeout(() => setCopiadoFeedback(false), 2000);
+      setIsOpcoesMenuOpen(false);
+    });
   };
 
   // Atualizar peça editada na ficha técnica
   const handleUpdatePecaInFicha = (updatedPeca: PecaItem) => {
-    setAllPecas((prev) => prev.map((p) => (p.id === updatedPeca.id ? updatedPeca : p)));
+    // Informe falhas de quota ao formulário em vez de confirmar um rascunho perdido.
+    savePecaLocal(updatedPeca);
+    setLinxPecas((prev) =>
+      prev.map((peca) =>
+        peca.id === updatedPeca.id && peca.colecaoId === updatedPeca.colecaoId ? updatedPeca : peca
+      )
+    );
     setSelectedFichaPeca(updatedPeca);
+  };
+
+  const handleMovimentacaoPeca = (updatedPeca: PecaItem) => {
+    const anterior = pecasDaColecao.find((item) => item.id === updatedPeca.id);
+    handleUpdatePecaInFicha(
+      anterior
+        ? registrarAlteracoesFicha(anterior, atualizarRevisao(anterior, updatedPeca), autor)
+        : updatedPeca
+    );
   };
 
   const toggleFiltroVisivel = (filtro: FilterKey) => {
@@ -365,21 +621,28 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
   if (selectedFichaPeca) {
     return (
       <PecaFichaTecnicaView
+        key={`${colecao.id}-${selectedFichaPeca.id}`}
         peca={selectedFichaPeca}
         colecao={colecao}
         marca={marca}
         onBack={() => setSelectedFichaPeca(null)}
         onUpdatePeca={handleUpdatePecaInFicha}
+        usuarios={usuarios}
+        usuariosCarregando={usuariosCarregando}
+        erroUsuarios={erroUsuarios}
+        onTentarCarregarUsuarios={tentarCarregarUsuarios}
       />
     );
   }
 
   const temporadaExtraida = colecao.temporada || 'Verão';
-  const anoExtraido = colecao.ano || '2026-27';
-  const dataEntregaFormatada = colecao.dataEntrega || '26/02/2027';
+  const anoNoNome = colecao.nome.match(/\b(20\d{2})\b/)?.[1];
+  const anoCurtoNoNome = colecao.nome.match(/\b(?:VERÃO|INVERNO)\s+(\d{2})\b/i)?.[1];
+  const anoExtraido = colecao.ano || anoNoNome || (anoCurtoNoNome ? `20${anoCurtoNoNome}` : '—');
+  const dataEntregaFormatada = colecao.dataEntrega || '—';
 
   return (
-    <div className="space-y-6 font-sans pb-16 animate-in fade-in duration-200">
+    <div className="collection-workspace space-y-6 font-sans pb-16">
       {/* 1. BREADCRUMBS FLUTUANTES */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-xs font-semibold text-muted">
@@ -407,172 +670,189 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
         <button
           type="button"
           onClick={onBackToBrand}
-          className="flex items-center gap-1 text-xs font-bold px-3.5 py-1.5 rounded-lg border border-border bg-surface text-muted-foreground hover:bg-surface-muted transition-all duration-200 cursor-pointer shadow-2xs"
+          className="flex min-h-10 items-center gap-2 text-sm text-muted hover:text-accent-camel"
         >
           <ArrowLeft className="w-3.5 h-3.5" strokeWidth={1.5} />
           <span>Voltar para {marca.nome}</span>
         </button>
       </div>
 
-      {/* 2. HEADER DA COLEÇÃO */}
-      <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-5 transition-all duration-300">
-        <div className="flex items-center justify-between border-b border-border-muted pb-3">
-          <h1 className="text-xl sm:text-2xl font-bold font-editorial text-primary tracking-wide">
-            Coleção {colecao.nome}
-          </h1>
-
-          <button
-            type="button"
-            className="px-3 py-1.5 rounded-lg border border-border bg-surface-muted hover:bg-border-muted text-xs font-semibold text-muted-foreground flex items-center gap-1.5 cursor-pointer transition-all duration-200 shadow-2xs"
-          >
-            <span>Opções</span>
-            <ChevronDown className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
-          </button>
-        </div>
-
-        {/* PAINEL DE METADADOS */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-xs pt-1">
-          <div>
-            <span className="text-[10px] font-semibold uppercase text-muted tracking-wider flex items-center gap-1 mb-1">
-              <Sun className="w-3.5 h-3.5 text-accent-camel" strokeWidth={1.5} /> Temporada
-            </span>
-            <strong className="text-xs font-semibold text-muted-foreground block">
-              {temporadaExtraida}
-            </strong>
-          </div>
-
-          <div>
-            <span className="text-[10px] font-semibold uppercase text-muted tracking-wider flex items-center gap-1 mb-1">
-              <Calendar className="w-3.5 h-3.5 text-accent-camel" strokeWidth={1.5} /> Ano
-            </span>
-            <strong className="text-xs font-semibold text-muted-foreground block">
-              {anoExtraido}
-            </strong>
-          </div>
-
-          <div>
-            <span className="text-[10px] font-semibold uppercase text-muted tracking-wider flex items-center gap-1 mb-1">
-              <CheckCircle2 className="w-3.5 h-3.5 text-accent-camel" strokeWidth={1.5} /> Data de
-              Entrega
-            </span>
-            <strong className="text-xs font-semibold text-muted-foreground block">
-              {dataEntregaFormatada}
-            </strong>
-          </div>
-
-          <div>
-            <span className="text-[10px] font-semibold uppercase text-muted tracking-wider block mb-1">
-              Total de Peças
-            </span>
-            <span className="text-xs font-bold text-accent-camel bg-accent-camel/10 px-2.5 py-0.5 rounded-md border border-accent-camel/30 inline-block">
-              {pecasDaColecao.length} Peças
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. AS SUB-ABAS HORIZONTAIS */}
-      <div className="border-b border-border bg-surface px-4 sm:px-6 rounded-xl shadow-2xs overflow-x-auto">
-        <div className="flex items-center gap-6 text-xs font-bold whitespace-nowrap min-w-max">
-          {(
-            [
-              { id: 'pecas', label: 'Peças' },
-              { id: 'temas', label: 'Temas' },
-              { id: 'cores', label: 'Cores' },
-              { id: 'paineis', label: 'Painéis' },
-              { id: 'estampas', label: 'Estampas' },
-              { id: 'reserva_tecidos', label: 'Reserva de Tecidos' },
-              { id: 'reserva_aviamentos', label: 'Reserva de Aviamentos' },
-              { id: 'mix', label: 'Mix' },
-              { id: 'metas', label: 'Metas' },
-              { id: 'cronograma', label: 'Cronograma' },
-            ] as const
-          ).map((tab) => (
+      <CollectionOverview
+        collectionId={colecao.id}
+        name={colecao.nome}
+        brand={marca.nome}
+        season={temporadaExtraida}
+        year={anoExtraido}
+        delivery={dataEntregaFormatada}
+        pieces={pecasDaColecao}
+        themeCount={temasDaColecao.length}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onAddPiece={handleAbrirAdicionarPecas}
+        options={
+          <div className="relative">
             <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`py-3.5 border-b-2 transition-all duration-200 cursor-pointer ${
-                activeTab === tab.id
-                  ? 'border-accent-camel text-accent-camel font-bold'
-                  : 'border-transparent text-muted hover:text-primary'
-              }`}
+              type="button"
+              onClick={() => setIsOpcoesMenuOpen((prev) => !prev)}
+              aria-expanded={isOpcoesMenuOpen}
+              className="px-3 py-1.5 rounded-lg border border-border bg-surface-muted hover:bg-border-muted text-xs font-semibold text-muted-foreground flex items-center gap-1.5 cursor-pointer transition-all duration-200 shadow-2xs"
             >
-              {tab.label}
+              <span>Opções</span>
+              <ChevronDown className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} />
             </button>
-          ))}
-        </div>
-      </div>
+
+            {isOpcoesMenuOpen && (
+              <div className="absolute right-0 mt-2 w-52 bg-surface rounded-xl border border-border shadow-lg py-1.5 z-30 animate-in fade-in zoom-in-95 duration-150">
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleExportarCsv();
+                    setIsOpcoesMenuOpen(false);
+                  }}
+                  className="w-full text-left px-3.5 py-2 text-xs font-medium text-primary hover:bg-surface-muted flex items-center gap-2 cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5 text-accent-camel" />
+                  <span>Exportar Peças (CSV)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleCopiarCodigo}
+                  className="w-full text-left px-3.5 py-2 text-xs font-medium text-primary hover:bg-surface-muted flex items-center gap-2 cursor-pointer"
+                >
+                  <Copy className="w-3.5 h-3.5 text-accent-camel" />
+                  <span>{copiadoFeedback ? 'Código Copiado!' : 'Copiar Código'}</span>
+                </button>
+              </div>
+            )}
+          </div>
+        }
+      />
 
       {/* 4. CONTEÚDO DAS SUB-ABAS */}
       {activeTab === 'pecas' && (
         <div className="space-y-6 animate-in fade-in duration-200">
           {/* SEÇÃO "FILTROS DE PEÇAS" */}
-          <div className="bg-surface p-6 rounded-xl border border-border shadow-2xs space-y-4 font-sans transition-all duration-300">
-            <div className="flex items-center justify-between border-b border-border-muted pb-3">
-              <h3 className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider">
-                <Filter className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} /> Filtros de peças
-              </h3>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  className="px-3 py-1 rounded-lg border border-border bg-surface hover:bg-surface-muted text-xs font-semibold text-muted-foreground shadow-2xs transition-all duration-200 cursor-pointer"
-                >
-                  Canceladas
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsFiltrosMenuOpen(true)}
-                  className="px-3 py-1 rounded-lg border border-border bg-surface hover:bg-surface-muted text-xs font-semibold text-muted-foreground shadow-2xs transition-all duration-200 cursor-pointer flex items-center gap-1"
-                >
-                  <SlidersHorizontal className="w-3.5 h-3.5" />
-                  <span>Filtros</span>
-                </button>
+          <details
+            open={pecasDaColecao.length > 0}
+            className="rounded-card border border-border bg-surface p-4"
+          >
+            <summary className="cursor-pointer text-sm font-semibold">
+              Filtros de peças{' '}
+              <span className="ml-2 text-xs font-normal text-muted">
+                {Object.values(filtrosSelecionados).filter(Boolean).length} ativos
+              </span>
+            </summary>
+            <div className="mt-4 space-y-4">
+              <div className="flex flex-wrap items-center justify-end gap-3 border-b border-border-muted pb-3">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setMostrarCanceladas((prev) => !prev)}
+                    aria-pressed={mostrarCanceladas}
+                    className={`px-3 py-1 rounded-lg border text-xs font-semibold shadow-2xs transition-all duration-200 cursor-pointer ${
+                      mostrarCanceladas
+                        ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-800/60 font-bold'
+                        : 'bg-surface hover:bg-surface-muted text-muted-foreground border-border'
+                    }`}
+                  >
+                    {mostrarCanceladas ? 'Ocultar canceladas' : 'Ver canceladas'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsFiltrosMenuOpen(true)}
+                    className="px-3 py-1 rounded-lg border border-border bg-surface hover:bg-surface-muted text-xs font-semibold text-muted-foreground shadow-2xs transition-all duration-200 cursor-pointer flex items-center gap-1"
+                  >
+                    <SlidersHorizontal className="w-3.5 h-3.5" />
+                    <span>Filtros</span>
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {/* Cada opção é derivada das peças já cadastradas nesta coleção. */}
-            <div className="space-y-3 text-xs">
-              {filtrosVisiveis.map((filtro) => (
-                <div key={filtro} className="flex flex-wrap items-center gap-3">
-                  <span className="w-28 font-semibold text-muted-foreground">
-                    {rotuloDeFiltro[filtro]}
-                  </span>
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setFiltrosSelecionados((atuais) => ({ ...atuais, [filtro]: '' }))
-                      }
-                      className={`px-3 py-0.5 rounded-md text-xs transition-all duration-200 cursor-pointer ${
-                        !filtrosSelecionados[filtro]
-                          ? 'bg-accent-camel text-white font-bold shadow-2xs'
-                          : 'bg-surface-muted hover:bg-border-muted text-muted-foreground font-semibold border border-border'
-                      }`}
-                    >
-                      Todos
-                    </button>
-                    {opcoesDeFiltro[filtro].map((opcao) => (
+              {/* Cada opção é derivada das peças já cadastradas nesta coleção. */}
+              <div className="space-y-3 text-xs">
+                {filtrosVisiveis.map((filtro) => (
+                  <div key={filtro} className="flex flex-wrap items-center gap-3">
+                    <span className="w-28 font-semibold text-muted-foreground">
+                      {rotuloDeFiltro[filtro]}
+                    </span>
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <button
-                        key={opcao}
                         type="button"
                         onClick={() =>
-                          setFiltrosSelecionados((atuais) => ({ ...atuais, [filtro]: opcao }))
+                          setFiltrosSelecionados((atuais) => ({ ...atuais, [filtro]: '' }))
                         }
                         className={`px-3 py-0.5 rounded-md text-xs transition-all duration-200 cursor-pointer ${
-                          filtrosSelecionados[filtro] === opcao
-                            ? 'bg-accent-camel text-white font-bold shadow-2xs'
+                          !filtrosSelecionados[filtro]
+                            ? 'bg-accent-camel text-on-camel font-bold shadow-2xs'
                             : 'bg-surface-muted hover:bg-border-muted text-muted-foreground font-semibold border border-border'
                         }`}
                       >
-                        {opcao}
+                        Todos ({pecasDaColecao.length})
                       </button>
-                    ))}
+                      {(filtro === 'tecido' || filtro === 'aviamento') &&
+                        (['__com_insumo__', '__sem_insumo__'] as const).map((value) => {
+                          const count = pecasDaColecao.filter(
+                            (peca) =>
+                              hasPecaInsumosConfirmados(peca) &&
+                              (value === '__com_insumo__'
+                                ? (valorDoFiltro(peca, filtro) as string[]).length > 0
+                                : (valorDoFiltro(peca, filtro) as string[]).length === 0)
+                          ).length;
+                          return (
+                            <button
+                              key={value}
+                              type="button"
+                              onClick={() =>
+                                setFiltrosSelecionados((atuais) => ({ ...atuais, [filtro]: value }))
+                              }
+                              className={`px-3 py-0.5 rounded-md border border-border text-xs ${filtrosSelecionados[filtro] === value ? 'bg-accent-camel text-on-camel' : 'bg-surface-muted'}`}
+                            >
+                              {value === '__com_insumo__' ? 'Com' : 'Sem'} {rotuloDeFiltro[filtro]}{' '}
+                              ({count})
+                            </button>
+                          );
+                        })}
+                      {opcoesDeFiltro[filtro].map((opcao) => (
+                        <button
+                          key={opcao}
+                          type="button"
+                          onClick={() =>
+                            setFiltrosSelecionados((atuais) => ({ ...atuais, [filtro]: opcao }))
+                          }
+                          className={`px-3 py-0.5 rounded-md text-xs transition-all duration-200 cursor-pointer ${
+                            filtrosSelecionados[filtro] === opcao
+                              ? 'bg-accent-camel text-on-camel font-bold shadow-2xs'
+                              : 'bg-surface-muted hover:bg-border-muted text-muted-foreground font-semibold border border-border'
+                          }`}
+                        >
+                          {opcao} (
+                          {
+                            pecasDaColecao.filter((peca) => {
+                              const value = valorDoFiltro(peca, filtro);
+                              return Array.isArray(value) ? value.includes(opcao) : value === opcao;
+                            }).length
+                          }
+                          )
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              {linxResumoError && (
+                <p role="status" className="text-xs text-muted mt-3">
+                  {linxResumoError}
+                </p>
+              )}
+              {codigoColecaoLinx && (
+                <p className="text-xs text-muted mt-3">
+                  Filtros de insumos usam as fichas locais e a ficha atual do Linx das peças desta
+                  coleção. Peças sem ficha consultada não são contadas como “sem insumos”.
+                </p>
+              )}
             </div>
-          </div>
+          </details>
 
           {/* BARRA SUPERIOR DE QUANTIDADE, MINIATURAS E AÇÃO "+ PEÇAS" */}
           <div className="bg-surface p-4 sm:p-5 rounded-xl border border-border shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 transition-all duration-300">
@@ -593,6 +873,7 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                 />
                 <input
                   type="text"
+                  aria-label="Buscar peças da coleção"
                   placeholder="Procurar pelo nome, código..."
                   value={searchPeca}
                   onChange={(e) => setSearchPeca(e.target.value)}
@@ -610,15 +891,19 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                 <span>Miniaturas</span>
               </button>
 
-              <button className="px-3.5 py-1.5 rounded-lg border border-border bg-surface hover:bg-surface-muted text-xs font-semibold text-muted-foreground flex items-center gap-1 shadow-2xs transition-all duration-200 cursor-pointer">
+              <button
+                type="button"
+                onClick={handleExportarCsv}
+                className="px-3.5 py-1.5 rounded-lg border border-border bg-surface hover:bg-surface-muted text-xs font-semibold text-muted-foreground flex items-center gap-1 shadow-2xs transition-all duration-200 cursor-pointer"
+              >
                 <Download className="w-3.5 h-3.5 text-muted" strokeWidth={1.5} /> Exportar
               </button>
 
               {/* BOTÃO "+ PEÇAS" COM A COR CORRETA DO DESIGN SYSTEM (ACCENT CAMEL / GOLD) */}
               <button
                 type="button"
-                onClick={() => setIsAdicionarPecasOpen(true)}
-                className="px-4 py-1.5 rounded-lg bg-accent-camel hover:bg-accent-camel/90 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all duration-200 cursor-pointer"
+                onClick={handleAbrirAdicionarPecas}
+                className="px-4 py-1.5 rounded-lg bg-accent-camel hover:bg-accent-camel/90 text-on-camel text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all duration-200 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>Peças +</span>
@@ -626,31 +911,56 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
             </div>
           </div>
 
-          {/* GRID DE CARDS DAS PEÇAS (EXIBE OS CAMPOS SELECIONADOS NO MODAL DE MINIATURA - PRINT 1 & 5) */}
-          {pecasFiltradas.length === 0 ? (
-            <div className="bg-surface p-12 rounded-xl border border-border text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-surface-muted border border-border-muted flex items-center justify-center mx-auto text-muted">
-                <CabideIcon />
-              </div>
-              <div className="space-y-1">
-                <h4 className="text-sm font-bold text-primary font-editorial">
-                  Nenhuma peça criada nesta coleção
-                </h4>
-                <p className="text-xs text-muted max-w-md mx-auto">
-                  Clique no botão &quot;Peças +&quot; acima para adicionar novas peças.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsAdicionarPecasOpen(true)}
-                className="px-5 py-2.5 rounded-lg bg-accent-camel hover:bg-accent-camel/90 text-white font-bold text-xs inline-flex items-center gap-2 cursor-pointer shadow-2xs transition-all duration-200"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Adicionar Peça</span>
-              </button>
+          {linxPecasError && (
+            <div
+              role="alert"
+              className="rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 px-4 py-3 text-xs font-medium text-red-700 dark:text-red-400"
+            >
+              {linxPecasError}
             </div>
+          )}
+
+          {/* GRID DE CARDS DAS PEÇAS (EXIBE OS CAMPOS SELECIONADOS NO MODAL DE MINIATURA - PRINT 1 & 5) */}
+          {isLoadingLinxPecas && pecasDaColecao.length === 0 ? (
+            <div
+              role="status"
+              className="bg-surface p-12 rounded-xl border border-border text-center text-xs font-medium text-muted-foreground"
+            >
+              Carregando as peças de roupa vinculadas a esta coleção no Linx...
+            </div>
+          ) : pecasFiltradas.length === 0 ? (
+            <EmptyState
+              title={
+                pecasDaColecao.length
+                  ? 'Nenhuma peça corresponde aos filtros.'
+                  : 'Nenhuma peça de roupa vinculada a esta coleção'
+              }
+              description={
+                pecasDaColecao.length
+                  ? 'Ajuste sua busca ou limpe os filtros para ver as peças da coleção.'
+                  : 'Comece adicionando uma peça para organizar o desenvolvimento da coleção.'
+              }
+              action={
+                <div className="flex flex-wrap justify-center gap-2">
+                  {pecasDaColecao.length > 0 && (
+                    <Button
+                      onClick={() => {
+                        setFiltrosSelecionados({});
+                        setSearchPeca('');
+                      }}
+                    >
+                      Limpar filtros
+                    </Button>
+                  )}
+                  <Button variant="primary" onClick={handleAbrirAdicionarPecas}>
+                    <Plus aria-hidden="true" className="h-4 w-4" />
+                    Adicionar Peça
+                  </Button>
+                </div>
+              }
+            />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {pecasFiltradas.map((peca) => (
                 <div
                   key={peca.id}
@@ -663,7 +973,7 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                       event.stopPropagation();
                       setSelectedFichaPeca(peca);
                     }}
-                    className="absolute right-3 top-3 z-10 flex translate-y-1 items-center gap-1.5 rounded-md bg-primary px-2.5 py-1.5 text-[11px] font-bold text-white opacity-0 shadow-sm transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 focus:translate-y-0 focus:opacity-100"
+                    className="absolute right-3 top-3 z-10 flex translate-y-1 items-center gap-1.5 rounded-md bg-action px-2.5 py-1.5 text-[11px] font-bold text-action-foreground opacity-0 shadow-sm transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 focus:translate-y-0 focus:opacity-100 max-sm:opacity-100"
                   >
                     Ficha técnica <ChevronRight className="h-3.5 w-3.5" />
                   </button>
@@ -679,201 +989,260 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                   </div>
 
                   {/* Área Central: Cabide Desenhado (Print 5) */}
-                  <div className="w-full h-40 bg-surface-muted rounded-lg flex items-center justify-center border border-border-muted group-hover:border-accent-camel/40 transition">
-                    <CabideIcon />
-                  </div>
-
-                  {/* Informações da peça exibidas conforme a seleção do Modal de Miniatura (Print 1 & 5) */}
-                  <div className="space-y-1.5 text-xs text-primary pt-1">
-                    {miniaturaFields.includes('Status') && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground font-medium">Status</span>
-                        <span className="flex items-center gap-1 font-semibold text-primary">
-                          {peca.status || 'Em andamento'}
-                          <button
-                            type="button"
-                            title="Editar status na ficha técnica"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setSelectedFichaPeca(peca);
-                            }}
-                            className="opacity-0 transition-opacity group-hover:opacity-100 hover:text-accent-camel"
-                          >
-                            <Pencil className="h-3 w-3" />
-                          </button>
-                        </span>
-                      </div>
-                    )}
-
-                    {miniaturaFields.includes('Código') && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground font-medium">Código</span>
-                        <span className="font-semibold text-primary">{peca.codigo}</span>
-                      </div>
-                    )}
-
-                    {miniaturaFields.includes('Etapas') && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground font-medium">Etapas</span>
-                        <span className="flex items-center gap-1 text-primary font-medium">
-                          {peca.etapaAtual || '—'}
-                          <button
-                            type="button"
-                            title="Mover etapa"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setPecaEmMovimentacao(peca);
-                            }}
-                            className="opacity-0 transition-opacity group-hover:opacity-100 hover:text-accent-camel"
-                          >
-                            <Pencil className="h-3 w-3" />
-                          </button>
-                        </span>
-                      </div>
-                    )}
-
-                    {miniaturaFields.includes('Previsão') && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground font-medium">Previsão</span>
-                        <span className="flex items-center gap-1 text-primary font-medium">
-                          {peca.previsaoEntrega || '—'}
-                          <button
-                            type="button"
-                            title="Editar previsão na ficha técnica"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setSelectedFichaPeca(peca);
-                            }}
-                            className="opacity-0 transition-opacity group-hover:opacity-100 hover:text-accent-camel"
-                          >
-                            <Pencil className="h-3 w-3" />
-                          </button>
-                        </span>
-                      </div>
-                    )}
-
-                    {miniaturaFields.includes('Estilista') && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground font-medium">Estilista</span>
-                        <span className="flex items-center gap-1 text-primary font-medium">
-                          {peca.estilista || '—'}
-                          <button
-                            type="button"
-                            title="Editar estilista na ficha técnica"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setSelectedFichaPeca(peca);
-                            }}
-                            className="opacity-0 transition-opacity group-hover:opacity-100 hover:text-accent-camel"
-                          >
-                            <Pencil className="h-3 w-3" />
-                          </button>
-                        </span>
-                      </div>
-                    )}
-
-                    {miniaturaFields.includes('Custo') && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground font-medium">Custo</span>
-                        <span className="text-accent-camel font-bold">
-                          R$ {peca.custo ? peca.custo.toFixed(2) : '120.00'}
-                        </span>
-                      </div>
-                    )}
-
-                    {miniaturaFields.includes('Preço') && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground font-medium">Preço</span>
-                        <span className="text-emerald-600 font-bold">
-                          R$ {peca.preco ? peca.preco.toFixed(2) : '349.90'}
-                        </span>
-                      </div>
-                    )}
-
-                    {miniaturaFields.includes('Tecidos') && (
-                      <div className="pt-1 border-t border-border-muted">
-                        <span className="flex items-center gap-1 text-muted-foreground font-medium">
-                          Tecidos
-                          <button
-                            type="button"
-                            title="Editar tecidos na ficha técnica"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setSelectedFichaPeca(peca);
-                            }}
-                            className="opacity-0 transition-opacity group-hover:opacity-100 hover:text-accent-camel"
-                          >
-                            <Pencil className="h-3 w-3" />
-                          </button>
-                        </span>
-                        <span className="text-primary font-medium text-[11px] block leading-tight mt-0.5">
-                          {peca.tecidos && peca.tecidos.length > 0 ? peca.tecidos.join(', ') : '—'}
-                        </span>
-                      </div>
+                  <div className="w-full h-56 bg-surface-muted rounded-control flex items-center justify-center overflow-hidden border border-border-muted group-hover:border-accent-camel/40 transition">
+                    {peca.imagemCroquiUrl ? (
+                      <img
+                        src={peca.imagemCroquiUrl}
+                        alt={peca.nome}
+                        className="h-full w-full object-contain p-2"
+                      />
+                    ) : (
+                      <CabideIcon />
                     )}
                   </div>
+
+                  <PecaMiniaturaFields
+                    peca={peca}
+                    fields={miniaturaFields}
+                    onEdit={(field) => {
+                      if (field === 'Etapas') setPecaEmMovimentacao(peca);
+                      else setSelectedFichaPeca(peca);
+                    }}
+                  />
                 </div>
               ))}
             </div>
           )}
         </div>
       )}
+      {/* 4.2–4.3. TEMAS E CORES */}
+      {activeTab === 'temas' && (
+        <CollectionThemesTab
+          collectionId={colecao.id}
+          collectionName={colecao.nome}
+          pieces={pecasDaColecao}
+          savedThemes={allThemes}
+          onSaveTheme={handleSaveTheme}
+        />
+      )}
+      {activeTab === 'cores' && <CollectionColorsTab collectionId={colecao.id} />}
 
-      {isFiltrosMenuOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-neutral-950/50 p-4 pt-10 backdrop-blur-xs overflow-y-auto">
-          <div className="w-full max-w-2xl rounded-xl border border-border bg-surface p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
-            <div className="mb-5 flex items-center justify-between">
-              <div>
-                <h2 className="text-base font-bold text-primary">Opções de filtros</h2>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Os valores são extraídos das peças desta coleção, sem consulta ao Linx.
-                </p>
+      {/* 4.4. SUB-ABA: PAINÉIS */}
+      {activeTab === 'paineis' && (
+        <div className="bg-surface p-6 sm:p-8 rounded-xl border border-border shadow-2xs space-y-6 animate-in fade-in duration-200">
+          <SectionHeader
+            title="Painel Conceitual & Moodboard"
+            description={`Diretrizes visuais e conceituais da marca para ${colecao.nome}.`}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-2 p-6 rounded-xl border border-border bg-surface-muted space-y-4">
+              <h4 className="text-sm font-bold text-primary font-editorial uppercase">
+                Direção Criativa & Silhueta
+              </h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Desenvolvimento de modelagens contemporâneas combinando matérias-primas nobres,
+                acabamentos de alfaiataria desestruturada e cartela atemporal.
+              </p>
+              <div className="flex flex-wrap gap-2 pt-2">
+                {['Alfaiataria Moderna', 'Fibras Naturais', 'Minimalismo Funcional'].map((tag) => (
+                  <span
+                    key={tag}
+                    className="text-xs font-bold px-3 py-1 rounded-full bg-surface border border-border text-primary"
+                  >
+                    {tag}
+                  </span>
+                ))}
               </div>
-              <button
-                type="button"
-                onClick={() => setIsFiltrosMenuOpen(false)}
-                className="text-muted hover:text-primary"
-              >
-                <X className="h-5 w-5" />
-              </button>
             </div>
-            <div className="space-y-4">
-              {GRUPOS_FILTROS.map((grupo) => (
-                <section key={grupo.titulo}>
-                  <h3 className="mb-2 text-xs font-bold text-primary">{grupo.titulo}</h3>
-                  <div className="flex flex-wrap gap-1.5">
-                    {grupo.opcoes.map((opcao) => {
-                      const filtro = FILTRO_POR_NOME[opcao];
-                      const selecionado = filtro ? filtrosVisiveis.includes(filtro) : false;
-                      return (
-                        <button
-                          key={opcao}
-                          type="button"
-                          disabled={!filtro}
-                          title={
-                            !filtro
-                              ? 'Este campo será ativado quando houver dados internos cadastrados na peça.'
-                              : undefined
-                          }
-                          onClick={() => adicionarFiltroDoMenu(opcao)}
-                          className={`rounded-md border px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                            selecionado
-                              ? 'border-accent-camel bg-accent-camel text-white'
-                              : filtro
-                                ? 'border-border bg-surface text-primary hover:border-accent-camel hover:text-accent-camel'
-                                : 'cursor-not-allowed border-border-muted bg-surface-muted text-muted'
-                          }`}
-                        >
-                          {opcao}
-                        </button>
-                      );
-                    })}
+
+            <div className="p-6 rounded-xl border border-border bg-surface-muted flex flex-col justify-between space-y-4">
+              <div>
+                <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
+                  Metadados da Coleção
+                </h4>
+                <div className="space-y-1.5 text-xs text-primary font-medium">
+                  <div>
+                    Marca: <strong>{marca.nome}</strong>
                   </div>
-                </section>
-              ))}
+                  <div>
+                    Código: <strong>{colecao.codigoPill || colecao.id}</strong>
+                  </div>
+                  <div>
+                    Temporada: <strong>{temporadaExtraida}</strong>
+                  </div>
+                  <div>
+                    Total de Peças: <strong>{pecasDaColecao.length}</strong>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+      )}
+      {/* 4.5–4.7. ESTAMPAS E RESERVAS */}
+      {activeTab === 'estampas' && <CollectionPrintsTab collectionId={colecao.id} />}
+      {activeTab === 'reserva_tecidos' && (
+        <CollectionReservationsTab
+          collectionId={colecao.id}
+          type="TECIDO"
+          pieces={pecasDaColecao}
+        />
+      )}
+      {activeTab === 'reserva_aviamentos' && (
+        <CollectionReservationsTab
+          collectionId={colecao.id}
+          type="AVIAMENTO"
+          pieces={pecasDaColecao}
+        />
+      )}
+
+      {/* 4.8. SUB-ABA: MIX */}
+      {activeTab === 'mix' && (
+        <div className="bg-surface p-6 sm:p-8 rounded-xl border border-border shadow-2xs space-y-6 animate-in fade-in duration-200">
+          <SectionHeader
+            title="Mix de Produtos & Categorias"
+            description="Distribuição percentual da coleção por tipo de peça."
+            action={
+              <span className="rounded-control border border-accent-camel/30 bg-accent-camel/10 px-3 py-2 text-xs font-semibold text-accent-camel">
+                Total: {pecasDaColecao.length} Peças
+              </span>
+            }
+          />
+
+          {pecasDaColecao.length === 0 ? (
+            <div className="p-8 text-center text-xs text-muted">
+              <EmptyState
+                title="Nenhuma peça vinculada para calcular o mix."
+                description="Adicione peças para acompanhar a distribuição por categoria."
+                action={<Button onClick={handleAbrirAdicionarPecas}>Adicionar peça</Button>}
+              />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {opcoesDeFiltro.tipo.map((tipo) => {
+                const count = pecasDaColecao.filter((p) => p.tipo === tipo).length;
+                const pct = Math.round((count / pecasDaColecao.length) * 100);
+                return (
+                  <div key={tipo} className="space-y-1.5">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-bold text-primary">{tipo}</span>
+                      <span className="font-semibold text-muted-foreground">
+                        {count} peças ({pct}%)
+                      </span>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-surface-muted overflow-hidden border border-border/50">
+                      <div
+                        className="h-full bg-accent-camel rounded-full transition-all duration-500"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 4.9. SUB-ABA: METAS */}
+      {activeTab === 'metas' && (
+        <div className="bg-surface p-6 sm:p-8 rounded-xl border border-border shadow-2xs space-y-6 animate-in fade-in duration-200">
+          <SectionHeader
+            title="Metas & Indicadores de Produção"
+            description={'Acompanhamento dos indicadores de desenvolvimento e entrega.'}
+          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-5 rounded-xl border border-border bg-surface-muted text-center space-y-1">
+              <span className="text-[11px] font-bold text-muted-foreground uppercase">
+                Total de Peças
+              </span>
+              <div className="text-3xl font-bold text-primary">{pecasDaColecao.length}</div>
+            </div>
+
+            <div className="p-5 rounded-xl border border-border bg-surface-muted text-center space-y-1">
+              <span className="text-[11px] font-bold text-muted-foreground uppercase">
+                Em Andamento
+              </span>
+              <div className="text-2xl font-bold text-accent-camel">
+                {pecasDaColecao.filter((p) => p.status === 'Em andamento').length}
+              </div>
+            </div>
+
+            <div className="p-5 rounded-xl border border-border bg-surface-muted text-center space-y-1">
+              <span className="text-[11px] font-bold text-muted-foreground uppercase">
+                Canceladas
+              </span>
+              <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">
+                {pecasDaColecao.filter((p) => p.status === 'Cancelada').length}
+              </div>
+            </div>
+          </div>
+          <p className="text-sm text-muted">
+            Não há metas numéricas configuradas para esta coleção. Os indicadores refletem as peças
+            cadastradas.
+          </p>
+        </div>
+      )}
+
+      {/* 4.10. SUB-ABA: CRONOGRAMA */}
+      {activeTab === 'cronograma' && (
+        <CollectionSchedule
+          pieces={pecasDaColecao}
+          collectionName={colecao.nome}
+          collectionDelivery={dataEntregaFormatada}
+          onOpenPiece={setSelectedFichaPeca}
+          onAddPiece={handleAbrirAdicionarPecas}
+        />
+      )}
+
+      {isFiltrosMenuOpen && (
+        <CollectionDialog
+          title="Opções de filtros"
+          onClose={() => setIsFiltrosMenuOpen(false)}
+          className="max-w-2xl"
+        >
+          <p className="mb-5 text-sm text-muted">
+            Os valores vêm das fichas técnicas das peças desta coleção, incluindo tecidos e
+            aviamentos de todas as variantes.
+          </p>
+          <div className="space-y-4">
+            {GRUPOS_FILTROS.map((grupo) => (
+              <section key={grupo.titulo}>
+                <h3 className="mb-2 text-xs font-bold text-primary">{grupo.titulo}</h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {grupo.opcoes.map((opcao) => {
+                    const filtro = FILTRO_POR_NOME[opcao];
+                    const selecionado = filtro ? filtrosVisiveis.includes(filtro) : false;
+                    return (
+                      <button
+                        key={opcao}
+                        type="button"
+                        disabled={!filtro}
+                        title={
+                          !filtro
+                            ? 'Este campo será ativado quando houver dados internos cadastrados na peça.'
+                            : undefined
+                        }
+                        onClick={() => adicionarFiltroDoMenu(opcao)}
+                        className={`rounded-md border px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                          selecionado
+                            ? 'border-accent-camel bg-accent-camel text-on-camel'
+                            : filtro
+                              ? 'border-border bg-surface text-primary hover:border-accent-camel hover:text-accent-camel'
+                              : 'cursor-not-allowed border-border-muted bg-surface-muted text-muted'
+                        }`}
+                      >
+                        {opcao}
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            ))}
+          </div>
+        </CollectionDialog>
       )}
 
       {pecaEmMovimentacao && (
@@ -882,13 +1251,22 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
           marcaId={marca.id}
           marcaNome={marca.nome}
           usuarios={usuarios}
+          usuariosCarregando={usuariosCarregando}
+          erroUsuarios={erroUsuarios}
+          onTentarCarregarUsuarios={tentarCarregarUsuarios}
           onClose={() => setPecaEmMovimentacao(null)}
-          onSave={handleUpdatePecaInFicha}
+          onSave={handleMovimentacaoPeca}
+          onCorrigir={(_aba, _varianteId, candidata) => {
+            // Guarda somente o rascunho local das respostas, sem efetuar a mudança de etapa.
+            handleMovimentacaoPeca(candidata ?? pecaEmMovimentacao);
+            setPecaEmMovimentacao(null);
+          }}
         />
       )}
 
       {/* MODAL MINIATURA (PRINT 1) */}
       <MiniaturaModal
+        previewPeca={pecasFiltradas[0] ?? pecasDaColecao[0]}
         isOpen={isMiniaturaModalOpen}
         onClose={() => setIsMiniaturaModalOpen(false)}
         selectedFields={miniaturaFields}
@@ -897,116 +1275,78 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
 
       {/* MODAL: "ADICIONAR PEÇAS" (PRINT 4) */}
       {isAdicionarPecasOpen && (
-        <div className="fixed inset-0 bg-neutral-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-surface rounded-2xl border border-border shadow-xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200 font-sans">
-            {/* Header do Modal */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h3 className="text-sm font-bold text-primary">Adicionar peças</h3>
+        <CollectionDialog
+          title="Adicionar peças"
+          onClose={() => setIsAdicionarPecasOpen(false)}
+          className="max-w-lg"
+        >
+          <form onSubmit={handleAdicionarPecasSubmit} className="space-y-4 p-6 text-xs">
+            <label className="block font-semibold text-muted-foreground">
+              Quantidade
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[1-9][0-9]*"
+                value={formQuantidade}
+                onChange={(event) => setFormQuantidade(event.target.value.replace(/\D/g, ''))}
+                className="mt-1 w-full rounded-lg border border-border bg-surface-muted px-3 py-2 text-primary focus:border-accent-camel focus:outline-none"
+                required
+              />
+            </label>
+            <label className="block font-semibold text-muted-foreground">
+              Nome da peça
+              <select
+                value={formNomePeca}
+                onChange={(event) => setFormNomePeca(event.target.value)}
+                className="mt-1 w-full rounded-lg border border-border bg-surface-muted px-3 py-2 text-primary focus:border-accent-camel focus:outline-none"
+                required
+              >
+                <option value="">Selecione uma peça</option>
+                {nomesPecaLinx.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {nomesPecaError && (
+              <p role="alert" className="text-red-700 dark:text-red-400">
+                {nomesPecaError}
+              </p>
+            )}
+            <label className="block font-semibold text-muted-foreground">
+              Tema
+              <select
+                value={formTema}
+                onChange={(event) => setFormTema(event.target.value)}
+                className="mt-1 w-full rounded-lg border border-border bg-surface-muted px-3 py-2 text-primary focus:border-accent-camel focus:outline-none"
+                required
+              >
+                {temasDaColecao.map((theme) => (
+                  <option key={theme.id} value={theme.name}>
+                    {theme.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="flex justify-end gap-2 border-t border-border-muted pt-4">
               <button
                 type="button"
                 onClick={() => setIsAdicionarPecasOpen(false)}
-                className="text-muted hover:text-primary cursor-pointer transition-colors duration-200"
+                className="rounded-lg border border-border px-4 py-2 font-semibold text-muted-foreground"
               >
-                <X className="w-4 h-4" strokeWidth={1.5} />
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={nomesPecaLinx.length === 0}
+                className="rounded-lg bg-accent-camel px-5 py-2 font-bold text-on-camel disabled:opacity-50"
+              >
+                Adicionar
               </button>
             </div>
-
-            {/* Form de Adicionar Peças */}
-            <form onSubmit={handleAdicionarPecasSubmit} className="p-6 space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {/* Quantidade */}
-                <div>
-                  <label className="block font-semibold mb-1 text-muted-foreground">
-                    Quantidade
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={formQuantidade}
-                    onChange={(e) => setFormQuantidade(parseInt(e.target.value) || 1)}
-                    className="w-full px-3 py-2 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
-                    required
-                  />
-                </div>
-
-                {/* Nome da Peça (Dropdown Select) */}
-                <div className="sm:col-span-2">
-                  <label className="block font-semibold mb-1 text-muted-foreground">
-                    Nome da Peça
-                  </label>
-                  <select
-                    value={formNomePeca}
-                    onChange={(e) => setFormNomePeca(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none cursor-pointer"
-                  >
-                    {OPCOES_NOME_PECA.map((op) => (
-                      <option key={op} value={op}>
-                        {op}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Tema */}
-              <div>
-                <label className="block font-semibold mb-1 text-muted-foreground">Tema</label>
-                <select
-                  value={formTema}
-                  onChange={(e) => setFormTema(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none cursor-pointer"
-                >
-                  {OPCOES_TEMA.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Estilista */}
-              <div>
-                <label className="block font-semibold mb-1 text-muted-foreground">Estilista</label>
-                <input
-                  type="text"
-                  value={formEstilista}
-                  onChange={(e) => setFormEstilista(e.target.value)}
-                  placeholder="Nome da estilista"
-                  className="w-full px-3 py-2 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
-                />
-              </div>
-
-              {/* Tecidos */}
-              <div>
-                <label className="block font-semibold mb-1 text-muted-foreground">Tecidos</label>
-                <input
-                  type="text"
-                  value={formTecido}
-                  onChange={(e) => setFormTecido(e.target.value)}
-                  placeholder="Ex: CAMBRAIA VISCO LINEN P11LN0077 (01030198)"
-                  className="w-full px-3 py-2 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
-                />
-              </div>
-
-              {/* Action Buttons */}
-              <div className="pt-4 flex items-center justify-end gap-3 border-t border-border-muted">
-                <button
-                  type="button"
-                  onClick={() => setIsAdicionarPecasOpen(false)}
-                  className="px-4 py-2 rounded-lg border border-border text-muted-foreground font-semibold hover:bg-surface-muted cursor-pointer transition-all duration-200"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-lg bg-accent-camel hover:bg-accent-camel/90 text-white font-bold cursor-pointer shadow-2xs transition-all duration-200"
-                >
-                  Adicionar
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+          </form>
+        </CollectionDialog>
       )}
     </div>
   );

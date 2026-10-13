@@ -185,7 +185,7 @@ export const AviamentosTab: React.FC<AviamentosTabProps> = ({
             <button
               type="button"
               onClick={onOpenCriandoAviamentoModal}
-              className="px-4 py-2 bg-primary hover:bg-neutral-800 text-white font-bold text-xs rounded-lg transition shadow-2xs flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-2 bg-action hover:bg-action-hover text-action-foreground font-bold text-xs rounded-lg transition shadow-2xs flex items-center gap-1.5 cursor-pointer"
             >
               <Plus className="w-4 h-4" strokeWidth={1.5} />
               <span>Adicionar</span>
@@ -269,9 +269,12 @@ export const AviamentosTab: React.FC<AviamentosTabProps> = ({
                           <button
                             type="button"
                             onClick={() => onDeleteAviamento(aviamento.id)}
-                            className="w-full text-left px-3 py-2 text-rose-600 hover:bg-rose-50 font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
+                            className="w-full text-left px-3 py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-semibold rounded-lg flex items-center gap-2 transition cursor-pointer"
                           >
-                            <Trash2 className="w-4 h-4 text-rose-600" strokeWidth={1.5} />
+                            <Trash2
+                              className="w-4 h-4 text-rose-600 dark:text-rose-400"
+                              strokeWidth={1.5}
+                            />
                             <span>Excluir</span>
                           </button>
                         </div>

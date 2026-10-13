@@ -64,6 +64,8 @@ export interface TecidoFornecedorItem {
   id: string;
   fornecedor: string;
   codigo: string;
+  /** Identifica seleções do catálogo vinculado, para não reaproveitar outro material. */
+  materialLinxCodigo?: string;
 }
 
 export interface TecidoComposicaoItem {
@@ -75,8 +77,51 @@ export interface TecidoComposicaoItem {
 export interface TecidoCorItem {
   id: string;
   nome: string;
+  /** Catálogo de mostruário consultado; cores personalizadas continuam exclusivas do portal. */
+  origemMostruario?: 'linx' | 'portal';
   codigo?: string;
   hex: string;
+  pantone?: string;
+  fornecedoresList?: TecidoFornecedorItem[];
+  /** Vínculo exato quando esta cor pertence ao cadastro do material no Linx. */
+  origemLinx?: InsumoCorLinx;
+  /** Valores independentes desta cor na ficha, preservados mesmo com o menu fechado. */
+  dadosInsumo?: InsumoInformacoesCor;
+}
+
+export interface InsumoInformacoesCor {
+  custo: string;
+  unidade: string;
+  consumo?: string;
+  peso?: string;
+  quantidade?: string;
+  observacoes?: string;
+  fornecedorCodigo?: string;
+  fornecedorNome?: string;
+  precoLinx?: InsumoPrecoLinx;
+  /** Impede que uma consulta ou reabertura substitua uma correção do usuário. */
+  precoManual?: boolean;
+}
+
+export interface InsumoCorLinx {
+  materialCodigo: string;
+  corCodigo: string;
+  corNome: string;
+}
+
+export interface InsumoPrecoLinx {
+  materialCodigo: string;
+  corCodigo?: string;
+  fornecedorCodigo?: string;
+  fonte:
+    | 'MATERIAIS.CUSTO_A_VISTA'
+    | 'MATERIAIS.CUSTO_REPOSICAO'
+    | 'MATERIAIS_CORES.CUSTO_A_VISTA'
+    | 'MATERIAIS_CORES.CUSTO_REPOSICAO'
+    | 'MATERIAIS_FORNECEDOR.CUSTO_REPOSICAO';
+  valor: string;
+  unidade: string;
+  fatorConversaoFornecedor?: number | string | null;
 }
 
 export interface TecidoPropriedades {
@@ -86,6 +131,8 @@ export interface TecidoPropriedades {
   rendimento2: string;
   encolhimento: string;
   construcao: string;
+  /** Cor exata usada para preencher gramatura e encolhimento do Linx. */
+  origemLinx?: InsumoCorLinx;
 }
 
 export interface TecidoInsumoItem {
@@ -96,11 +143,21 @@ export interface TecidoInsumoItem {
   imagemUrl?: string;
   fornecedores: string;
   custo: string;
-  unidade: 'M' | 'Kg' | 'Metros' | 'Unidade';
+  consumo?: string;
+  peso?: string;
+  quantidade?: string;
+  /** Preserva também a unidade original do ERP, sem conversões implícitas. */
+  unidade: string;
   fornecedoresList?: TecidoFornecedorItem[];
   imagensList?: string[];
   composicoesList?: TecidoComposicaoItem[];
   coresList?: TecidoCorItem[];
+  /** Cor cujos valores estão em edição no formulário de insumo. */
+  corEmEdicaoId?: string;
+  /** Cor selecionada do cadastro Linx, tanto para tecidos quanto para aviamentos. */
+  corLinx?: InsumoCorLinx;
+  /** Referência do valor escolhido explicitamente. Ausente quando o preço é manual. */
+  precoLinx?: InsumoPrecoLinx;
   propriedades?: TecidoPropriedades;
   observacoes?: string;
 }

@@ -119,7 +119,7 @@ export const ColecoesTab: React.FC = () => {
                 <div className="flex justify-between items-center text-muted-foreground">
                   <span>Entrega em</span>
                   {isEntregue ? (
-                    <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-200">
+                    <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800/60">
                       Entregue ✓
                     </span>
                   ) : c.diasAtraso < 0 ? (

@@ -119,7 +119,7 @@ export const CriarCaracteristicaModal: React.FC<CriarCaracteristicaModalProps> =
                         <button
                           type="button"
                           onClick={() => onRemoveFormTabela(tab.id)}
-                          className="p-1 rounded text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                          className="p-1 rounded text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer"
                         >
                           <Trash2 className="w-4 h-4" strokeWidth={1.5} />
                         </button>
@@ -133,7 +133,7 @@ export const CriarCaracteristicaModal: React.FC<CriarCaracteristicaModalProps> =
             <button
               type="button"
               onClick={onAddFormTabela}
-              className="px-3 py-1.5 bg-primary text-white font-bold rounded-md hover:bg-neutral-800 transition cursor-pointer text-xs inline-flex items-center gap-1"
+              className="px-3 py-1.5 bg-action text-action-foreground font-bold rounded-md hover:bg-action-hover transition cursor-pointer text-xs inline-flex items-center gap-1"
             >
               <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
               <span>Tabela</span>
@@ -152,7 +152,7 @@ export const CriarCaracteristicaModal: React.FC<CriarCaracteristicaModalProps> =
           <button
             type="button"
             onClick={onSave}
-            className="px-5 py-2 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs text-xs"
+            className="px-5 py-2 font-bold bg-action text-action-foreground rounded-lg hover:bg-action-hover transition cursor-pointer shadow-2xs text-xs"
           >
             Criar
           </button>

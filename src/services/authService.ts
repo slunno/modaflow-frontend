@@ -8,68 +8,61 @@
  */
 
 import { api } from './api';
-import type { MarcaSummary } from '../types/auth';
+import type {
+  AuthResponseDTO,
+  UsuarioResponseDTO,
+  CriarUsuarioRequestDTO,
+  AtualizarUsuarioRequestDTO,
+} from '../types/dtos';
 
-/** Shape do response de login vinda do backend */
-interface AuthApiResponse {
-  token: string;
-  type: string;
-  usuario: {
-    id: number;
-    nome: string;
-    email: string;
-    empresa: string | null;
-    cargo: string | null;
-    avatarUrl: string | null;
-    ativo: boolean;
-    marcasPermitidas: MarcaSummary[];
-  };
-}
-
-export interface LoginResult {
-  token: string;
-  usuario: AuthApiResponse['usuario'];
-}
-
-export interface RegisterUserPayload {
-  nome: string;
-  email: string;
-  senha: string;
-  cargo?: string;
-  empresa?: string;
-}
-
-export interface BackendUserDTO {
-  id: number;
-  nome: string;
-  email: string;
-  empresa: string | null;
-  cargo: string | null;
-  ativo: boolean;
-  marcasPermitidas?: MarcaSummary[];
-}
+export type LoginResult = AuthResponseDTO;
+export type RegisterUserPayload = CriarUsuarioRequestDTO;
+export type BackendUserDTO = UsuarioResponseDTO;
 
 /**
  * Realiza login na API real do backend e retorna token JWT + dados do usuário.
  */
 export async function loginApi(email: string, senha: string): Promise<LoginResult> {
-  const response = await api.post<AuthApiResponse>('/auth/login', { email, senha });
-  return {
-    token: response.token,
-    usuario: response.usuario,
-  };
+  return await api.post<AuthResponseDTO>('/auth/login', { email, senha });
+}
+
+/**
+ * Obtém os dados do usuário atualmente autenticado a partir do token.
+ */
+export async function getMeApi(): Promise<UsuarioResponseDTO> {
+  return await api.get<UsuarioResponseDTO>('/auth/me');
 }
 
 /**
  * Cadastra um novo usuário no backend em memória com Hash BCrypt.
+ * Requer autenticação (deve ser executado por um usuário com acesso à Gestão).
  */
-export async function registerUserApi(payload: RegisterUserPayload): Promise<BackendUserDTO> {
-  return await api.post<BackendUserDTO>('/usuarios', payload);
+export async function registerUserApi(
+  payload: CriarUsuarioRequestDTO
+): Promise<UsuarioResponseDTO> {
+  return await api.post<UsuarioResponseDTO>('/usuarios', payload);
 }
 
 /**
- * Busca a lista de usuários cadastrados no backend.
+ * Busca a lista de todos os usuários cadastrados no backend.
  */
-export async function getUsuariosApi(): Promise<BackendUserDTO[]> {
-  return await api.get<BackendUserDTO[]>('/usuarios');
+export async function getUsuariosApi(): Promise<UsuarioResponseDTO[]> {
+  return await api.get<UsuarioResponseDTO[]>('/usuarios');
+}
+
+/**
+ * Atualiza dados de perfil de um usuário existente.
+ */
+export async function updateUsuarioApi(
+  id: string | number,
+  payload: AtualizarUsuarioRequestDTO
+): Promise<UsuarioResponseDTO> {
+  return await api.put<UsuarioResponseDTO>(`/usuarios/${id}`, payload);
+}
+
+/**
+ * Ativa ou bloqueia o acesso de um usuário no backend.
+ */
+export async function toggleUserAccessApi(id: string | number, ativo: boolean): Promise<void> {
+  await api.patch<void>(`/usuarios/${id}/acesso?ativo=${ativo}`, {});
 }

@@ -103,7 +103,7 @@ export const AtualizarTimeModal: React.FC<AtualizarTimeModalProps> = ({
           <button
             type="button"
             onClick={onSave}
-            className="px-5 py-2 font-bold bg-primary text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer shadow-2xs"
+            className="px-5 py-2 font-bold bg-action text-action-foreground rounded-lg hover:bg-action-hover transition cursor-pointer shadow-2xs"
           >
             {editingTeam ? 'Atualizar' : 'Criar'}
           </button>

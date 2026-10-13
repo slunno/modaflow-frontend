@@ -51,7 +51,7 @@ export const CamposCustomTab: React.FC = () => {
 
         <button
           type="button"
-          className="px-4 py-2 bg-primary hover:bg-neutral-800 text-white rounded-lg text-xs font-bold flex items-center gap-2 cursor-pointer shadow-2xs transition-all duration-200 self-start sm:self-auto"
+          className="px-4 py-2 bg-action hover:bg-action-hover text-action-foreground rounded-lg text-xs font-bold flex items-center gap-2 cursor-pointer shadow-2xs transition-all duration-200 self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           <span>Novo Campo</span>
@@ -80,7 +80,7 @@ export const CamposCustomTab: React.FC = () => {
               onClick={() => setModuloFilter(m)}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                 moduloFilter === m
-                  ? 'bg-primary text-white shadow-2xs'
+                  ? 'bg-action text-action-foreground shadow-2xs'
                   : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
               }`}
             >
@@ -128,7 +128,7 @@ export const CamposCustomTab: React.FC = () => {
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-center">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                         {item.status}
                       </span>
                     </td>

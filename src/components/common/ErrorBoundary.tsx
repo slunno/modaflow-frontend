@@ -50,7 +50,7 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="min-h-screen bg-bg text-primary flex items-center justify-center p-6 font-sans">
           <div className="max-w-md w-full bg-surface border border-border rounded-xl shadow-xl p-8 text-center space-y-6 animate-in fade-in zoom-in-95 duration-200">
-            <div className="w-14 h-14 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto text-rose-600">
+            <div className="w-14 h-14 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto text-rose-600 dark:text-rose-400">
               <AlertTriangle className="w-7 h-7" strokeWidth={1.5} />
             </div>
 
@@ -70,7 +70,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <button
               type="button"
               onClick={this.handleReset}
-              className="w-full py-2.5 px-4 bg-primary hover:bg-neutral-800 text-white font-bold text-xs rounded-lg transition shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-2.5 px-4 bg-action hover:bg-action-hover text-action-foreground font-bold text-xs rounded-lg transition shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
             >
               <RotateCcw className="w-4 h-4" strokeWidth={1.5} />
               <span>Recarregar aplicação</span>

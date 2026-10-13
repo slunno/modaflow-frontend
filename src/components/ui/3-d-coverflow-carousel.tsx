@@ -11,6 +11,7 @@ const ChevronLeftIcon = () => (
     viewBox="0 0 24 24"
     stroke="currentColor"
     strokeWidth={2.5}
+    aria-hidden="true"
   >
     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
   </svg>
@@ -24,6 +25,7 @@ const ChevronRightIcon = () => (
     viewBox="0 0 24 24"
     stroke="currentColor"
     strokeWidth={2.5}
+    aria-hidden="true"
   >
     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
   </svg>
@@ -37,6 +39,7 @@ const ArrowRightIcon = () => (
     viewBox="0 0 24 24"
     stroke="currentColor"
     strokeWidth={2.5}
+    aria-hidden="true"
   >
     <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
   </svg>
@@ -61,57 +64,9 @@ export interface CoverFlowCarouselProps {
   onCtaClick?: (item: CarouselItem) => void;
 }
 
-const defaultDishes: CarouselItem[] = [
-  {
-    tag: '#Signature',
-    titleLine1: 'BUTTER CHICKEN',
-    titleLine2: '– DELHI HERITAGE',
-    desc: 'Velvety roasted tomato and fenugreek gravy with tender charred chicken',
-    img: 'https://cdn.21st.dev/assets/mirror/84/84cb320f9692895054c9e1774ca48848f1c9c62ccba43ad8ad0b186460bb3751.jpg',
-    ctaText: 'View Menu',
-    ctaUrl: '#',
-  },
-  {
-    tag: '#ChefSpecial',
-    titleLine1: 'TANDOORI CHOPS',
-    titleLine2: '– SMOKED SPICE',
-    desc: 'Grass-fed lamb chops charred in live charcoal tandoor with Kashmiri spices',
-    img: 'https://cdn.21st.dev/assets/mirror/a4/a4712dee84e12432f1d3a1a3234914c0281c9bb12692e4bc8da5eaa4355bec33.jpg',
-    ctaText: 'View Menu',
-    ctaUrl: '#',
-  },
-  {
-    tag: '#Vegetarian',
-    titleLine1: 'PANEER TIKKA',
-    titleLine2: '– CLAY ROASTED',
-    desc: 'Artisan cottage cheese marinated in spiced yogurt, bell peppers & saffron',
-    img: 'https://cdn.21st.dev/assets/mirror/56/56a6950cf4a436af231cf7cd707189e121e65934066f851c744bdab0cfee64d4.jpg',
-    ctaText: 'View Menu',
-    ctaUrl: '#',
-  },
-  {
-    tag: '#CoastalCatch',
-    titleLine1: 'MALABAR PRAWNS',
-    titleLine2: '– COCONUT GRAVY',
-    desc: 'Jumbo wild tiger prawns simmered in fragrant curry leaves and coconut milk',
-    img: 'https://cdn.21st.dev/assets/mirror/a3/a32877b070c563bbbcf54b6104761b1516814625209c806ee8b60f8a69598cd1.jpg',
-    ctaText: 'View Menu',
-    ctaUrl: '#',
-  },
-  {
-    tag: '#ArtisanBake',
-    titleLine1: 'TRUFFLE NAAN',
-    titleLine2: '– CHARCOAL OVEN',
-    desc: 'Crispy puffed leavened bread brushed with pure ghee and black winter truffle',
-    img: 'https://cdn.21st.dev/assets/mirror/5c/5c1b6f03cc2ace649f9025f304ca4fdce74cd413504e65a00ef3f68152e8ed92.jpg',
-    ctaText: 'View Menu',
-    ctaUrl: '#',
-  },
-];
-
 export function CoverFlowCarousel({
-  items = defaultDishes,
-  sectionLabel = 'BEST SELLERS',
+  items = [],
+  sectionLabel = 'DESTAQUES',
   autoplay = true,
   autoplayDelay = 5000,
   className = '',
@@ -119,35 +74,53 @@ export function CoverFlowCarousel({
 }: CoverFlowCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(() =>
+    typeof window !== 'undefined'
+      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      : false
+  );
   const touchStartX = useRef(0);
   const total = items.length;
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
+
   const nextSlide = useCallback(() => {
+    if (total <= 1) return;
     setCurrentIndex((prev) => (prev + 1) % total);
   }, [total]);
 
   const prevSlide = useCallback(() => {
+    if (total <= 1) return;
     setCurrentIndex((prev) => (prev - 1 + total) % total);
   }, [total]);
 
   const goToSlide = (idx: number) => {
+    if (total <= 1) return;
     setCurrentIndex(idx % total);
   };
 
   useEffect(() => {
-    if (!autoplay || isHovered || total <= 1) return;
+    if (!autoplay || reducedMotion || isHovered || isFocused || total <= 1) return;
     const interval = setInterval(nextSlide, autoplayDelay);
     return () => clearInterval(interval);
-  }, [autoplay, autoplayDelay, isHovered, nextSlide, total]);
+  }, [autoplay, autoplayDelay, isHovered, isFocused, nextSlide, reducedMotion, total]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') prevSlide();
-      if (e.key === 'ArrowRight') nextSlide();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [nextSlide, prevSlide]);
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      prevSlide();
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      nextSlide();
+    }
+  };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     const touch = e.touches[0];
@@ -168,31 +141,41 @@ export function CoverFlowCarousel({
 
   if (!items || items.length === 0) return null;
 
+  const transitionDuration = reducedMotion ? '0ms' : '800ms';
+
   return (
     <section
-      className={`relative w-full min-h-[760px] flex items-center justify-center overflow-hidden py-12 select-none ${className}`}
+      role="region"
+      aria-roledescription="carousel"
+      aria-label={sectionLabel || 'Carrossel de marcas em destaque'}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      onFocus={() => setIsFocused(true)}
+      onBlur={() => setIsFocused(false)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      className={`relative w-full min-h-[760px] flex items-center justify-center overflow-hidden py-12 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-camel/50 ${className}`}
       style={{
         backgroundColor: '#0c0a09',
         color: '#ffffff',
         fontFamily: 'system-ui, -apple-system, sans-serif',
       }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
     >
       {/* Background Ambience */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <img
           src={items[currentIndex]?.img}
-          alt="ambience background"
+          alt=""
+          aria-hidden="true"
           style={{
             width: '100%',
             height: '100%',
             objectFit: 'cover',
             filter: 'brightness(0.22) blur(32px)',
             transform: 'scale(1.15)',
-            transition: 'opacity 1000ms ease, filter 1000ms ease',
+            transition: reducedMotion ? 'none' : 'opacity 1000ms ease, filter 1000ms ease',
           }}
         />
         <div
@@ -284,6 +267,10 @@ export function CoverFlowCarousel({
             return (
               <div
                 key={idx}
+                role="group"
+                aria-roledescription="slide"
+                aria-label={`${idx + 1} de ${total}: ${item.titleLine1}`}
+                aria-hidden={!isCenter}
                 onClick={() => !isCenter && goToSlide(idx)}
                 style={{
                   position: 'absolute',
@@ -298,7 +285,7 @@ export function CoverFlowCarousel({
                   zIndex,
                   filter,
                   transformOrigin: 'center center',
-                  transition: 'all 800ms cubic-bezier(0.25, 1, 0.5, 1)',
+                  transition: `all ${transitionDuration} cubic-bezier(0.25, 1, 0.5, 1)`,
                   boxShadow: isCenter
                     ? '0 25px 60px rgba(0,0,0,0.9), 0 0 35px rgba(197,168,128,0.25)'
                     : '0 15px 35px rgba(0,0,0,0.5)',
@@ -308,7 +295,8 @@ export function CoverFlowCarousel({
                 {/* Photo */}
                 <img
                   src={item.img}
-                  alt={item.titleLine1}
+                  alt={isCenter ? item.titleLine1 : ''}
+                  aria-hidden={!isCenter}
                   style={{
                     position: 'absolute',
                     inset: 0,
@@ -344,7 +332,7 @@ export function CoverFlowCarousel({
                     zIndex: 20,
                     opacity: isCenter ? 1 : 0,
                     transform: isCenter ? 'translateY(0px)' : 'translateY(16px)',
-                    transition: 'opacity 500ms ease, transform 500ms ease',
+                    transition: reducedMotion ? 'none' : 'opacity 500ms ease, transform 500ms ease',
                     pointerEvents: isCenter ? 'auto' : 'none',
                   }}
                 >
@@ -435,6 +423,7 @@ export function CoverFlowCarousel({
 
                     <a
                       href={item.ctaUrl || '#'}
+                      tabIndex={isCenter ? 0 : -1}
                       onClick={(e) => {
                         if (onCtaClick) {
                           e.preventDefault();
@@ -459,7 +448,7 @@ export function CoverFlowCarousel({
                         transition: 'transform 200ms ease, box-shadow 200ms ease',
                       }}
                     >
-                      <span>{item.ctaText || 'View Menu'}</span>
+                      <span>{item.ctaText || 'Acessar'}</span>
                       <ArrowRightIcon />
                     </a>
                   </div>
@@ -470,88 +459,95 @@ export function CoverFlowCarousel({
         </div>
 
         {/* Navigation Arrows */}
-        <button
-          onClick={prevSlide}
-          aria-label="Previous dish"
-          style={{
-            position: 'absolute',
-            left: '24px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            width: '46px',
-            height: '46px',
-            borderRadius: '50%',
-            backgroundColor: 'rgba(0,0,0,0.55)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            color: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backdropFilter: 'blur(8px)',
-            cursor: 'pointer',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-            zIndex: 40,
-            transition: 'all 200ms ease',
-          }}
-        >
-          <ChevronLeftIcon />
-        </button>
+        {total > 1 && (
+          <>
+            <button
+              onClick={prevSlide}
+              aria-label="Slide anterior"
+              style={{
+                position: 'absolute',
+                left: '24px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: '46px',
+                height: '46px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(0,0,0,0.55)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backdropFilter: 'blur(8px)',
+                cursor: 'pointer',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                zIndex: 40,
+                transition: 'all 200ms ease',
+              }}
+            >
+              <ChevronLeftIcon />
+            </button>
 
-        <button
-          onClick={nextSlide}
-          aria-label="Next dish"
-          style={{
-            position: 'absolute',
-            right: '24px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            width: '46px',
-            height: '46px',
-            borderRadius: '50%',
-            backgroundColor: 'rgba(0,0,0,0.55)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            color: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backdropFilter: 'blur(8px)',
-            cursor: 'pointer',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-            zIndex: 40,
-            transition: 'all 200ms ease',
-          }}
-        >
-          <ChevronRightIcon />
-        </button>
+            <button
+              onClick={nextSlide}
+              aria-label="Próximo slide"
+              style={{
+                position: 'absolute',
+                right: '24px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: '46px',
+                height: '46px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(0,0,0,0.55)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backdropFilter: 'blur(8px)',
+                cursor: 'pointer',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                zIndex: 40,
+                transition: 'all 200ms ease',
+              }}
+            >
+              <ChevronRightIcon />
+            </button>
+          </>
+        )}
 
         {/* Pagination Dots */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            zIndex: 30,
-          }}
-        >
-          {items.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => goToSlide(idx)}
-              aria-label={`Go to slide ${idx + 1}`}
-              style={{
-                height: '8px',
-                width: idx === currentIndex ? '28px' : '8px',
-                borderRadius: '9999px',
-                backgroundColor: idx === currentIndex ? '#c5a880' : 'rgba(255,255,255,0.25)',
-                border: 'none',
-                cursor: 'pointer',
-                boxShadow: idx === currentIndex ? '0 0 10px rgba(197,168,128,0.7)' : 'none',
-                transition: 'all 300ms ease',
-              }}
-            />
-          ))}
-        </div>
+        {total > 1 && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              zIndex: 30,
+            }}
+          >
+            {items.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => goToSlide(idx)}
+                aria-label={`Ir para slide ${idx + 1}`}
+                aria-current={idx === currentIndex ? 'true' : 'false'}
+                style={{
+                  height: '8px',
+                  width: idx === currentIndex ? '28px' : '8px',
+                  borderRadius: '9999px',
+                  backgroundColor: idx === currentIndex ? '#c5a880' : 'rgba(255,255,255,0.25)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  boxShadow: idx === currentIndex ? '0 0 10px rgba(197,168,128,0.7)' : 'none',
+                  transition: 'all 300ms ease',
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

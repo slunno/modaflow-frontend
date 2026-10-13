@@ -29,7 +29,6 @@ import type {
   LinxProdutoValido,
   LinxProdutosValidosPage,
   LinxGriffe,
-  LinxStatusColecaoFiltro,
   LinxStatusPecaFiltro,
 } from '../../../types/linx';
 
@@ -75,11 +74,6 @@ const PIECE_STATUS_OPTIONS = [
   { value: 'EM_ANDAMENTO', label: 'Em andamento' },
   { value: 'COMPLETA', label: 'Completas' },
   { value: 'A_DESENHAR', label: 'A desenhar' },
-] as const;
-const COLLECTION_STATUS_OPTIONS = [
-  { value: 'EM_ANDAMENTO', label: 'Em andamento' },
-  { value: 'CONCLUIDO', label: 'Concluída' },
-  { value: 'ARQUIVADO', label: 'Arquivadas' },
 ] as const;
 
 function useDebouncedValue<T>(value: T, delayMs: number): T {
@@ -128,13 +122,10 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
   const [collectionCodes, setCollectionCodes] = useState<string[]>([]);
   const [searchInput, setSearchInput] = useState('');
   const [types, setTypes] = useState<string[]>([]);
-  const [materialInput, setMaterialInput] = useState('');
   const [stages, setStages] = useState<string[]>([]);
   const [pieceStatuses, setPieceStatuses] = useState<LinxStatusPecaFiltro[]>([]);
-  const [collectionStatuses, setCollectionStatuses] = useState<LinxStatusColecaoFiltro[]>([]);
 
   const search = useDebouncedValue(searchInput.trim(), 350);
-  const material = useDebouncedValue(materialInput.trim(), 350);
   const productRequestId = useRef(0);
   const collectionRequestId = useRef(0);
 
@@ -219,10 +210,8 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
       griffe: griffes.length > 0 ? griffes : undefined,
       colecao: collectionCodes.length > 0 ? collectionCodes : undefined,
       tipo: types.length > 0 ? types : undefined,
-      material: material || undefined,
       etapa: stages.length > 0 ? stages : undefined,
       statusPeca: pieceStatuses.length > 0 ? pieceStatuses : undefined,
-      statusColecao: collectionStatuses.length > 0 ? collectionStatuses : undefined,
     })
       .then((data) => {
         if (active && requestId === productRequestId.current) {
@@ -244,18 +233,7 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
     return () => {
       active = false;
     };
-  }, [
-    collectionCodes,
-    collectionStatuses,
-    griffes,
-    material,
-    page,
-    pieceStatuses,
-    reloadKey,
-    search,
-    stages,
-    types,
-  ]);
+  }, [collectionCodes, griffes, page, pieceStatuses, reloadKey, search, stages, types]);
 
   const collectionOptions = useMemo(
     () =>
@@ -267,15 +245,13 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
     [collections]
   );
 
-  const sourceDatabase =
-    productsPage?.sourceDatabase ?? connection?.banco ?? 'Linx';
+  const sourceDatabase = productsPage?.sourceDatabase ?? connection?.banco ?? 'Linx';
   const totalElements = productsPage?.totalElements ?? 0;
   const totalPages = productsPage?.totalPages ?? 0;
   const items = productsPage?.items ?? [];
   const isSafeConnection =
     productsPage?.readOnly === true ||
-    (connection?.bancoEsperadoConfirmado === true &&
-      connection.integracaoSomenteLeitura === true);
+    (connection?.bancoEsperadoConfirmado === true && connection.integracaoSomenteLeitura === true);
 
   const resetPage = () => setPage(0);
 
@@ -294,10 +270,8 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
     setIsLoadingCollections(false);
     setSearchInput('');
     setTypes([]);
-    setMaterialInput('');
     setStages([]);
     setPieceStatuses([]);
-    setCollectionStatuses([]);
     resetPage();
   };
 
@@ -320,7 +294,7 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
               className={
                 'text-[11px] font-semibold px-3 py-1 rounded-lg border flex items-center gap-1.5 ' +
                 (isSafeConnection
-                  ? 'text-emerald-700 bg-emerald-500/10 border-emerald-500/25'
+                  ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/25'
                   : 'text-muted-foreground bg-surface-muted border-border-muted')
               }
             >
@@ -347,14 +321,16 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
           <MultiSelectDropdown
             label="Coleções"
             placeholder={isLoadingCollections ? 'Carregando coleções...' : 'Todas as coleções'}
-            options={collectionOptions.map((collection) => ({
-              value: collection.codigo ?? '',
-              label:
-                (collection.nome ?? collection.codigo ?? 'Coleção sem nome') +
-                ' (' +
-                collection.quantidadeProdutos +
-                ')',
-            })).filter((option) => Boolean(option.value))}
+            options={collectionOptions
+              .map((collection) => ({
+                value: collection.codigo ?? '',
+                label:
+                  (collection.nome ?? collection.codigo ?? 'Coleção sem nome') +
+                  ' (' +
+                  collection.quantidadeProdutos +
+                  ')',
+              }))
+              .filter((option) => Boolean(option.value))}
             selectedValues={collectionCodes}
             onChange={(values) => {
               setCollectionCodes(values);
@@ -418,38 +394,7 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
             }}
           />
 
-          <MultiSelectDropdown
-            label="Status da Coleção"
-            placeholder="Todos os status"
-            options={COLLECTION_STATUS_OPTIONS}
-            selectedValues={collectionStatuses}
-            onChange={(values) => {
-              setCollectionStatuses(values as LinxStatusColecaoFiltro[]);
-              resetPage();
-            }}
-          />
-
-          <div>
-            <label
-              htmlFor="linx-material"
-              className="block text-xs font-semibold text-muted-foreground mb-1"
-            >
-              Material principal
-            </label>
-            <input
-              id="linx-material"
-              type="search"
-              placeholder="Código ou descrição"
-              value={materialInput}
-              onChange={(event) => {
-                setMaterialInput(event.target.value);
-                resetPage();
-              }}
-              className="w-full px-3.5 py-2.5 bg-surface-muted border border-border rounded-lg text-xs font-medium text-primary focus:border-accent-camel focus:ring-1 focus:ring-accent-camel/20 focus:outline-none"
-            />
-          </div>
-
-          <div className="flex items-end">
+          <div className="flex items-end sm:col-start-2 lg:col-start-3">
             <button
               type="button"
               onClick={clearFilters}
@@ -474,7 +419,7 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
         {error ? (
           <div
             role="alert"
-            className="bg-surface p-8 rounded-xl border border-red-300/60 text-center space-y-3"
+            className="bg-surface p-8 rounded-xl border border-red-300/60 dark:border-red-900/60 text-center space-y-3"
           >
             <AlertTriangle className="w-9 h-9 text-red-500 mx-auto" strokeWidth={1.5} />
             <h4 className="text-sm font-bold text-primary">Falha ao consultar o Linx</h4>
@@ -482,7 +427,7 @@ export const PecasTab: React.FC<PecasTabProps> = ({ onSelectPeca }) => {
             <button
               type="button"
               onClick={retry}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent-camel text-white text-xs font-bold"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent-camel text-on-camel text-xs font-bold"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               Tentar novamente

@@ -3,17 +3,15 @@
  * COMPONENTE WRAPPER: Carrossel 3D de Marcas da AKR BRANDS
  * ARQUIVO: src/pages/Home/components/ColecoesDestaqueCarousel.tsx
  * PROJETO: ModaFlow PLM — AKR BRANDS
- * DESCRIÇÃO: Encapsula o CoverFlowCarousel 3D e exibe as marcas da King & Joe / AKR BRANDS
- *            em tela cheia com fundo escuro ambiente e navegação direta para coleções.
+ * DESCRIÇÃO: Encapsula o CoverFlowCarousel 3D e exibe exclusivamente as marcas
+ *            permitidas do usuário autenticado (user.marcas). Sem fallbacks mock.
  * ============================================================================
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { CoverFlowCarousel, type CarouselItem } from '@/components/ui/3-d-coverflow-carousel';
 import type { MarcaSummary } from '@/types/auth';
 import { useAuth } from '@/hooks/useAuth';
-import { getBrands } from '@/services/plmService';
-import { MOCK_MARCAS } from '@/constants/mockData';
 
 interface ColecoesDestaqueCarouselProps {
   onSelectMarca?: (marca: MarcaSummary) => void;
@@ -27,30 +25,13 @@ export const ColecoesDestaqueCarousel: React.FC<ColecoesDestaqueCarouselProps> =
   onSelectMarca,
 }) => {
   const { user } = useAuth();
-  const [marcasList, setMarcasList] = useState<MarcaSummary[]>([]);
 
-  useEffect(() => {
-    let isMounted = true;
-    getBrands()
-      .then((brandsData) => {
-        if (isMounted && brandsData.length > 0) {
-          setMarcasList(brandsData);
-        }
-      })
-      .catch(() => {});
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const effectiveBrands = useMemo(() => {
-    if (marcasList.length > 0) return marcasList;
-    if (user?.marcas && user.marcas.length > 0) return user.marcas;
-    return MOCK_MARCAS;
-  }, [marcasList, user]);
+  const userBrands = useMemo(() => {
+    return Array.isArray(user?.marcas) ? user.marcas : [];
+  }, [user]);
 
   const carouselItems: MarcaCarouselItem[] = useMemo(() => {
-    return effectiveBrands.map((m) => ({
+    return userBrands.map((m) => ({
       titleLine1: m.nome.toUpperCase(),
       img:
         m.heroImageUrl ||
@@ -59,25 +40,27 @@ export const ColecoesDestaqueCarousel: React.FC<ColecoesDestaqueCarouselProps> =
       ctaUrl: '#',
       marcaObj: m,
     }));
-  }, [effectiveBrands]);
+  }, [userBrands]);
 
   const handleCtaClick = (item: CarouselItem) => {
     const matched = carouselItems.find((m) => m.titleLine1 === item.titleLine1);
     if (onSelectMarca && matched) {
       onSelectMarca(matched.marcaObj);
-    } else if (onSelectMarca && effectiveBrands[0]) {
-      onSelectMarca(effectiveBrands[0]);
+    } else if (onSelectMarca && userBrands[0]) {
+      onSelectMarca(userBrands[0]);
     }
   };
 
-  if (carouselItems.length === 0) return null;
+  if (carouselItems.length === 0) {
+    return null;
+  }
 
   return (
     <div className="w-full bg-[#0c0a09]">
       <CoverFlowCarousel
         items={carouselItems}
         sectionLabel="MARCAS DA ORGANIZAÇÃO — AKR BRANDS"
-        autoplay={true}
+        autoplay={carouselItems.length > 1}
         autoplayDelay={6000}
         onCtaClick={handleCtaClick}
       />

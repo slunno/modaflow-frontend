@@ -56,7 +56,8 @@ export interface User {
   /** Nome da organização corporativa (ex: 'AKR BRANDS') */
   empresa: string;
   /** Cargo do funcionário dentro do fluxo de confecção */
-  cargo: 'Estilista' | 'Modelista' | 'Gerente de Produção' | 'Administrador' | 'Engenharia';
+  cargo:
+    'Estilista' | 'Modelista' | 'Gerente de Produção' | 'Administrador' | 'Engenharia' | string;
   /** URL opcional da foto de perfil */
   avatarUrl?: string;
   /** Lista de marcas às quais o usuário tem permissão de acesso */

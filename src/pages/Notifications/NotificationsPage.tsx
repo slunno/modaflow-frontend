@@ -132,7 +132,7 @@ export const NotificationsPage: React.FC = () => {
             onClick={() => setFilterStatus('todas')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${
               filterStatus === 'todas'
-                ? 'bg-primary text-white shadow-2xs'
+                ? 'bg-action text-action-foreground shadow-2xs'
                 : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
             }`}
           >
@@ -144,13 +144,13 @@ export const NotificationsPage: React.FC = () => {
             onClick={() => setFilterStatus('nao_lidas')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
               filterStatus === 'nao_lidas'
-                ? 'bg-primary text-white shadow-2xs'
+                ? 'bg-action text-action-foreground shadow-2xs'
                 : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
             }`}
           >
             <span>Não lidas</span>
             {unreadCount > 0 && (
-              <span className="w-4 h-4 rounded-full bg-accent-camel text-white text-[10px] flex items-center justify-center font-extrabold">
+              <span className="w-4 h-4 rounded-full bg-accent-camel text-on-camel text-[10px] flex items-center justify-center font-extrabold">
                 {unreadCount}
               </span>
             )}
@@ -161,7 +161,7 @@ export const NotificationsPage: React.FC = () => {
             onClick={() => setFilterStatus('lidas')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${
               filterStatus === 'lidas'
-                ? 'bg-primary text-white shadow-2xs'
+                ? 'bg-action text-action-foreground shadow-2xs'
                 : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
             }`}
           >

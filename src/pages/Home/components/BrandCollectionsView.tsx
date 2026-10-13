@@ -19,7 +19,6 @@ import {
   Search,
   Calendar,
   Layers,
-  Sparkles,
   X,
   Building2,
   Check,
@@ -28,22 +27,61 @@ import {
 
 import { CollectionDetailView } from './CollectionDetailView';
 import { getBrands } from '../../../services/plmService';
+import { getLinxColecoesValidas, resolveLinxGriffe } from '../../../services/linxService';
+import { mapLinxColecaoToItem } from '../../../services/contractMappers';
+
+function isoDatePart(value: string | null): string | null {
+  if (!value) return null;
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return match ? `${match[1]}-${match[2]}-${match[3]}` : null;
+}
+
+function formatLinxDate(value: string | null): string {
+  const date = isoDatePart(value);
+  if (!date) return 'A definir';
+  const [year, month, day] = date.split('-');
+  return `${day}/${month}/${year}`;
+}
+
+function daysUntil(value: string | null): number | undefined {
+  const date = isoDatePart(value);
+  if (!date) return undefined;
+  const [year, month, day] = date.split('-').map(Number) as [number, number, number];
+  const now = new Date();
+  const todayUtc = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  const deliveryUtc = Date.UTC(year, month - 1, day);
+  return Math.ceil((deliveryUtc - todayUtc) / 86_400_000);
+}
+
+function deliveryCountdownLabel(days: number): string {
+  if (days === 0) return 'Hoje';
+  if (days === 1) return '1 dia';
+  if (days === -1) return '-1 dia';
+  return `${days} dias`;
+}
 
 interface BrandCollectionsViewProps {
   marca: MarcaSummary;
+  selectedColecaoId?: string | null;
   onBack: () => void;
   onSelectMarca?: (marca: MarcaSummary) => void;
   onSelectColecao?: (colecao: ColecaoItem) => void;
+  onClearColecao?: () => void;
 }
 
 export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
   marca,
+  selectedColecaoId,
   onBack,
   onSelectMarca,
   onSelectColecao,
+  onClearColecao,
 }) => {
   const { user, setActiveMarca } = useAuth();
   const [availableBrands, setAvailableBrands] = useState<MarcaSummary[]>([]);
+  const [linxColecoes, setLinxColecoes] = useState<ColecaoItem[]>([]);
+  const [isLoadingLinx, setIsLoadingLinx] = useState(false);
+  const [linxError, setLinxError] = useState('');
 
   useEffect(() => {
     let isMounted = true;
@@ -77,13 +115,55 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
     setCurrentMarca(marca);
   }
 
+  useEffect(() => {
+    let isMounted = true;
+    const griffe = resolveLinxGriffe(currentMarca);
+
+    if (!griffe) {
+      Promise.resolve().then(() => {
+        if (!isMounted) return;
+        setLinxColecoes([]);
+        setIsLoadingLinx(false);
+        setLinxError('Esta marca não possui uma grife correspondente configurada no Linx.');
+      });
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    void (async () => {
+      await Promise.resolve();
+      if (!isMounted) return;
+      setIsLoadingLinx(true);
+      setLinxError('');
+
+      try {
+        const collections = await getLinxColecoesValidas({ griffe: [griffe] });
+        if (!isMounted) return;
+        setLinxColecoes(
+          collections.map((collection) => mapLinxColecaoToItem(collection, currentMarca, griffe))
+        );
+      } catch {
+        if (!isMounted) return;
+        setLinxColecoes([]);
+        setLinxError('Não foi possível carregar as coleções completas do Linx.');
+      } finally {
+        if (isMounted) setIsLoadingLinx(false);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentMarca]);
+
   // Sub-aba interna da marca: [Coleções] ou [Cronograma]
   const [activeSubTab, setActiveSubTab] = useState<'colecoes' | 'cronograma'>('colecoes');
 
-  // Filtro por Status [Todas | Em andamento | Completas | Arquivadas]
-  const [statusFiltro, setStatusFiltro] = useState<
-    'Todas' | 'Em andamento' | 'Completas' | 'Arquivadas'
-  >('Todas');
+  // Filtro por Status [Em andamento | Completas | Arquivadas]
+  const [statusFiltro, setStatusFiltro] = useState<'Em andamento' | 'Completas' | 'Arquivadas'>(
+    'Em andamento'
+  );
 
   // Busca por texto
   const [searchQuery, setSearchQuery] = useState('');
@@ -109,20 +189,43 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
 
   // Filtra as coleções vinculadas à marca atual
   const colecoesDaMarca = useMemo(() => {
-    return allColecoes.filter((c) => c.marcaId === currentMarca.id);
-  }, [allColecoes, currentMarca.id]);
+    const localCollections = allColecoes.filter((c) => c.marcaId === currentMarca.id);
+    const linxKeys = new Set(
+      linxColecoes.map((c) => `${c.nome.trim().toLocaleUpperCase('pt-BR')}|${c.codigoPill ?? ''}`)
+    );
+    const uniqueLocalCollections = localCollections.filter(
+      (c) =>
+        c.regraFicha === 'integracao-colecao-v1' ||
+        !linxKeys.has(`${c.nome.trim().toLocaleUpperCase('pt-BR')}|${c.codigoPill ?? ''}`)
+    );
+    // Compatibilidade com coleções locais salvas antes da classificação das finalizadas.
+    return [...linxColecoes, ...uniqueLocalCollections].map((colecao) =>
+      colecao.status === 'Não categorizada' ? { ...colecao, status: 'Completas' } : colecao
+    );
+  }, [allColecoes, currentMarca.id, linxColecoes]);
+
+  useEffect(() => {
+    void Promise.resolve().then(() => {
+      if (!selectedColecaoId) {
+        setSelectedColecao(null);
+        return;
+      }
+      const found = colecoesDaMarca.find((colecao) => colecao.id === selectedColecaoId);
+      if (found) setSelectedColecao(found);
+    });
+  }, [colecoesDaMarca, selectedColecaoId]);
 
   // Filtra por status e termo de busca
   const colecoesFiltradas = useMemo(() => {
     let result = colecoesDaMarca.filter((c) => {
-      const matchStatus = statusFiltro === 'Todas' || c.status === statusFiltro;
+      const matchStatus = c.status === statusFiltro;
       const matchQuery =
         searchQuery === '' || c.nome.toLowerCase().includes(searchQuery.toLowerCase());
       return matchStatus && matchQuery;
     });
 
     if (sortOrder === 'progress_desc') {
-      result = [...result].sort((a, b) => b.progressoPercent - a.progressoPercent);
+      result = [...result].sort((a, b) => (b.progressoPercent ?? 0) - (a.progressoPercent ?? 0));
     } else {
       result = [...result].sort((a, b) => a.nome.localeCompare(b.nome));
     }
@@ -134,14 +237,11 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
   const totalColecoes = colecoesDaMarca.length;
   const emAndamentoCount = colecoesDaMarca.filter((c) => c.status === 'Em andamento').length;
   const totalPecas = colecoesDaMarca.reduce((acc, c) => acc + (c.pecasTotal || 0), 0);
-  const avgProgress =
-    totalColecoes > 0
-      ? Math.round(
-          colecoesDaMarca.reduce((acc, c) => acc + (c.progressoPercent || 0), 0) / totalColecoes
-        )
-      : 0;
 
   // Handler para Criar Nova Coleção
+  const currentYear = new Date().getFullYear();
+  const defaultAno = `${currentYear}-${String(currentYear + 1).slice(2)}`;
+
   const handleSaveNovaColecao = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formNome.trim()) {
@@ -149,25 +249,34 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
       return;
     }
 
+    const dataEntregaFormatada = formDataEntrega.trim()
+      ? formatLinxDate(formDataEntrega.trim())
+      : 'A definir';
+
     const novaColecao: ColecaoItem = {
-      id: `col-${Date.now()}`,
+      id: `col-${crypto.randomUUID()}`,
       marcaId: currentMarca.id,
+      griffe: resolveLinxGriffe(currentMarca) ?? undefined,
       codigoPill: currentMarca.code || currentMarca.initials || 'BRAND',
       nome: formNome.trim(),
       marcaNome: currentMarca.nome,
       status: 'Em andamento',
+      regraFicha: 'integracao-colecao-v1',
+      criadaEm: new Date().toISOString(),
       progressoPercent: 0,
       pecasConcluidas: 0,
       pecasTotal: 0,
-      dataEntrega: formDataEntrega.trim() || 'A definir',
+      dataEntrega: dataEntregaFormatada,
+      diasParaEntrega: formDataEntrega.trim() ? daysUntil(formDataEntrega.trim()) : undefined,
       diasAtraso: 0,
-      ano: formAno.trim() || '2026-27',
+      ano: formAno.trim() || defaultAno,
       temporada: formTemporada || 'Verão',
       descricao: formDescricao.trim() || undefined,
       imagemReferencia: formImagemUrl.trim() || undefined,
     };
 
     setAllColecoes((prev) => [novaColecao, ...prev]);
+    setStatusFiltro('Em andamento');
 
     // Reseta form e fecha modal
     setIsCriarColecaoOpen(false);
@@ -196,6 +305,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
         marca={currentMarca}
         onBackToBrand={() => {
           setSelectedColecao(null);
+          onClearColecao?.();
         }}
         onBackToHome={onBack}
       />
@@ -233,92 +343,71 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
       </div>
 
       {/* 2. CARD HERO DARK GLASSMORPHIC */}
-      <div className="relative rounded-3xl bg-neutral-950 text-white p-6 sm:p-8 shadow-xl overflow-hidden border border-neutral-800 transition-all duration-500">
+      <div className="relative rounded-xl bg-neutral-950 text-white p-4 sm:p-5 shadow-md overflow-hidden border border-neutral-800 transition-all duration-500">
         <div
           className="absolute inset-0 bg-cover bg-center opacity-20 blur-xs img-brand-treated transition-all duration-500"
           style={{ backgroundImage: `url(${currentMarca.heroImageUrl})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-900/95 to-neutral-950" />
 
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           {/* Esquerda: Nome e Ações */}
-          <div className="space-y-4 max-w-xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] font-bold text-neutral-300">
-              <Sparkles className="w-3.5 h-3.5 text-accent-camel" strokeWidth={1.5} />
-              <span>{currentMarca.badgeTag || 'Linha Oficial'}</span>
-            </div>
-
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold font-editorial tracking-wide text-white">
+          <div className="space-y-3 max-w-xl">
+            <h1 className="text-2xl sm:text-3xl font-bold font-editorial tracking-wide text-white">
               {currentMarca.nome}
             </h1>
 
             {/* BOTÕES DE AÇÃO INTERNOS */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={() => setActiveSubTab('colecoes')}
-                className={`px-5 py-2.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-2 cursor-pointer ${
+                className={`px-3 py-2 rounded-md text-[11px] font-bold transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
                   activeSubTab === 'colecoes'
-                    ? 'bg-white text-primary shadow-md scale-[1.02]'
+                    ? 'bg-surface text-primary shadow-2xs'
                     : 'bg-white/10 text-white border border-white/15 hover:bg-white/20'
                 }`}
               >
-                <Layers className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                <Layers className="w-3.5 h-3.5 text-accent-camel" strokeWidth={1.5} />
                 <span>Coleções</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveSubTab('cronograma')}
-                className={`px-5 py-2.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-2 cursor-pointer ${
+                className={`px-3 py-2 rounded-md text-[11px] font-bold transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
                   activeSubTab === 'cronograma'
-                    ? 'bg-white text-primary shadow-md scale-[1.02]'
+                    ? 'bg-surface text-primary shadow-2xs'
                     : 'bg-white/10 text-white border border-white/15 hover:bg-white/20'
                 }`}
               >
-                <Calendar className="w-4 h-4 text-accent-camel" strokeWidth={1.5} />
+                <Calendar className="w-3.5 h-3.5 text-accent-camel" strokeWidth={1.5} />
                 <span>Cronograma</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsCriarColecaoOpen(true)}
-                className="px-5 py-2.5 rounded-lg text-xs font-bold bg-accent-camel hover:bg-accent-camel/90 text-white shadow-md flex items-center gap-2 cursor-pointer transition-all duration-200"
-              >
-                <Plus className="w-4 h-4" strokeWidth={2} />
-                <span>Adicionar Coleção</span>
               </button>
             </div>
           </div>
 
           {/* Direita: BLOCO DE MÉTRICAS */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white/10 backdrop-blur-md p-4 sm:p-5 rounded-xl border border-white/15 shrink-0 shadow-md">
-            <div className="text-center px-3 py-1">
+          <div className="grid grid-cols-3 bg-white/10 backdrop-blur-md p-3 rounded-lg border border-white/15 shrink-0 lg:min-w-80">
+            <div className="text-center px-2 py-1">
               <span className="text-[10px] font-extrabold uppercase text-neutral-400 tracking-wider block mb-1">
                 Coleções
               </span>
-              <span className="text-2xl font-bold text-white">{totalColecoes}</span>
+              <span className="text-xl font-bold text-white">{totalColecoes}</span>
             </div>
 
-            <div className="text-center px-3 py-1 border-l border-white/10">
+            <div className="text-center px-2 py-1 border-l border-white/10">
               <span className="text-[10px] font-extrabold uppercase text-neutral-400 tracking-wider block mb-1">
                 Em Produção
               </span>
-              <span className="text-2xl font-bold text-accent-camel">{emAndamentoCount}</span>
+              <span className="text-xl font-bold text-accent-camel">{emAndamentoCount}</span>
             </div>
 
-            <div className="text-center px-3 py-1 border-l border-white/10">
+            <div className="text-center px-2 py-1 border-l border-white/10">
               <span className="text-[10px] font-extrabold uppercase text-neutral-400 tracking-wider block mb-1">
                 Total Peças
               </span>
-              <span className="text-2xl font-bold text-emerald-400">{totalPecas}</span>
-            </div>
-
-            <div className="text-center px-3 py-1 border-l border-white/10">
-              <span className="text-[10px] font-extrabold uppercase text-neutral-400 tracking-wider block mb-1">
-                Progresso
-              </span>
-              <span className="text-2xl font-bold text-amber-400">{avgProgress}%</span>
+              <span className="text-xl font-bold text-emerald-400">{totalPecas}</span>
             </div>
           </div>
         </div>
@@ -333,22 +422,10 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                onClick={() => setStatusFiltro('Todas')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${
-                  statusFiltro === 'Todas'
-                    ? 'bg-primary text-white shadow-2xs'
-                    : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
-                }`}
-              >
-                Todas ({colecoesDaMarca.length})
-              </button>
-
-              <button
-                type="button"
                 onClick={() => setStatusFiltro('Em andamento')}
                 className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${
                   statusFiltro === 'Em andamento'
-                    ? 'bg-primary text-white shadow-2xs'
+                    ? 'bg-action text-action-foreground shadow-2xs'
                     : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
                 }`}
               >
@@ -360,7 +437,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                 onClick={() => setStatusFiltro('Completas')}
                 className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${
                   statusFiltro === 'Completas'
-                    ? 'bg-primary text-white shadow-2xs'
+                    ? 'bg-action text-action-foreground shadow-2xs'
                     : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
                 }`}
               >
@@ -372,7 +449,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                 onClick={() => setStatusFiltro('Arquivadas')}
                 className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${
                   statusFiltro === 'Arquivadas'
-                    ? 'bg-primary text-white shadow-2xs'
+                    ? 'bg-action text-action-foreground shadow-2xs'
                     : 'bg-surface-muted text-muted-foreground hover:bg-border-muted'
                 }`}
               >
@@ -399,7 +476,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsCriarColecaoOpen(true)}
-                className="px-4 py-2 rounded-lg bg-accent-camel hover:bg-accent-camel/90 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all duration-200"
+                className="px-4 py-2 rounded-lg bg-accent-camel hover:bg-accent-camel/90 text-on-camel font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all duration-200"
               >
                 <Plus className="w-4 h-4" />
                 <span>Coleção +</span>
@@ -408,27 +485,35 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
           </div>
 
           {/* GRID DE CARDS DAS COLEÇÕES */}
-          {colecoesFiltradas.length === 0 ? (
+          {isLoadingLinx ? (
+            <div className="bg-surface p-12 rounded-xl border border-border text-center space-y-3">
+              <div className="w-10 h-10 rounded-full border-2 border-border border-t-accent-camel animate-spin mx-auto" />
+              <p className="text-xs font-semibold text-muted-foreground">
+                Carregando coleções do Linx...
+              </p>
+            </div>
+          ) : linxError && colecoesFiltradas.length === 0 ? (
+            <div className="bg-surface p-12 rounded-xl border border-red-200 dark:border-red-900/60 text-center space-y-2">
+              <h4 className="text-sm font-bold text-primary">Coleções do Linx indisponíveis</h4>
+              <p className="text-xs text-red-600 dark:text-red-400">{linxError}</p>
+            </div>
+          ) : colecoesFiltradas.length === 0 ? (
             <div className="bg-surface p-12 rounded-xl border border-border text-center space-y-4">
               <div className="w-12 h-12 rounded-full bg-accent-camel/10 border border-accent-camel/30 text-accent-camel flex items-center justify-center mx-auto">
                 <Layers className="w-6 h-6" strokeWidth={1.5} />
               </div>
               <div className="space-y-1">
                 <h4 className="text-sm font-bold text-primary font-editorial">
-                  Nenhuma coleção cadastrada para {currentMarca.nome}
+                  {colecoesDaMarca.length === 0
+                    ? `Nenhuma coleção cadastrada para ${currentMarca.nome}`
+                    : 'Nenhuma coleção corresponde aos filtros selecionados'}
                 </h4>
                 <p className="text-xs text-muted max-w-md mx-auto">
-                  Clique no botão abaixo para adicionar a primeira coleção desta marca.
+                  {colecoesDaMarca.length === 0
+                    ? 'Use o botão Coleção + ao lado da busca para adicionar a primeira coleção desta marca.'
+                    : 'Escolha outra aba, ajuste a busca ou crie uma nova coleção.'}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsCriarColecaoOpen(true)}
-                className="px-5 py-2.5 rounded-lg bg-primary hover:bg-neutral-800 text-white font-bold text-xs inline-flex items-center gap-2 cursor-pointer shadow-2xs transition-all duration-200"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Adicionar Primeira Coleção</span>
-              </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -451,8 +536,8 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                           {c.codigoPill || currentMarca.code}
                         </span>
 
-                        <span className="px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold">
-                          {c.progressoPercent}%
+                        <span className="px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60 text-xs font-bold">
+                          {c.progressoPercent !== undefined ? `${c.progressoPercent}%` : c.status}
                         </span>
                       </div>
 
@@ -468,7 +553,11 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                         <span className="font-semibold text-muted-foreground">
                           Progresso da coleção
                         </span>
-                        <span className="font-bold text-primary">{c.progressoPercent}%</span>
+                        <span className="font-bold text-primary">
+                          {c.progressoPercent !== undefined
+                            ? `${c.progressoPercent}%`
+                            : 'Não mensurado'}
+                        </span>
                       </div>
 
                       <div className="w-full h-2 bg-surface-muted rounded-full overflow-hidden">
@@ -476,7 +565,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                           className={`h-full rounded-full transition-all duration-700 ${
                             isEntregue ? 'bg-emerald-500' : 'bg-accent-camel'
                           }`}
-                          style={{ width: `${c.progressoPercent}%` }}
+                          style={{ width: `${c.progressoPercent ?? 0}%` }}
                         />
                       </div>
                     </div>
@@ -486,16 +575,42 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground font-medium">Peças concluídas</span>
                         <strong className="text-primary font-bold">
-                          {c.pecasConcluidas} de {c.pecasTotal}
+                          {c.pecasConcluidas === undefined
+                            ? 'Não informado'
+                            : c.status === 'Completas' || c.pecasTotal === undefined
+                              ? c.pecasConcluidas
+                              : `${c.pecasConcluidas} de ${c.pecasTotal}`}
                         </strong>
                       </div>
 
-                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground font-medium">Data de Entrega</span>
-                        <strong className="text-primary font-bold">
-                          {c.dataEntrega || 'A definir'}
-                        </strong>
-                      </div>
+                      {c.concluidoEmDate && c.concluidoEmDate !== 'A definir' && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground font-medium">Concluído em</span>
+                          <strong className="text-primary font-bold">{c.concluidoEmDate}</strong>
+                        </div>
+                      )}
+
+                      {c.diasParaEntrega !== undefined && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground font-medium">Entrega em</span>
+                          <strong
+                            className={`rounded-md px-2 py-0.5 font-bold ${
+                              c.diasParaEntrega < 0
+                                ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/60'
+                                : 'text-primary'
+                            }`}
+                          >
+                            {deliveryCountdownLabel(c.diasParaEntrega)}
+                          </strong>
+                        </div>
+                      )}
+
+                      {c.dataEntrega && c.dataEntrega !== 'A definir' && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground font-medium">Data de Entrega</span>
+                          <strong className="text-primary font-bold">{c.dataEntrega}</strong>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -515,7 +630,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                 <span>Cronograma & Marcos de Produção — {currentMarca.nome}</span>
               </h3>
               <p className="text-xs text-muted-foreground mt-1">
-                Acompanhamento temporal dos marcos de entrega de coleções
+                Acompanhamento temporal dos marcos de entrega de coleções ordenado por prazos
               </p>
             </div>
 
@@ -529,33 +644,73 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
               Nenhuma coleção disponível para o cronograma.
             </div>
           ) : (
-            <div className="space-y-6 pt-2">
-              {colecoesDaMarca.map((c, index) => (
-                <div
-                  key={c.id}
-                  className="p-5 rounded-lg bg-surface-muted border border-border-muted space-y-3"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border-muted pb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-primary text-white font-bold text-xs flex items-center justify-center">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-bold font-editorial text-primary uppercase">
-                          {c.nome}
-                        </h4>
-                        <span className="text-[11px] text-muted-foreground font-semibold">
-                          {c.pecasTotal} peças • Entrega: {c.dataEntrega}
+            <div className="space-y-4 pt-2">
+              {[...colecoesDaMarca]
+                .sort((a, b) => {
+                  const diasA = a.diasParaEntrega ?? 99999;
+                  const diasB = b.diasParaEntrega ?? 99999;
+                  return diasA - diasB;
+                })
+                .map((c, index) => {
+                  const isAtrasada =
+                    (c.diasParaEntrega !== undefined && c.diasParaEntrega < 0) ||
+                    (c.diasAtraso !== undefined && c.diasAtraso > 0);
+
+                  return (
+                    <div
+                      key={c.id}
+                      className={`p-5 rounded-lg border space-y-3 transition-colors ${
+                        isAtrasada
+                          ? 'bg-rose-50/40 border-rose-300 dark:bg-rose-950/20 dark:border-rose-800'
+                          : 'bg-surface-muted border-border-muted'
+                      }`}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border-muted pb-3">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`w-8 h-8 rounded-lg font-bold text-xs flex items-center justify-center ${
+                              isAtrasada
+                                ? 'bg-rose-600 text-white'
+                                : 'bg-action text-action-foreground'
+                            }`}
+                          >
+                            {index + 1}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-xs font-bold font-editorial text-primary uppercase">
+                                {c.nome}
+                              </h4>
+                              {isAtrasada && (
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-800/60">
+                                  Atrasada
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[11px] text-muted-foreground font-semibold">
+                              {c.pecasTotal} peças • Entrega: {c.dataEntrega}
+                              {c.diasParaEntrega !== undefined && (
+                                <> ({deliveryCountdownLabel(c.diasParaEntrega)})</>
+                              )}
+                            </span>
+                          </div>
+                        </div>
+
+                        <span
+                          className={`text-xs font-bold px-3 py-1 rounded-full ${
+                            isAtrasada
+                              ? 'bg-rose-100 dark:bg-rose-950/40 text-rose-800 dark:text-rose-400 border border-rose-300 dark:border-rose-800/60'
+                              : 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300'
+                          }`}
+                        >
+                          {c.progressoPercent !== undefined
+                            ? `${c.progressoPercent}% Concluído`
+                            : c.status}
                         </span>
                       </div>
                     </div>
-
-                    <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-800">
-                      {c.progressoPercent}% Concluído
-                    </span>
-                  </div>
-                </div>
-              ))}
+                  );
+                })}
             </div>
           )}
         </div>
@@ -563,7 +718,12 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
 
       {/* MODAL: CRIAR NOVA COLEÇÃO */}
       {isCriarColecaoOpen && (
-        <div className="fixed inset-0 bg-neutral-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-criar-colecao-title"
+          className="fixed inset-0 bg-neutral-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4"
+        >
           <div className="bg-surface rounded-2xl p-6 sm:p-8 border border-border shadow-xl max-w-lg w-full space-y-6 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-border-muted pb-4">
               <div className="flex items-center gap-3">
@@ -571,7 +731,10 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                   <Layers className="w-5 h-5" strokeWidth={1.5} />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold font-editorial text-primary">
+                  <h3
+                    id="modal-criar-colecao-title"
+                    className="text-base font-bold font-editorial text-primary"
+                  >
                     Adicionar Nova Coleção
                   </h3>
                   <p className="text-xs text-muted-foreground">
@@ -582,6 +745,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
 
               <button
                 type="button"
+                aria-label="Fechar modal"
                 onClick={() => setIsCriarColecaoOpen(false)}
                 className="p-2 rounded-lg text-muted hover:text-primary hover:bg-surface-muted transition cursor-pointer"
               >
@@ -590,7 +754,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
             </div>
 
             {formError && (
-              <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-600 text-xs font-semibold">
+              <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs font-semibold">
                 {formError}
               </div>
             )}
@@ -599,7 +763,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
               {/* Nome da Coleção (Obrigatório) */}
               <div>
                 <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-muted-foreground">
-                  Nome da Coleção <span className="text-rose-600">*</span>
+                  Nome da Coleção <span className="text-rose-600 dark:text-rose-400">*</span>
                 </label>
                 <input
                   type="text"
@@ -637,7 +801,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                     type="text"
                     value={formAno}
                     onChange={(e) => setFormAno(e.target.value)}
-                    placeholder="Ex: 2026-27 ou 2028"
+                    placeholder={`Ex: ${defaultAno}`}
                     className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
                   />
                 </div>
@@ -649,10 +813,9 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                   Data de Entrega
                 </label>
                 <input
-                  type="text"
+                  type="date"
                   value={formDataEntrega}
                   onChange={(e) => setFormDataEntrega(e.target.value)}
-                  placeholder="Ex: 26/02/2027"
                   className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
                 />
               </div>
@@ -696,7 +859,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-lg bg-accent-camel hover:bg-accent-camel/90 text-white font-bold cursor-pointer shadow-2xs transition-all duration-200"
+                  className="px-6 py-2.5 rounded-lg bg-accent-camel hover:bg-accent-camel/90 text-on-camel font-bold cursor-pointer shadow-2xs transition-all duration-200"
                 >
                   Criar Coleção
                 </button>
@@ -752,7 +915,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                       <div
                         className={`px-3 py-2.5 rounded-lg font-extrabold text-xs tracking-wider border shrink-0 ${
                           isSelected
-                            ? 'bg-primary text-white border-primary'
+                            ? 'bg-action text-action-foreground border-action'
                             : 'bg-surface-muted text-primary border-border'
                         }`}
                       >
@@ -768,7 +931,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
 
                     <div className="shrink-0">
                       {isSelected ? (
-                        <div className="w-7 h-7 rounded-full bg-accent-camel text-white flex items-center justify-center font-bold text-xs shadow-2xs">
+                        <div className="w-7 h-7 rounded-full bg-accent-camel text-on-camel flex items-center justify-center font-bold text-xs shadow-2xs">
                           <Check className="w-4 h-4" strokeWidth={2} />
                         </div>
                       ) : (
