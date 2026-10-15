@@ -22,6 +22,11 @@ import type { MarcaSummary } from '../../../types/auth';
 import type { UserRecord } from '../../../types/gestao';
 import type { ColecaoItem } from '../../../types/plm';
 import { usePersistedState } from '../../../hooks/usePersistedState';
+import {
+  applyCollectionPortalState,
+  COLLECTION_PORTAL_STATE_KEY,
+  type CollectionPortalState,
+} from '../../../services/collectionPortalState';
 
 interface MarcasTabProps {
   marcas: MarcaSummary[];
@@ -51,6 +56,10 @@ export const MarcasTab: React.FC<MarcasTabProps> = ({
   onOpenAtualizarTimes,
 }) => {
   const [allColecoes] = usePersistedState<ColecaoItem[]>('modaflow_user_colecoes', []);
+  const [collectionStates] = usePersistedState<CollectionPortalState[]>(
+    COLLECTION_PORTAL_STATE_KEY,
+    []
+  );
 
   const filteredMarcas = marcas.filter((m) =>
     m.nome.toLowerCase().includes(searchMarca.toLowerCase())
@@ -63,10 +72,14 @@ export const MarcasTab: React.FC<MarcasTabProps> = ({
    */
   const calculateMarcaStats = (marca: MarcaSummary) => {
     // 1. Filtra coleções pertencentes a esta marca
-    const brandColecoes = (allColecoes || []).filter(
-      (c) =>
-        c.marcaId === marca.id ||
-        (c.marcaNome && c.marcaNome.toLowerCase() === marca.nome.toLowerCase())
+    const brandColecoes = applyCollectionPortalState(
+      (allColecoes || []).filter(
+        (c) =>
+          c.marcaId === marca.id ||
+          (c.marcaNome && c.marcaNome.toLowerCase() === marca.nome.toLowerCase())
+      ),
+      collectionStates,
+      marca.id
     );
 
     // Soma das 3 categorias do print (Em andamento, Completas, Arquivadas)

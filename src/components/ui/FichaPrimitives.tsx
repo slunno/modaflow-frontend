@@ -6,12 +6,12 @@ import {
   type HTMLAttributes,
   type ReactNode,
 } from 'react';
-import { Check, Circle, CircleDot, Clock3, Minus, X, ImageIcon } from 'lucide-react';
+import { Check, Circle, Clock3, Minus, X, ImageIcon } from 'lucide-react';
 
 export type FichaStatus = 'draft' | 'pending' | 'complete' | 'late' | 'error' | 'neutral' | 'na';
 const statuses = {
   draft: ['Rascunho', 'text-status-draft', Circle],
-  pending: ['Pendente', 'text-status-pending', CircleDot],
+  pending: ['Pendente', 'text-status-pending', Clock3],
   complete: ['Completa', 'text-status-complete', Check],
   late: ['Atrasado', 'text-status-late', Clock3],
   error: ['Erro', 'text-status-error', X],
@@ -27,15 +27,14 @@ export function StatusBadge({
   compact?: boolean;
   label?: string;
 }) {
-  const [defaultLabel, color, BaseIcon] = statuses[status];
-  const Icon = compact && status === 'pending' ? Circle : BaseIcon;
+  const [defaultLabel, color, Icon] = statuses[status];
   const label = customLabel ?? defaultLabel;
   return (
     <span
-      className={`relative inline-flex items-center rounded-full text-xs font-medium ${compact ? 'shrink-0' : 'gap-1.5 border border-current/20 bg-surface-muted px-2 py-1'} ${compact && status === 'pending' ? 'ficha-completion-partial' : ''} ${color}`}
+      className={`relative inline-flex items-center rounded-full text-xs font-medium ${compact ? 'shrink-0' : 'gap-1.5 px-2 py-1'} ${color}`}
       title={label}
     >
-      <Icon aria-hidden="true" strokeWidth={1.5} className="h-3.5 w-3.5" />
+      <Icon aria-hidden="true" className={compact ? 'h-3 w-3' : 'h-3.5 w-3.5'} />
       <span className={compact ? 'sr-only' : ''}>{label}</span>
     </span>
   );
@@ -43,7 +42,7 @@ export function StatusBadge({
 export function Card({ className = '', ...props }: HTMLAttributes<HTMLElement>) {
   return (
     <section
-      className={`rounded-card border border-border bg-surface p-card shadow-card ${className}`}
+      className={`rounded-card border border-border bg-surface p-5 shadow-card ${className}`}
       {...props}
     />
   );
@@ -58,10 +57,10 @@ export function SectionHeader({
   action?: ReactNode;
 }) {
   return (
-    <div className="mb-3 flex flex-wrap items-start justify-between gap-3 border-b border-border-muted pb-3">
+    <div className="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-border-muted pb-4">
       <div>
         <h3 className="font-editorial text-lg font-semibold">{title}</h3>
-        {description && <p className="mt-1 text-xs text-muted">{description}</p>}
+        {description && <p className="mt-1 text-sm text-muted">{description}</p>}
       </div>
       {action}
     </div>
@@ -75,14 +74,14 @@ export function Button({
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'ghost' }) {
   const style =
     variant === 'primary'
-      ? 'border-action bg-action text-action-foreground hover:bg-action-hover'
+      ? 'border-accent-camel bg-accent-camel text-on-camel hover:bg-accent-camel/90'
       : variant === 'ghost'
         ? 'border-transparent hover:bg-surface-muted'
         : 'border-border bg-surface hover:bg-surface-muted';
   return (
     <button
       type={type}
-      className={`inline-flex min-h-control items-center justify-center gap-2 rounded-control border px-3 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${style} ${className}`}
+      className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-control border px-3 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${style} ${className}`}
       {...props}
     />
   );
@@ -97,32 +96,11 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-card border border-dashed border-border bg-surface-muted/50 p-card text-center">
-      <ImageIcon aria-hidden="true" strokeWidth={1.5} className="h-4 w-4 text-muted" />
+    <div className="flex flex-col items-center gap-3 rounded-card border border-dashed border-border bg-surface-muted/50 p-6 text-center">
+      <ImageIcon aria-hidden="true" className="h-7 w-7 text-muted" />
       <p className="text-sm font-semibold">{title}</p>
-      {description && <p className="max-w-sm text-xs text-muted">{description}</p>}
+      {description && <p className="max-w-sm text-sm text-muted">{description}</p>}
       {action}
-    </div>
-  );
-}
-/** Apresentação de resultados existentes, sem derivar novos valores financeiros. */
-export function MetricCard({
-  label,
-  value,
-  pending = false,
-}: {
-  label: string;
-  value: ReactNode;
-  pending?: boolean;
-}) {
-  return (
-    <div className="min-w-0 rounded-card border border-border bg-surface-muted/50 p-3">
-      <p className="text-xs font-medium text-muted">{label}</p>
-      <p
-        className={`mt-1 break-words font-mono text-lg font-semibold tabular-nums ${pending ? 'text-status-pending' : 'text-primary'}`}
-      >
-        {value}
-      </p>
     </div>
   );
 }

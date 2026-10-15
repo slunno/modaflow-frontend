@@ -31,6 +31,7 @@ import { CaracteristicasTab } from './tabs/CaracteristicasTab';
 import { CustosFixosTab } from './tabs/CustosFixosTab';
 import { PrecificacaoTab } from './tabs/PrecificacaoTab';
 import { TiposPecaTab } from './tabs/TiposPecaTab';
+import { FornecedoresTab } from './tabs/FornecedoresTab';
 import { TagsTab } from './tabs/TagsTab';
 import { FluxosTab } from './tabs/FluxosTab';
 import { CamposCustomTab } from './tabs/CamposCustomTab';
@@ -44,19 +45,14 @@ import { ModificarTimesMarcaModal } from './modals/ModificarTimesMarcaModal';
 import { CriarTecidoModal } from './modals/CriarTecidoModal';
 import { ImportarInsumosModal } from './modals/ImportarInsumosModal';
 import type { FormTabelaItem } from './modals/CriarCaracteristicaModal';
+import { GESTAO_TABS, resolveGestaoTab } from './gestaoNavigation';
 
 export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
   // Aba Ativa
   const { tab } = useParams();
   const navigate = useNavigate();
   const { search } = useLocation();
-  const gestaoSubTab = (
-    tab === 'caracteristicas-legado'
-      ? 'caracteristicas'
-      : tab === 'times-legado'
-        ? 'times'
-        : (tab ?? 'marcas')
-  ) as GestaoSubTab;
+  const gestaoSubTab = resolveGestaoTab(tab);
   const setGestaoSubTab = (value: GestaoSubTab) => navigate('/gestao/' + value + search);
 
   // Custom Hooks por domínio
@@ -227,47 +223,38 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
     setCaracteristicaFormTabelas((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const subTabsList: Array<{ id: GestaoSubTab; label: string }> = [
-    { id: 'marcas', label: 'Marcas' },
-    { id: 'usuarios', label: 'Usuários' },
-    { id: 'times', label: 'Times' },
-    { id: 'tecidos', label: 'Tecidos' },
-    { id: 'aviamentos', label: 'Aviamentos' },
-    { id: 'caracteristicas', label: 'Características' },
-    { id: 'custos_fixos', label: 'Custos Fixos' },
-    { id: 'precificacao', label: 'Precificação' },
-    { id: 'tipos_peca', label: 'Tipos de Peça' },
-    { id: 'tags', label: 'Tags' },
-    { id: 'fluxos', label: 'Fluxos' },
-    { id: 'campos_custom', label: 'Campos Customizados' },
-  ];
-
   return (
     <div className="w-full min-h-screen bg-bg text-primary pb-16 font-sans">
       {/* 1. SUB-NAVEGAÇÃO DE GESTÃO & CADASTROS BASE */}
-      <div className="hidden" aria-hidden="true">
+      <nav
+        aria-label="Cadastros de Gestão"
+        className="bg-surface border-b border-border shadow-2xs sticky top-16 z-40"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-6 overflow-x-auto py-3 text-xs font-semibold scrollbar-none">
-            {subTabsList.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => {
-                  if (tab.id !== 'usuarios') usuariosHook.setEditingUserProfile(null);
-                  setGestaoSubTab(tab.id);
-                }}
-                className={`whitespace-nowrap transition cursor-pointer pb-1 ${
-                  gestaoSubTab === tab.id
-                    ? 'text-primary font-bold border-b-2 border-primary'
-                    : 'text-muted hover:text-primary'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+          <div className="overflow-x-auto scrollbar-none">
+            <div className="flex w-max min-w-full items-center justify-center gap-6 py-3 text-xs font-semibold">
+              {GESTAO_TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  aria-current={gestaoSubTab === tab.id ? 'page' : undefined}
+                  onClick={() => {
+                    if (tab.id !== 'usuarios') usuariosHook.setEditingUserProfile(null);
+                    setGestaoSubTab(tab.id);
+                  }}
+                  className={`whitespace-nowrap transition cursor-pointer pb-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-camel ${
+                    gestaoSubTab === tab.id
+                      ? 'text-primary font-bold border-b-2 border-primary'
+                      : 'text-muted hover:text-primary'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      </nav>
 
       {/* 2. CONTEÚDO PRINCIPAL DAS ABAS */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-in fade-in duration-200">
@@ -408,6 +395,8 @@ export const GestaoPage: React.FC<GestaoPageProps> = ({ onOpenColecoes }) => {
           <PrecificacaoTab />
         ) : gestaoSubTab === 'tipos_peca' ? (
           <TiposPecaTab />
+        ) : gestaoSubTab === 'fornecedores' ? (
+          <FornecedoresTab />
         ) : gestaoSubTab === 'tags' ? (
           <TagsTab />
         ) : gestaoSubTab === 'fluxos' ? (

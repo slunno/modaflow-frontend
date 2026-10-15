@@ -1,0 +1,7 @@
+/* Em dispositivos sem hover, o botão permanece visível para toque. */
+@media (hover: hover) and (pointer: fine) {
+  .collection-card:not(:hover):not(:focus-within)
+    .collection-actions-trigger[aria-expanded='false'] {
+    opacity: 0;
+  }
+}

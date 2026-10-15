@@ -6,7 +6,6 @@ import {
 } from '../../../services/fichaPrecificacao';
 import type { LinxFichaCustos } from '../../../types/linx';
 import { formatarCusto } from '../../../services/fichaProcesso';
-import { MetricCard, Skeleton } from '../../../components/ui/FichaPrimitives';
 
 interface Props {
   processos?: FichaTerceiro[];
@@ -39,19 +38,11 @@ export function FichaPrecificacaoEditor({
   return (
     <section
       aria-label={`Precificação — ${variante.nome || 'Variante sem nome'}`}
-      className="rounded-card border border-border bg-surface p-card shadow-card space-y-4"
+      className="rounded-xl border border-border bg-surface p-6 shadow-2xs space-y-5"
     >
       <h3 className="border-b border-border-muted pb-3 text-sm font-bold font-editorial text-primary">
         Precificação
       </h3>
-      <div aria-label="Resumo da precificação" className="grid grid-cols-2 gap-3">
-        <MetricCard label="Custo" value={dinheiro(custo.total)} pending={custo.total === null} />
-        <MetricCard
-          label="Preço final"
-          value={dinheiro(resultado.precoFinal)}
-          pending={resultado.precoFinal === null}
-        />
-      </div>
       <div className="max-w-sm space-y-1 text-xs">
         <label htmlFor={`${id}-base`} className="block font-semibold">
           Base do cálculo
@@ -70,10 +61,8 @@ export function FichaPrecificacaoEditor({
       </div>
       <fieldset className="space-y-3 text-xs">
         <legend className="font-semibold">Selecione o tipo de cálculo:</legend>
-        <div className="inline-flex flex-wrap gap-1 rounded-control border border-border bg-surface-muted p-1">
-          <label
-            className={`inline-flex min-h-control-compact cursor-pointer items-center gap-2 rounded-control px-3 py-1.5 ${value.modo === 'markup' ? 'bg-surface text-accent-camel shadow-card' : 'text-muted'}`}
-          >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="inline-flex items-center gap-2">
             <input
               type="radio"
               name={`${id}-modo`}
@@ -83,9 +72,7 @@ export function FichaPrecificacaoEditor({
             />
             Com base no markup
           </label>
-          <label
-            className={`inline-flex min-h-control-compact cursor-pointer items-center gap-2 rounded-control px-3 py-1.5 ${value.modo === 'margem' ? 'bg-surface text-accent-camel shadow-card' : 'text-muted'}`}
-          >
+          <label className="inline-flex items-center gap-2">
             <input
               type="radio"
               name={`${id}-modo`}
@@ -135,7 +122,11 @@ export function FichaPrecificacaoEditor({
           ? ' Inclui os outros custos da aba Custos.'
           : ' Preço × consumo ou quantidade.'}
       </p>
-      {loadingLinx && <Skeleton label="Consultando custos do Linx…" className="h-12" />}
+      {loadingLinx && (
+        <p role="status" className="text-xs text-muted">
+          Consultando custos do Linx…
+        </p>
+      )}
       {errorLinx && (
         <p role="alert" className="text-xs text-red-600">
           {errorLinx}
@@ -195,7 +186,7 @@ export function FichaPrecificacaoEditor({
             </tr>
             <tr className="border-b-2 border-border">
               <th colSpan={3} scope="colgroup" className="py-2 font-semibold">
-                Preço final e aprovação
+                Lucro e Preço final
               </th>
             </tr>
             <tr className="border-b border-border">

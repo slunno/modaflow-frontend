@@ -450,7 +450,7 @@ export function prepararContratoLinx(peca: PecaItem, colecao: ColecaoItem) {
     ficha: structuredClone(projetarFichaPrincipalLinx(peca)),
     catalogos: 'SOMENTE_VINCULO' as const,
     pendenciasContrato: [
-      'Procedimento/API de gravação e confirmação no Linx',
+      'Homologação e habilitação do gravador direto no .6 para campos mapeados; criação de produto/versão ainda pendente',
       'Mapeamento da cor de mostruário de Geral para o Linx e validação dos códigos no ERP',
       'Destino do preço escolhido/manual por item da Principal, sem alterar os preços do catálogo',
       ...mapeamento.pendencias,

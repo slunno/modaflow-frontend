@@ -227,7 +227,7 @@ export function mapLinxProdutoToPeca(
       : undefined;
 
   return {
-    id: `linx-${product.linxId ?? product.codigoNormalizado ?? `${colecaoId}-${index}`}`,
+    id: `linx-${encodeURIComponent(marcaId)}-${encodeURIComponent(colecaoId)}-${product.linxId ?? product.codigoNormalizado ?? index}`,
     colecaoId,
     marcaId,
     codigo,

@@ -77,12 +77,13 @@ describe('Identificação manual e mostruário da ficha', () => {
     });
     fireEvent.click(screen.getAllByRole('button', { name: 'Ficha técnica' })[1]!);
     expect((screen.getByLabelText('Nome do Produto') as HTMLInputElement).value).toBe('');
-    expect((screen.getByLabelText('Código de Referência') as HTMLInputElement).value).toBe('');
+    expect(screen.queryByLabelText('Código de Referência')).toBeNull();
+    expect((screen.getByLabelText('Categoria') as HTMLInputElement).value).toBe('');
     fireEvent.change(screen.getByLabelText('Nome do Produto'), {
       target: { value: 'Bata criada por mim' },
     });
-    fireEvent.change(screen.getByLabelText('Código de Referência'), {
-      target: { value: 'BATA-01' },
+    fireEvent.change(screen.getByLabelText('Categoria'), {
+      target: { value: 'BATA DE TESTE' },
     });
     fireEvent.change(screen.getByLabelText('Código do produto'), {
       target: { value: 'NOVO-01' },
@@ -97,7 +98,7 @@ describe('Identificação manual e mostruário da ficha', () => {
     expect(saved[1]?.codigo).toBe('NOVO-01');
     expect(saved[1]?.fichaTecnica).toMatchObject({
       nomeProduto: 'Bata criada por mim',
-      codigoReferencia: 'BATA-01',
+      integracao: { categoria: 'BATA DE TESTE' },
       coresMostruario: [{ nome: 'Cor 65' }, { nome: 'Cor 1' }],
     });
     fireEvent.click(screen.getByRole('button', { name: 'Voltar' }));
@@ -107,9 +108,8 @@ describe('Identificação manual e mostruário da ficha', () => {
         'Bata criada por mim'
       )
     );
-    expect((screen.getByLabelText('Código de Referência') as HTMLInputElement).value).toBe(
-      'BATA-01'
-    );
+    expect(screen.queryByLabelText('Código de Referência')).toBeNull();
+    expect((screen.getByLabelText('Categoria') as HTMLInputElement).value).toBe('BATA DE TESTE');
     expect((screen.getByLabelText('Código do produto') as HTMLInputElement).value).toBe('NOVO-01');
   });
 });

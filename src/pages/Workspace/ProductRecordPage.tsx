@@ -373,7 +373,7 @@ export function ProductRecordPage() {
         onBack={() =>
           navigate(
             (['bi', 'dashboard', 'notifications', 'kanban'].includes(params.get('origem') ?? '')
-              ? '/' + params.get('origem')
+              ? '/workspace/' + params.get('origem')
               : '/pecas') +
               '?' +
               params.toString()

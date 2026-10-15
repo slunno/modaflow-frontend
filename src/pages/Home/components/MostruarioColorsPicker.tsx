@@ -3,8 +3,10 @@ import { Check } from 'lucide-react';
 import { getLinxCoresMostruario } from '../../../services/linxService';
 import { usePersistedState } from '../../../hooks/usePersistedState';
 import type { TecidoCorItem } from '../../../types/gestao';
+import { normalizarCatalogoMostruario } from '../../../services/mostruarioCatalog';
 
-const key = (color: TecidoCorItem) => `${color.nome.toLocaleLowerCase()}:${color.codigo ?? ''}`;
+const key = (color: TecidoCorItem) =>
+  color.origemMostruario === 'linx' && color.codigo ? `linx:${color.codigo}` : `local:${color.id}`;
 
 export function MostruarioColorsPicker({
   value,
@@ -13,7 +15,7 @@ export function MostruarioColorsPicker({
   value: TecidoCorItem[];
   onChange: (colors: TecidoCorItem[]) => void;
 }) {
-  const [names, setNames] = useState<string[]>([]);
+  const [linxColors, setLinxColors] = useState<TecidoCorItem[]>([]);
   const [localColors] = usePersistedState<TecidoCorItem[]>('modaflow_colors', []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -26,7 +28,7 @@ export function MostruarioColorsPicker({
     let active = true;
     getLinxCoresMostruario()
       .then((items) => {
-        if (active) setNames(items);
+        if (active) setLinxColors(normalizarCatalogoMostruario(items));
       })
       .catch(() => {
         if (active) setError('Não foi possível consultar as cores do Linx.');
@@ -39,22 +41,7 @@ export function MostruarioColorsPicker({
     };
   }, []);
   const catalog = new Map<string, TecidoCorItem>();
-  for (const color of [
-    ...value.map((color) =>
-      color.origemMostruario !== 'portal' &&
-      color.id === 'linx-cor-' + color.nome &&
-      names.includes(color.nome)
-        ? { ...color, origemMostruario: 'linx' as const }
-        : color
-    ),
-    ...localColors,
-    ...names.map((name) => ({
-      id: 'linx-cor-' + name,
-      nome: name,
-      hex: '',
-      origemMostruario: 'linx' as const,
-    })),
-  ])
+  for (const color of [...value, ...localColors, ...linxColors])
     if (!catalog.has(key(color))) catalog.set(key(color), color);
   const filtered = [...catalog.values()].filter((color) =>
     `${color.nome} ${color.codigo ?? ''}`.toLocaleLowerCase().includes(query.toLocaleLowerCase())
@@ -155,6 +142,7 @@ export function MostruarioColorsPicker({
                 id={`${listId}-${index}`}
                 type="button"
                 role="option"
+                aria-label={color.codigo ? `${color.nome} (${color.codigo})` : color.nome}
                 aria-selected={selected}
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => {

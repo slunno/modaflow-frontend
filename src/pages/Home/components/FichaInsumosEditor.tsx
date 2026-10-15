@@ -5,7 +5,7 @@ import { CriarTecidoModal } from '../../Gestao/modals/CriarTecidoModal';
 import { FichaInsumoCard } from './FichaInsumoCard';
 import { getProductUsoKey } from '../../../services/productUsoStorage';
 import type { LinxFichaCustos } from '../../../types/linx';
-import { Button, EmptyState, Skeleton } from '../../../components/ui/FichaPrimitives';
+import { EmptyState } from '../../../components/ui/FichaPrimitives';
 import { mesclarCamposDaCor } from '../../../services/insumoInformacoesCores';
 
 interface Props {
@@ -42,7 +42,7 @@ export function FichaInsumosEditor({
   return (
     <section
       aria-label={variantName ? `${title} — ${variantName}` : undefined}
-      className="rounded-card border border-border bg-surface p-card shadow-card space-y-4"
+      className="rounded-xl border border-border bg-surface p-6 space-y-4"
     >
       <div className="flex items-center justify-between gap-3">
         <h3 className="font-bold text-primary">
@@ -51,13 +51,15 @@ export function FichaInsumosEditor({
         <button
           type="button"
           onClick={() => setEditing(null)}
-          className="inline-flex min-h-control gap-1 items-center rounded-control border border-border px-3 py-1.5 text-xs font-semibold text-accent-camel hover:bg-surface-muted"
+          className="inline-flex min-h-10 gap-1 items-center rounded-lg border border-border px-4 py-2 text-xs font-bold text-accent-camel hover:bg-surface-muted"
         >
           <Plus className="h-4 w-4" /> Adicionar {tipo}
         </button>
       </div>
       {loadingCustosLinx && (
-        <Skeleton label="Consultando preços e custos no Linx…" className="h-12" />
+        <p role="status" className="text-xs text-muted">
+          Consultando preços e custos no Linx…
+        </p>
       )}
       {errorCustosLinx && (
         <div role="alert" className="rounded-lg border border-border p-3 text-xs space-y-2">
@@ -74,12 +76,6 @@ export function FichaInsumosEditor({
         <EmptyState
           title={`Nenhum ${tipo} nesta variante`}
           description="Adicione um insumo para definir fornecedor, consumo e preço."
-          action={
-            <Button variant="primary" onClick={() => setEditing(null)}>
-              <Plus aria-hidden="true" className="h-4 w-4" />
-              Adicionar {tipo}
-            </Button>
-          }
         />
       )}
       {items.map((item) => {

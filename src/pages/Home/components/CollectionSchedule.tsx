@@ -141,11 +141,11 @@ export function CollectionSchedule({
                           <div className="relative flex min-h-12 items-center rounded-control bg-surface-muted">
                             <div
                               aria-hidden="true"
-                              className="absolute -top-4 -bottom-4 border-l-2 border-accent-camel"
+                              className="absolute -top-4 -bottom-4 border-l border-dashed border-primary/50"
                               style={{ left: `${position(today)}%` }}
                             >
                               {index === 0 && (
-                                <span className="absolute -top-1 left-1 rounded-control bg-surface px-1 text-xs font-semibold text-accent-camel">
+                                <span className="absolute -top-1 left-1 rounded bg-surface px-1 text-[10px] font-semibold">
                                   Hoje
                                 </span>
                               )}

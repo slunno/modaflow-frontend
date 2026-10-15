@@ -4,6 +4,12 @@ import { useAuth } from '../../hooks/useAuth';
 import { listWorkspace, saveWorkspace } from '../../services/workspaceService';
 import type { PecaItem, ColecaoItem } from '../../types/plm';
 import type { OperationalProduct, OperationalCollection } from '../../types/workspace';
+import { usePersistedState } from '../../hooks/usePersistedState';
+import {
+  applyCollectionPortalState,
+  COLLECTION_PORTAL_STATE_KEY,
+  type CollectionPortalState,
+} from '../../services/collectionPortalState';
 
 function localRows<T>(key: string): T[] {
   try {
@@ -19,11 +25,22 @@ export function LegacyImportNotice({ onImported }: { onImported: () => void }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const pieces = localRows<PecaItem>('modaflow_collection_pecas').filter(
-    (p) => p.marcaId === brand
+  const [collectionStates] = usePersistedState<CollectionPortalState[]>(
+    COLLECTION_PORTAL_STATE_KEY,
+    []
   );
-  const collections = localRows<ColecaoItem>('modaflow_user_colecoes').filter(
-    (c) => c.marcaId === brand
+  const hiddenCollections = new Set(
+    collectionStates
+      .filter((state) => state.marcaId === brand && state.hidden)
+      .map((state) => state.collectionId)
+  );
+  const pieces = localRows<PecaItem>('modaflow_collection_pecas').filter(
+    (p) => p.marcaId === brand && (!p.colecaoId || !hiddenCollections.has(p.colecaoId))
+  );
+  const collections = applyCollectionPortalState(
+    localRows<ColecaoItem>('modaflow_user_colecoes').filter((c) => c.marcaId === brand),
+    collectionStates,
+    brand
   );
   if (!brand || (!pieces.length && !collections.length)) return null;
   const migrate = async () => {

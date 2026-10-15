@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { PecaFichaTecnicaView } from '../pages/Home/components/PecaFichaTecnicaView';
 import { api } from '../services/api';
 import { getProductTerceiroKey } from '../services/productTerceiroStorage';
@@ -92,11 +92,13 @@ describe('Terceiros completo e local', () => {
     fireEvent.change(uploader, {
       target: { files: [new File(['imagem1'], 'frente.png', { type: 'image/png' })] },
     });
-    // Duas leituras assíncronas simultâneas não podem sobrescrever a primeira imagem.
+    // O seletor bloqueia novas leituras até terminar o salvamento atual.
+    expect((uploader as HTMLInputElement).disabled).toBe(true);
+    await imagens.findByRole('img', { name: 'Imagem — frente.png' });
+    await waitFor(() => expect((uploader as HTMLInputElement).disabled).toBe(false));
     fireEvent.change(uploader, {
       target: { files: [new File(['imagem2'], 'costas.png', { type: 'image/png' })] },
     });
-    await imagens.findByRole('img', { name: 'Imagem — frente.png' });
     await imagens.findByRole('img', { name: 'Imagem — costas.png' });
     expect(imagens.getAllByRole('img')).toHaveLength(3);
     expect(imagens.getByRole('img', { name: 'Imagem do detalhe' }).getAttribute('src')).toBe(
@@ -104,7 +106,13 @@ describe('Terceiros completo e local', () => {
     );
 
     fireEvent.blur(screen.getByRole('group', { name: 'Ficha técnica' }));
-    const saved = save.mock.calls[0]![0] as PecaItem;
+    await waitFor(() =>
+      expect(save.mock.calls.at(-1)?.[0].fichaTecnica?.terceiros?.[0]?.imagens).toEqual([
+        expect.objectContaining({ nome: 'frente.png' }),
+        expect.objectContaining({ nome: 'costas.png' }),
+      ])
+    );
+    const saved = save.mock.calls.at(-1)![0] as PecaItem;
     expect(saved.fichaTecnica!.terceiros![0]).toMatchObject({
       tela: 'Tela 90 fios',
       traducao: 'Silk em duas cores.',

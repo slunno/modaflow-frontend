@@ -330,7 +330,8 @@ describe('Interface de conferência de vínculos', () => {
           categorias: [],
         } as T;
       if (path.startsWith('/linx/grades/detalhe')) return gradeTeste() as T;
-      if (path === '/linx/cores-mostruario') return ['BEGE SALMAO'] as T;
+      if (path === '/linx/cores-mostruario/codigos')
+        return [{ codigo: 'BAS001', descricao: 'BEGE SALMAO' }] as T;
       return [] as T;
     });
     const peca = associar(pecaTeste(false));
@@ -358,7 +359,7 @@ describe('Interface de conferência de vínculos', () => {
       />
     );
     fireEvent.focus(screen.getByRole('combobox', { name: 'Cor de mostruário' }));
-    fireEvent.click(await screen.findByRole('option', { name: 'BEGE SALMAO' }));
+    fireEvent.click(await screen.findByRole('option', { name: 'BEGE SALMAO (BAS001)' }));
     fireEvent.blur(screen.getByRole('combobox', { name: 'Cor de mostruário' }));
     const automatico = salvar.mock.calls.at(-1)![0] as PecaItem;
     expect(automatico.fichaTecnica!.corMostruario).toBe('BEGE SALMAO');
@@ -372,7 +373,7 @@ describe('Interface de conferência de vínculos', () => {
     expect(salvo.fichaTecnica!.coresMostruario).toMatchObject([{ nome: 'BEGE SALMAO' }]);
     expect(salvo.fichaTecnica!.variantes![0]!.corProdutoLinx).toEqual(vinculoAntigo);
     expect(projetarMapeamentoLinx(salvo, colecao).coresMostruario).toEqual([
-      { nome: 'BEGE SALMAO', codigo: null },
+      { nome: 'BEGE SALMAO', codigo: 'BAS001' },
     ]);
     fireEvent.click(screen.getByRole('button', { name: '+ Nova variante' }));
     fireEvent.click(screen.getByRole('button', { name: 'Duplicar variante' }));

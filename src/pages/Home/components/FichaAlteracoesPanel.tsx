@@ -1,6 +1,5 @@
 import type { PecaItem } from '../../../types/plm';
 import { useState } from 'react';
-import { Plus, Pencil } from 'lucide-react';
 
 export function FichaAlteracoesPanel({ peca }: { peca: PecaItem }) {
   const events = peca.historicoAlteracoes ?? [];
@@ -63,22 +62,12 @@ export function FichaAlteracoesPanel({ peca }: { peca: PecaItem }) {
           não serão presumidos.
         </p>
       ) : (
-        <ol className="space-y-4 border-l-2 border-accent-camel/30 pl-6">
+        <ol className="space-y-4 border-l-2 border-accent-camel/30 pl-4">
           {[...filtered].reverse().map((event) => (
             <li
               key={event.id}
-              className="relative rounded-card border border-border bg-surface-muted/30 p-card space-y-3"
+              className="relative rounded-card border border-border p-4 space-y-3 before:absolute before:-left-[23px] before:top-6 before:h-3 before:w-3 before:rounded-full before:bg-accent-camel"
             >
-              <span
-                aria-hidden="true"
-                className="absolute -left-10 top-3 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-accent-camel"
-              >
-                {event.tipo === 'criacao' ? (
-                  <Plus className="h-4 w-4" strokeWidth={1.5} />
-                ) : (
-                  <Pencil className="h-4 w-4" strokeWidth={1.5} />
-                )}
-              </span>
               <h4 className="font-bold">{event.titulo}</h4>
               {event.tipo === 'criacao' && <p>Peça: {event.nomePeca}</p>}
               <p className="text-muted">

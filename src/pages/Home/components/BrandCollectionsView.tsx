@@ -8,7 +8,7 @@
  * ============================================================================
  */
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import type { MarcaSummary } from '../../../types/auth';
 import type { ColecaoItem } from '../../../types/plm';
 import { useAuth } from '../../../hooks/useAuth';
@@ -23,9 +23,19 @@ import {
   Building2,
   Check,
   Plus,
+  Trash2,
 } from 'lucide-react';
 
 import { CollectionDetailView } from './CollectionDetailView';
+import { CollectionDeliveryDateField } from './CollectionDeliveryDateField';
+import { CollectionActionsMenu } from './CollectionActionsMenu';
+import { CollectionDialog } from './CollectionPresentation';
+import {
+  applyCollectionPortalState,
+  changeCollectionPortalState,
+  COLLECTION_PORTAL_STATE_KEY,
+  type CollectionPortalState,
+} from '../../../services/collectionPortalState';
 import { getBrands } from '../../../services/plmService';
 import { getLinxColecoesValidas, resolveLinxGriffe } from '../../../services/linxService';
 import { mapLinxColecaoToItem } from '../../../services/contractMappers';
@@ -69,6 +79,14 @@ interface BrandCollectionsViewProps {
   onClearColecao?: () => void;
 }
 
+interface CollectionActionNotice {
+  collectionId: string;
+  marcaId: string;
+  message: string;
+  previous?: CollectionPortalState;
+  next?: CollectionPortalState;
+}
+
 export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
   marca,
   selectedColecaoId,
@@ -106,6 +124,18 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
     'modaflow_user_colecoes',
     []
   );
+  const [collectionStates] = usePersistedState<CollectionPortalState[]>(
+    COLLECTION_PORTAL_STATE_KEY,
+    []
+  );
+  const [deleteTarget, setDeleteTarget] = useState<ColecaoItem | null>(null);
+  const [collectionActionError, setCollectionActionError] = useState('');
+  const [actionNotice, setActionNotice] = useState<CollectionActionNotice | null>(null);
+  const undoButton = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (actionNotice) undoButton.current?.focus();
+  }, [actionNotice]);
 
   // Estado local da marca selecionada
   const [currentMarca, setCurrentMarca] = useState<MarcaSummary>(marca);
@@ -181,8 +211,45 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
   const [formTemporada, setFormTemporada] = useState('Verão');
   const [formDataEntrega, setFormDataEntrega] = useState('');
   const [formDescricao, setFormDescricao] = useState('');
-  const [formImagemUrl, setFormImagemUrl] = useState('');
   const [formError, setFormError] = useState('');
+  const createDialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isCriarColecaoOpen) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const dialog = createDialogRef.current;
+    dialog?.querySelector<HTMLInputElement>('input')?.focus();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const keydown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setIsCriarColecaoOpen(false);
+      }
+      if (event.key !== 'Tab') return;
+      const controls = Array.from(
+        dialog?.querySelectorAll<HTMLElement>(
+          'button:not(:disabled):not([tabindex="-1"]), input:not([type="hidden"]), select, textarea'
+        ) ?? []
+      );
+      const first = controls[0];
+      const last = controls.at(-1);
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    };
+    document.addEventListener('keydown', keydown);
+    return () => {
+      document.removeEventListener('keydown', keydown);
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
+    };
+  }, [isCriarColecaoOpen]);
 
   // Modal de Alternar Marca
   const [isBrandModalOpen, setIsBrandModalOpen] = useState(false);
@@ -199,10 +266,14 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
         !linxKeys.has(`${c.nome.trim().toLocaleUpperCase('pt-BR')}|${c.codigoPill ?? ''}`)
     );
     // Compatibilidade com coleções locais salvas antes da classificação das finalizadas.
-    return [...linxColecoes, ...uniqueLocalCollections].map((colecao) =>
+    return applyCollectionPortalState(
+      [...linxColecoes, ...uniqueLocalCollections],
+      collectionStates,
+      currentMarca.id
+    ).map((colecao) =>
       colecao.status === 'Não categorizada' ? { ...colecao, status: 'Completas' } : colecao
     );
-  }, [allColecoes, currentMarca.id, linxColecoes]);
+  }, [allColecoes, currentMarca.id, linxColecoes, collectionStates]);
 
   useEffect(() => {
     void Promise.resolve().then(() => {
@@ -211,7 +282,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
         return;
       }
       const found = colecoesDaMarca.find((colecao) => colecao.id === selectedColecaoId);
-      if (found) setSelectedColecao(found);
+      setSelectedColecao(found ?? null);
     });
   }, [colecoesDaMarca, selectedColecaoId]);
 
@@ -237,6 +308,54 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
   const totalColecoes = colecoesDaMarca.length;
   const emAndamentoCount = colecoesDaMarca.filter((c) => c.status === 'Em andamento').length;
   const totalPecas = colecoesDaMarca.reduce((acc, c) => acc + (c.pecasTotal || 0), 0);
+
+  const changeCollection = (collection: ColecaoItem, action: 'archive' | 'restore' | 'delete') => {
+    const marcaId = collection.marcaId ?? currentMarca.id;
+    setCollectionActionError('');
+    try {
+      const change = changeCollectionPortalState(marcaId, collection.id, (previous) => {
+        const next = { ...previous, marcaId, collectionId: collection.id };
+        if (action === 'delete') next.hidden = true;
+        else next.archived = action === 'archive';
+        return next.archived || next.hidden ? next : undefined;
+      });
+      setDeleteTarget(null);
+      setActionNotice({
+        ...change,
+        marcaId,
+        collectionId: collection.id,
+        message:
+          action === 'delete'
+            ? `Coleção “${collection.nome}” excluída da listagem. As fichas foram preservadas.`
+            : `Coleção “${collection.nome}” ${action === 'archive' ? 'arquivada. Consulte a aba Arquivadas.' : 'desarquivada.'}`,
+      });
+    } catch {
+      setCollectionActionError(
+        'Não foi possível salvar a ação neste navegador. Verifique o espaço disponível e tente novamente.'
+      );
+    }
+  };
+
+  const undoCollectionChange = () => {
+    if (!actionNotice) return;
+    try {
+      changeCollectionPortalState(actionNotice.marcaId, actionNotice.collectionId, (current) => {
+        if (
+          Boolean(current?.archived) !== Boolean(actionNotice.next?.archived) ||
+          Boolean(current?.hidden) !== Boolean(actionNotice.next?.hidden)
+        ) {
+          throw new Error('collection-changed');
+        }
+        return actionNotice.previous;
+      });
+      setActionNotice(null);
+      setCollectionActionError('');
+    } catch {
+      setCollectionActionError(
+        'Não foi possível desfazer. A coleção pode ter mudado em outra aba ou o armazenamento está indisponível.'
+      );
+    }
+  };
 
   // Handler para Criar Nova Coleção
   const currentYear = new Date().getFullYear();
@@ -272,7 +391,6 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
       ano: formAno.trim() || defaultAno,
       temporada: formTemporada || 'Verão',
       descricao: formDescricao.trim() || undefined,
-      imagemReferencia: formImagemUrl.trim() || undefined,
     };
 
     setAllColecoes((prev) => [novaColecao, ...prev]);
@@ -285,12 +403,13 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
     setFormTemporada('Verão');
     setFormDataEntrega('');
     setFormDescricao('');
-    setFormImagemUrl('');
     setFormError('');
   };
 
   // Troca de marca através do quadro interativo
   const handleSwitchBrand = (newMarca: MarcaSummary) => {
+    setActionNotice(null);
+    setCollectionActionError('');
     setCurrentMarca(newMarca);
     setActiveMarca(newMarca);
     if (onSelectMarca) onSelectMarca(newMarca);
@@ -484,6 +603,44 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
             </div>
           </div>
 
+          {collectionActionError && !deleteTarget && (
+            <p
+              role="alert"
+              className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-600 dark:text-rose-400"
+            >
+              {collectionActionError}
+            </p>
+          )}
+          {actionNotice && (
+            <div
+              role="status"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-3 text-xs"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-primary">{actionNotice.message}</p>
+                <p className="mt-1 text-muted-foreground">
+                  Alteração somente neste navegador, sem modificar o Linx.
+                </p>
+              </div>
+              <button
+                ref={undoButton}
+                type="button"
+                onClick={undoCollectionChange}
+                className="rounded-lg px-3 py-2 font-semibold text-accent-camel hover:bg-accent-camel/10 focus-visible:outline-accent-camel"
+              >
+                Desfazer
+              </button>
+              <button
+                type="button"
+                aria-label="Fechar aviso"
+                onClick={() => setActionNotice(null)}
+                className="rounded-lg p-2 text-muted-foreground hover:bg-surface-muted focus-visible:outline-accent-camel"
+              >
+                <X aria-hidden="true" className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+
           {/* GRID DE CARDS DAS COLEÇÕES */}
           {isLoadingLinx ? (
             <div className="bg-surface p-12 rounded-xl border border-border text-center space-y-3">
@@ -521,13 +678,14 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                 const isEntregue = c.progressoPercent === 100;
 
                 return (
-                  <div
+                  <article
                     key={c.id}
+                    aria-label={`Coleção ${c.nome}`}
                     onClick={() => {
                       if (onSelectColecao) onSelectColecao(c);
                       setSelectedColecao(c);
                     }}
-                    className="bg-surface border border-border rounded-xl p-6 shadow-2xs hover:shadow-md hover:scale-[1.01] transition-all duration-300 space-y-5 flex flex-col justify-between relative group cursor-pointer"
+                    className="collection-card bg-surface border border-border rounded-xl p-6 shadow-2xs hover:shadow-md hover:scale-[1.01] hover:z-20 focus-within:z-20 transition-all duration-300 space-y-5 flex flex-col justify-between relative group cursor-pointer"
                   >
                     <div>
                       {/* Topo do Card: Badge da Marca */}
@@ -536,14 +694,39 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                           {c.codigoPill || currentMarca.code}
                         </span>
 
-                        <span className="px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60 text-xs font-bold">
-                          {c.progressoPercent !== undefined ? `${c.progressoPercent}%` : c.status}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60 text-xs font-bold">
+                            {c.progressoPercent !== undefined ? `${c.progressoPercent}%` : c.status}
+                          </span>
+                          <CollectionActionsMenu
+                            name={c.nome}
+                            archived={c.status === 'Arquivadas'}
+                            canRestore={collectionStates.some(
+                              (state) =>
+                                state.marcaId === currentMarca.id &&
+                                state.collectionId === c.id &&
+                                state.archived
+                            )}
+                            onArchive={() =>
+                              changeCollection(c, c.status === 'Arquivadas' ? 'restore' : 'archive')
+                            }
+                            onDelete={() => {
+                              setCollectionActionError('');
+                              setDeleteTarget(c);
+                            }}
+                          />
+                        </div>
                       </div>
 
                       {/* Título da Coleção */}
                       <h3 className="text-sm font-bold font-editorial text-primary uppercase tracking-wide leading-snug group-hover:text-accent-camel transition-colors duration-200 min-h-[38px]">
-                        {c.nome}
+                        <button
+                          type="button"
+                          className="rounded-sm text-left uppercase focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-camel"
+                          aria-label={`Abrir coleção ${c.nome}`}
+                        >
+                          {c.nome}
+                        </button>
                       </h3>
                     </div>
 
@@ -554,9 +737,11 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                           Progresso da coleção
                         </span>
                         <span className="font-bold text-primary">
-                          {c.progressoPercent !== undefined
-                            ? `${c.progressoPercent}%`
-                            : 'Não mensurado'}
+                          {c.status === 'Arquivadas'
+                            ? c.status
+                            : c.progressoPercent !== undefined
+                              ? `${c.progressoPercent}%`
+                              : 'Não mensurado'}
                         </span>
                       </div>
 
@@ -612,7 +797,7 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
                         </div>
                       )}
                     </div>
-                  </div>
+                  </article>
                 );
               })}
             </div>
@@ -716,151 +901,194 @@ export const BrandCollectionsView: React.FC<BrandCollectionsViewProps> = ({
         </div>
       )}
 
+      {deleteTarget && (
+        <CollectionDialog
+          title="Excluir coleção?"
+          onClose={() => setDeleteTarget(null)}
+          className="max-w-md"
+        >
+          <div className="space-y-4 text-sm">
+            <div className="flex gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                <Trash2 aria-hidden="true" className="h-5 w-5" />
+              </span>
+              <p className="leading-relaxed text-muted-foreground">
+                A coleção <strong className="text-primary">“{deleteTarget.nome}”</strong> será
+                retirada da listagem do portal neste navegador.
+              </p>
+            </div>
+            <p className="rounded-xl border border-border bg-surface-muted p-3 text-xs leading-relaxed text-muted-foreground">
+              As peças, fichas técnicas e anexos serão preservados. Nenhum dado será excluído ou
+              alterado no Linx. Após confirmar, você poderá desfazer pelo aviso da tela.
+            </p>
+            {collectionActionError && (
+              <p role="alert" className="text-xs text-rose-600 dark:text-rose-400">
+                {collectionActionError}
+              </p>
+            )}
+            <div className="flex justify-end gap-3 border-t border-border-muted pt-4">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                className="min-h-10 rounded-lg border border-border px-4 py-2 text-xs font-semibold hover:bg-surface-muted focus-visible:outline-accent-camel"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => changeCollection(deleteTarget, 'delete')}
+                className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-rose-600 px-4 py-2 text-xs font-semibold text-white hover:bg-rose-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"
+              >
+                <Trash2 aria-hidden="true" className="h-4 w-4" />
+                Excluir coleção
+              </button>
+            </div>
+          </div>
+        </CollectionDialog>
+      )}
+
       {/* MODAL: CRIAR NOVA COLEÇÃO */}
       {isCriarColecaoOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modal-criar-colecao-title"
-          className="fixed inset-0 bg-neutral-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4"
-        >
-          <div className="bg-surface rounded-2xl p-6 sm:p-8 border border-border shadow-xl max-w-lg w-full space-y-6 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-border-muted pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-accent-camel/10 border border-accent-camel/30 text-accent-camel flex items-center justify-center font-bold">
-                  <Layers className="w-5 h-5" strokeWidth={1.5} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/60 p-3 backdrop-blur-xs sm:p-6">
+          <div
+            ref={createDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-criar-colecao-title"
+            aria-describedby="modal-criar-colecao-description"
+            className="flex max-h-[calc(100dvh-24px)] w-full max-w-[560px] flex-col rounded-2xl border border-border bg-surface text-primary shadow-2xl sm:max-h-[calc(100dvh-48px)]"
+          >
+            <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border-muted px-5 py-5 sm:px-7">
+              <div className="flex items-start gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-accent-camel/20 bg-accent-camel/10 text-accent-camel">
+                  <Layers aria-hidden="true" className="h-5 w-5" strokeWidth={1.5} />
                 </div>
-                <div>
+                <div className="min-w-0">
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-accent-camel">
+                    {currentMarca.nome}
+                  </p>
                   <h3
                     id="modal-criar-colecao-title"
-                    className="text-base font-bold font-editorial text-primary"
+                    className="font-editorial text-xl font-semibold leading-tight"
                   >
                     Adicionar Nova Coleção
                   </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Marca: <strong>{currentMarca.nome}</strong>
+                  <p
+                    id="modal-criar-colecao-description"
+                    className="mt-2 text-xs leading-relaxed text-muted-foreground"
+                  >
+                    Defina a identidade e o prazo da sua próxima coleção.
                   </p>
                 </div>
               </div>
-
               <button
                 type="button"
                 aria-label="Fechar modal"
                 onClick={() => setIsCriarColecaoOpen(false)}
-                className="p-2 rounded-lg text-muted hover:text-primary hover:bg-surface-muted transition cursor-pointer"
+                className="-mr-1 shrink-0 rounded-lg p-2 text-muted hover:bg-surface-muted hover:text-primary focus-visible:outline-accent-camel"
               >
-                <X className="w-5 h-5" strokeWidth={1.5} />
+                <X aria-hidden="true" className="h-4 w-4" strokeWidth={1.5} />
               </button>
             </div>
-
-            {formError && (
-              <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs font-semibold">
-                {formError}
-              </div>
-            )}
-
-            <form onSubmit={handleSaveNovaColecao} className="space-y-4 text-xs">
-              {/* Nome da Coleção (Obrigatório) */}
-              <div>
-                <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-muted-foreground">
-                  Nome da Coleção <span className="text-rose-600 dark:text-rose-400">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formNome}
-                  onChange={(e) => setFormNome(e.target.value)}
-                  placeholder="Ex: VERÃO 28 - K&J BLACK CAPSULA NOBRE"
-                  className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none transition-all duration-200"
-                  required
-                />
-              </div>
-
-              {/* Grid 2 colunas: Temporada & Ano */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-muted-foreground">
-                    Temporada
-                  </label>
-                  <select
-                    value={formTemporada}
-                    onChange={(e) => setFormTemporada(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none cursor-pointer"
+            <form onSubmit={handleSaveNovaColecao} className="flex min-h-0 flex-1 flex-col">
+              <div className="space-y-5 overflow-y-auto px-5 py-6 sm:px-7">
+                {formError && (
+                  <div
+                    role="alert"
+                    id="nova-colecao-error"
+                    className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs font-medium text-rose-600 dark:text-rose-400"
                   >
-                    <option value="Verão">Verão</option>
-                    <option value="Inverno">Inverno</option>
-                    <option value="Atemporal">Atemporal</option>
-                    <option value="Primavera">Primavera</option>
-                  </select>
-                </div>
-
+                    {formError}
+                  </div>
+                )}
                 <div>
-                  <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-muted-foreground">
-                    Ano
+                  <label htmlFor="nova-colecao-nome" className="mb-2 block text-xs font-semibold">
+                    Nome da coleção <span className="text-rose-600 dark:text-rose-400">*</span>
                   </label>
                   <input
+                    id="nova-colecao-nome"
                     type="text"
-                    value={formAno}
-                    onChange={(e) => setFormAno(e.target.value)}
-                    placeholder={`Ex: ${defaultAno}`}
-                    className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
+                    value={formNome}
+                    onChange={(e) => {
+                      setFormNome(e.target.value);
+                      setFormError('');
+                    }}
+                    placeholder="Ex: VERÃO 28 - K&J BLACK CAPSULA NOBRE"
+                    aria-invalid={Boolean(formError)}
+                    aria-describedby={formError ? 'nova-colecao-error' : undefined}
+                    className="min-h-11 w-full rounded-xl border border-border bg-surface-muted/60 px-3.5 py-2.5 text-sm text-primary transition-colors focus:border-accent-camel focus:bg-surface focus:outline-none focus:ring-2 focus:ring-accent-camel/10"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      htmlFor="nova-colecao-temporada"
+                      className="mb-2 block text-xs font-semibold"
+                    >
+                      Temporada
+                    </label>
+                    <select
+                      id="nova-colecao-temporada"
+                      value={formTemporada}
+                      onChange={(e) => setFormTemporada(e.target.value)}
+                      className="min-h-11 w-full rounded-xl border border-border bg-surface-muted/60 px-3 py-2.5 text-sm focus:border-accent-camel focus:outline-none focus:ring-2 focus:ring-accent-camel/10"
+                    >
+                      <option value="Verão">Verão</option>
+                      <option value="Inverno">Inverno</option>
+                      <option value="Atemporal">Atemporal</option>
+                      <option value="Primavera">Primavera</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="nova-colecao-ano" className="mb-2 block text-xs font-semibold">
+                      Ano
+                    </label>
+                    <input
+                      id="nova-colecao-ano"
+                      type="text"
+                      value={formAno}
+                      onChange={(e) => setFormAno(e.target.value)}
+                      placeholder={`Ex: ${defaultAno}`}
+                      className="min-h-11 w-full rounded-xl border border-border bg-surface-muted/60 px-3.5 py-2.5 text-sm focus:border-accent-camel focus:outline-none focus:ring-2 focus:ring-accent-camel/10"
+                    />
+                  </div>
+                </div>
+                <CollectionDeliveryDateField
+                  value={formDataEntrega}
+                  onChange={setFormDataEntrega}
+                />
+                <div>
+                  <label
+                    htmlFor="nova-colecao-descricao"
+                    className="mb-2 block text-xs font-semibold"
+                  >
+                    Descrição{' '}
+                    <span className="ml-1 font-normal text-muted-foreground">(opcional)</span>
+                  </label>
+                  <textarea
+                    id="nova-colecao-descricao"
+                    rows={3}
+                    value={formDescricao}
+                    onChange={(e) => setFormDescricao(e.target.value)}
+                    placeholder="Conceito, inspiração ou detalhes da coleção..."
+                    className="w-full resize-y rounded-xl border border-border bg-surface-muted/60 px-3.5 py-2.5 text-sm focus:border-accent-camel focus:outline-none focus:ring-2 focus:ring-accent-camel/10"
                   />
                 </div>
               </div>
-
-              {/* Data de Entrega */}
-              <div>
-                <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-muted-foreground">
-                  Data de Entrega
-                </label>
-                <input
-                  type="date"
-                  value={formDataEntrega}
-                  onChange={(e) => setFormDataEntrega(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
-                />
-              </div>
-
-              {/* Descrição */}
-              <div>
-                <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-muted-foreground">
-                  Descrição
-                </label>
-                <textarea
-                  rows={2}
-                  value={formDescricao}
-                  onChange={(e) => setFormDescricao(e.target.value)}
-                  placeholder="Breve conceito ou detalhes da coleção..."
-                  className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
-                />
-              </div>
-
-              {/* Imagem de Referência */}
-              <div>
-                <label className="block text-xs font-semibold mb-1 uppercase tracking-wider text-muted-foreground">
-                  URL da Imagem de Referência (Opcional)
-                </label>
-                <input
-                  type="url"
-                  value={formImagemUrl}
-                  onChange={(e) => setFormImagemUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
-                />
-              </div>
-
-              {/* Botões do Modal */}
-              <div className="pt-4 border-t border-border-muted flex items-center justify-end gap-3">
+              <div className="flex shrink-0 flex-wrap items-center justify-end gap-3 rounded-b-2xl border-t border-border-muted bg-surface-muted/30 px-5 py-4 sm:px-7">
                 <button
                   type="button"
                   onClick={() => setIsCriarColecaoOpen(false)}
-                  className="px-4 py-2.5 rounded-lg border border-border text-muted-foreground font-bold hover:bg-surface-muted cursor-pointer transition-all duration-200"
+                  className="min-h-11 rounded-xl border border-border bg-surface px-4 py-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-surface-muted focus-visible:outline-accent-camel"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-lg bg-accent-camel hover:bg-accent-camel/90 text-on-camel font-bold cursor-pointer shadow-2xs transition-all duration-200"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-accent-camel px-5 py-2.5 text-xs font-semibold text-on-camel shadow-2xs transition-colors hover:bg-accent-camel/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-camel"
                 >
+                  <Plus aria-hidden="true" className="h-4 w-4" />
                   Criar Coleção
                 </button>
               </div>

@@ -69,26 +69,29 @@ function hook(estado: PecaItem, anexos: FichaAnexo[] = []) {
 }
 
 describe('Alterações pendentes para o Linx', () => {
-  it('código integrado permanece fixo e editar a referência não troca o produto', async () => {
+  it('código integrado permanece fixo e editar a categoria preserva a referência antiga', async () => {
     const integrada = {
       ...structuredClone(peca),
       linxOrigem: { codigoProduto: peca.codigo, colecaoCodigo: '025', griffe: 'KING&JOE' as const },
+      fichaTecnica: { ...structuredClone(peca.fichaTecnica), codigoReferencia: ' MODELO ' },
     };
     const save = vi.fn();
     await abrir(integrada, save);
     expect((screen.getByLabelText('Código do produto') as HTMLInputElement).readOnly).toBe(true);
-    fireEvent.change(screen.getByLabelText('Código de Referência'), {
-      target: { value: 'MODELO' },
+    expect(screen.queryByLabelText('Código de Referência')).toBeNull();
+    fireEvent.change(screen.getByLabelText('Categoria'), {
+      target: { value: 'CATEGORIA DE TESTE' },
     });
     fireEvent.blur(screen.getByRole('group', { name: 'Ficha técnica' }));
     await waitFor(() => expect(save).toHaveBeenCalled());
     const salva = save.mock.calls.at(-1)![0] as PecaItem;
     expect(salva.codigo).toBe(peca.codigo);
     expect(salva.linxOrigem).toEqual(integrada.linxOrigem);
-    expect(salva.fichaTecnica!.codigoReferencia).toBe('MODELO');
+    expect(salva.fichaTecnica!.codigoReferencia).toBe(' MODELO ');
+    expect(salva.fichaTecnica!.integracao!.categoria).toBe('CATEGORIA DE TESTE');
     expect(api.post).not.toHaveBeenCalled();
   });
-  it('começa apagado, destaca uma letra, abre a informação futura e apaga ao desfazer', async () => {
+  it('marca a alteração, abre a conferência sem enviar ao Linx e apaga ao desfazer', async () => {
     const save = vi.fn();
     await abrir(peca, save);
     expect(botao().disabled).toBe(true);
@@ -104,10 +107,9 @@ describe('Alterações pendentes para o Linx', () => {
     expect(botao().getAttribute('data-pendente')).toBe('true');
     fireEvent.click(botao());
     const dialog = within(screen.getByRole('dialog', { name: 'Integração Linx' }));
-    expect(dialog.getByText(/Verificar o código digitado/)).toBeDefined();
-    expect(dialog.getByText(/apenas identifica as alterações/)).toBeDefined();
+    expect(dialog.getByText(/Sem prévia confirmada não há gravação/)).toBeDefined();
+    expect(dialog.getByRole('button', { name: 'Conferir envio ao Linx' })).toBeDefined();
     expect(api.post).not.toHaveBeenCalled();
-    expect(save).not.toHaveBeenCalled();
     fireEvent.click(dialog.getByRole('button', { name: 'Entendi' }));
     fireEvent.change(screen.getByLabelText('Descrição', { exact: true }), {
       target: { value: '' },

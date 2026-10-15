@@ -13,6 +13,7 @@ import { useFichaAutosave } from '../pages/Home/components/useFichaAutosave';
 import { PecaFichaTecnicaView } from '../pages/Home/components/PecaFichaTecnicaView';
 import { api } from '../services/api';
 import { LOCAL_PECAS_KEY, savePecaLocal } from '../services/localPecasStorage';
+import { getPecaFichaValues } from '../services/pecaFichaSelectors';
 import { marca, colecao, peca } from '../../tests/manual/precificacao/fixtures';
 import type { PecaItem } from '../types/plm';
 
@@ -164,6 +165,56 @@ function LiveFicha({ initial = peca }: { initial?: PecaItem }) {
 const saved = () => (JSON.parse(localStorage.getItem(LOCAL_PECAS_KEY)!) as PecaItem[])[0]!;
 
 describe('Ficha sem botão de salvar', () => {
+  it.each([false, true])(
+    'salva e reabre a categoria separada do nome, preservando referências antigas (shared=%s)',
+    async (shared) => {
+      const inicial: PecaItem = {
+        ...structuredClone(peca),
+        fichaTecnica: {
+          ...structuredClone(peca.fichaTecnica),
+          nomeProduto: 'Nome de teste',
+          codigoReferencia: ' REFERENCIA ANTIGA ',
+          integracao: { categoria: 'Categoria antiga', subgrupo: 'CAMISA' },
+        },
+      };
+      const save = vi.fn();
+      const props = { marca, colecao, shared, onBack: () => {}, onUpdatePeca: save };
+      const view = render(<PecaFichaTecnicaView {...props} peca={inicial} />);
+      expect(screen.queryByLabelText('Código de Referência')).toBeNull();
+      expect((screen.getByLabelText('Categoria') as HTMLInputElement).value).toBe(
+        'Categoria antiga'
+      );
+      fireEvent.change(screen.getByLabelText('Categoria'), {
+        target: { value: 'CAMISA DE TESTE' },
+      });
+      fireEvent.blur(screen.getByRole('group', { name: 'Ficha técnica' }));
+      await waitFor(() => expect(save).toHaveBeenCalledOnce());
+      const item = save.mock.calls[0]![0] as PecaItem;
+      expect(item.codigo).toBe(inicial.codigo);
+      expect(item.fichaTecnica).toMatchObject({
+        nomeProduto: 'Nome de teste',
+        codigoReferencia: ' REFERENCIA ANTIGA ',
+        integracao: { categoria: 'CAMISA DE TESTE', subgrupo: 'CAMISA' },
+      });
+      expect(item.fichaTecnica!.variantes).toEqual(inicial.fichaTecnica!.variantes);
+      expect(getPecaFichaValues(item, 'Categoria')).toEqual(['CAMISA DE TESTE']);
+      expect(item.historicoAlteracoes).toHaveLength(1);
+      expect(item.historicoAlteracoes![0]).toMatchObject({
+        secao: 'Geral',
+        campos: [{ campo: 'Categoria', antes: 'Categoria antiga', depois: 'CAMISA DE TESTE' }],
+      });
+      expect(api.post).not.toHaveBeenCalled();
+      view.unmount();
+      render(<PecaFichaTecnicaView {...props} peca={item} />);
+      expect((screen.getByLabelText('Categoria') as HTMLInputElement).value).toBe(
+        'CAMISA DE TESTE'
+      );
+      expect((screen.getByLabelText('Nome do Produto') as HTMLInputElement).value).toBe(
+        'Nome de teste'
+      );
+    }
+  );
+
   it('salva com o componente em uso e reabre dados de várias abas, mantendo a pendência Linx', async () => {
     const view = render(<LiveFicha />);
     expect(screen.queryByRole('button', { name: 'Salvar rascunho' })).toBeNull();

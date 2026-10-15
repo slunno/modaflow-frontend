@@ -20,6 +20,7 @@ export function conteudoAlteracoesLinx(peca: PecaItem, anexos: FichaAnexo[] | st
   const {
     historicoAlteracoes,
     historicoIntegracoes,
+    linxUltimaGravacao,
     linxFichaResumo,
     fichaTecnica,
     imagemCroquiUrl,
@@ -29,6 +30,7 @@ export function conteudoAlteracoesLinx(peca: PecaItem, anexos: FichaAnexo[] | st
   } = peca;
   void historicoAlteracoes;
   void historicoIntegracoes;
+  void linxUltimaGravacao;
   void linxFichaResumo;
   void fichaTecnica;
   void imagemCroquiUrl;

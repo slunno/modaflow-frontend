@@ -109,12 +109,9 @@ export function FichaGraficosPanel({ peca, concluida }: { peca: PecaItem; conclu
         title="Cronograma da peça"
         description="Etapas e datas registradas no histórico local da ficha."
       />
-      <div aria-label="Legenda do cronograma" className="mb-4 flex flex-wrap gap-2">
+      <div aria-label="Legenda do cronograma" className="mb-5 flex flex-wrap gap-4">
         {legend.map(([name, color]) => (
-          <span
-            key={name}
-            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-muted px-2 py-1 text-xs font-medium"
-          >
+          <span key={name} className="inline-flex items-center gap-2 text-xs">
             <span aria-hidden="true" className={`h-2.5 w-2.5 rounded-full ${color}`} />
             {name}
           </span>
@@ -134,7 +131,7 @@ export function FichaGraficosPanel({ peca, concluida }: { peca: PecaItem; conclu
                   <span>{formatDate(min)}</span>
                   <span>{formatDate(max)}</span>
                   <span
-                    className="absolute top-0 rounded-control bg-accent-camel/10 px-2 py-1 font-semibold text-accent-camel"
+                    className="absolute top-0 text-accent-camel"
                     style={{ left: `${position(now)}%`, transform: 'translateX(-50%)' }}
                   >
                     Hoje
@@ -158,7 +155,7 @@ export function FichaGraficosPanel({ peca, concluida }: { peca: PecaItem; conclu
                   <div className="relative flex min-h-10 items-center">
                     <div
                       aria-hidden="true"
-                      className="absolute inset-y-0 z-10 border-l-2 border-accent-camel"
+                      className="absolute inset-y-0 w-px border-l border-dashed border-accent-camel"
                       style={{ left: `${position(now)}%` }}
                     />
                     {Number.isFinite(row.start) ? (

@@ -94,6 +94,12 @@ import {
 import { FichaGraficosPanel } from './FichaGraficosPanel';
 import { FichaNavigation } from './FichaNavigation';
 import { VariantsTab } from './VariantsTab';
+import { LinxIntegrationDialog } from './LinxIntegrationDialog';
+import {
+  aplicarReciboCamposMapeados,
+  aplicarReciboNovaVersao,
+} from '../../../services/fichaLinxGravacao';
+import { LinxReferencePicker } from './LinxReferencePicker';
 
 const VARIANTE_INICIAL: FichaVariante = {
   id: 'principal',
@@ -147,7 +153,6 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
     | 'custos'
     | 'precificacao'
     | 'variantes'
-    | 'anexos'
     | 'prova_roupa'
     | 'historico'
     | 'graficos'
@@ -157,7 +162,6 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
   const [nomeProduto, setNomeProduto] = useState(
     peca.fichaTecnica?.nomeProduto || (shared ? peca.nome : '')
   );
-  const [codigoRef, setCodigoRef] = useState(peca.fichaTecnica?.codigoReferencia ?? '');
   const [codigoProduto, setCodigoProduto] = useState(peca.codigo);
   const codigoIntegrado = Boolean(
     peca.linxOrigem ||
@@ -211,8 +215,11 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
       ''
   );
   const [linha] = useState(peca.fichaTecnica?.integracao?.linha ?? peca.linxCadastro?.linha ?? '');
-  const [grade] = useState(peca.fichaTecnica?.integracao?.grade ?? peca.linxCadastro?.grade ?? '');
-  const [gradeLinx] = useState(peca.fichaTecnica?.gradeLinx);
+  const [grade, setGrade] = useState(
+    peca.fichaTecnica?.integracao?.grade ?? peca.linxCadastro?.grade ?? ''
+  );
+  const [gradeLinx, setGradeLinx] = useState(peca.fichaTecnica?.gradeLinx);
+  const [referenciaCopia, setReferenciaCopia] = useState(peca.linxReferenciaCopia);
   const [griffe] = useState(
     peca.fichaTecnica?.integracao?.griffe ??
       peca.linxOrigem?.griffe ??
@@ -221,7 +228,7 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
       ''
   );
   const [tipoMateriaPrima] = useState(peca.fichaTecnica?.integracao?.tipoMateriaPrima ?? '');
-  const [categoria] = useState(peca.fichaTecnica?.integracao?.categoria ?? '');
+  const [categoria, setCategoria] = useState(peca.fichaTecnica?.integracao?.categoria ?? '');
   const [subcategoria] = useState(peca.fichaTecnica?.integracao?.subcategoria ?? '');
   const [tamanhos, setTamanhos] = useState<string[]>(peca.fichaTecnica?.tamanhos ?? []);
   const [corte, setCorte] = useState<FichaCorte | undefined>(peca.fichaTecnica?.corte);
@@ -404,6 +411,7 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
     ...movimentacao,
     nome: nomeProduto.trim() || peca.nome,
     codigo: codigoProduto.trim(),
+    linxReferenciaCopia: referenciaCopia,
     historicoAlteracoes,
     fichaTecnica: {
       ...peca.fichaTecnica,
@@ -414,7 +422,6 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
       gradeLinx,
       integracao: { subgrupo, linha, grade, griffe, tipoMateriaPrima, categoria, subcategoria },
       nomeProduto: nomeProduto.trim(),
-      codigoReferencia: codigoRef.trim(),
       descricao,
       tamanhos,
       tecnica,
@@ -885,7 +892,7 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
         true
       );
       setSaveStatus(
-        'Integração preparada — pendente de mapeamento/API de gravação e confirmação. Não enviada ao Linx e nenhuma versão integrada criada.'
+        'Contrato local preparado. Use Integrar no Linx para conferir os campos suportados pelo gravador direto. Nenhuma gravação executada e nenhuma versão integrada criada.'
       );
     } catch (error) {
       if (mountedRef.current) {
@@ -1044,271 +1051,246 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
       onBlurCapture={() => autosave.flush()}
       className="ficha-tecnica w-full min-w-0 space-y-4 font-sans pb-12 animate-in fade-in duration-200 bg-bg text-primary"
     >
-      <div className="ficha-sticky rounded-card bg-surface/95 shadow-card backdrop-blur-md">
-        <header className="border border-border bg-surface/95">
-          <div className="flex flex-wrap items-center gap-3 p-3 sm:px-4">
-            <Button
-              variant="ghost"
-              aria-label="Voltar"
-              onClick={() => {
-                const result = autosave.flush();
-                if (result instanceof Promise)
-                  void result.then((success) => {
-                    if (success) onBack();
-                  });
-                else if (result) onBack();
-              }}
-              disabled={validandoProcesso || salvandoImagem}
-            >
-              <ArrowLeft aria-hidden="true" className="h-4 w-4" />
-            </Button>
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-control bg-surface-muted">
-              {variantePhoto(variantes[0] ?? VARIANTE_INICIAL, 0) ? (
-                <img
-                  src={variantePhoto(variantes[0] ?? VARIANTE_INICIAL, 0)}
-                  alt="Capa da peça"
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <ImageIcon aria-hidden="true" className="h-6 w-6 text-muted" />
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs text-muted">
-                {marca.nome} › {colecao.nome} › {peca.tema || 'Base'}
-              </p>
-              <h1 className="font-editorial text-xl font-semibold tracking-tight sm:text-2xl">
-                {nomeProduto || peca.nome || peca.tipo}
-              </h1>
-              <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
-                <span>{draft.codigo || 'Código do produto a definir'}</span>
-                <span>· Ficha técnica</span>
-                {linxVersaoImportada && <span>· Versão {linxVersaoImportada}</span>}
-                <StatusBadge status={fichaConcluida ? 'complete' : 'draft'} />
-                <button
-                  type="button"
-                  aria-expanded={mostrarResumoMobile}
-                  aria-controls="ficha-resumo-mobile"
-                  onClick={() => setMostrarResumoMobile((value) => !value)}
-                  className="min-h-8 text-xs font-semibold text-accent-camel underline sm:hidden"
-                >
-                  Detalhes da peça
-                </button>
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant="ghost"
-                aria-label="Sinal da ficha"
-                title="Ver histórico da ficha"
-                onClick={() => setActiveFichaTab('historico')}
-              >
-                <Rss aria-hidden="true" className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="primary"
-                aria-label="Avançar"
-                disabled={
-                  !proximaEtapa ||
-                  !onUpdatePeca ||
-                  loadingFichaLinx ||
-                  copiandoVariante ||
-                  validandoProcesso
-                }
-                title={
-                  proximaEtapa
-                    ? 'Avançar para ' + proximaEtapa
-                    : 'Esta ficha já chegou à etapa Final.'
-                }
-                onClick={avancarEtapa}
-              >
-                Avançar etapa
-              </Button>
-              <Button
-                className="ficha-linx-sync"
-                data-pendente={alteracoesLinx.temAlteracoes}
-                aria-label={shared ? 'Situação da integração Linx' : 'Integrar no Linx'}
-                aria-describedby="ficha-linx-alteracoes-status"
-                disabled={
-                  !alteracoesLinx.temAlteracoes ||
-                  alteracoesLinx.carregando ||
-                  copiandoVariante ||
-                  validandoProcesso ||
-                  !!anexosController.busy
-                }
-                title={
-                  alteracoesLinx.carregando
-                    ? 'Conferindo alterações…'
-                    : alteracoesLinx.temAlteracoes
-                      ? 'Ver alterações pendentes de integração'
-                      : 'Sem alterações detectadas'
-                }
-                onClick={() => setMostrarIntegracaoLinx(true)}
-              >
-                <RefreshCw aria-hidden="true" className="h-4 w-4" />
-                {shared ? 'Integração Linx' : 'Integrar no Linx'}
-              </Button>
-              <details className="relative">
-                <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-control border border-border px-3 py-2 text-sm font-semibold">
-                  Opções <ChevronDown aria-hidden="true" className="h-4 w-4" />
-                </summary>
-                <div className="absolute right-0 top-full z-40 mt-2 w-64 space-y-2 rounded-card border border-border bg-surface p-3 shadow-lg">
-                  <Button
-                    className="w-full"
-                    aria-expanded={mostrarConferencia}
-                    onClick={() => setMostrarConferencia((previous) => !previous)}
-                  >
-                    Conferir ficha
-                  </Button>
-                  <Button className="w-full" onClick={() => setMostrarAnexos(true)}>
-                    Gerenciar anexos
-                  </Button>
-                  <Button className="w-full" onClick={() => window.print()}>
-                    Exportar
-                  </Button>
-                  {fichaConcluida && (
-                    <Button
-                      className="w-full"
-                      disabled={validandoProcesso}
-                      onClick={prepararIntegracao}
-                    >
-                      Integrar no Linx — preparar
-                    </Button>
-                  )}
-                  {fichaConcluida &&
-                    processo?.integracaoPreparada?.revisao === processo.revisao && (
-                      <Button className="w-full" onClick={baixarContrato}>
-                        Baixar contrato preparado
-                      </Button>
-                    )}
-                </div>
-              </details>
-              {etapaFinal && (
-                <Button
-                  disabled={loadingFichaLinx || copiandoVariante || validandoProcesso}
-                  onClick={concluirFicha}
-                >
-                  {validandoProcesso ? 'Conferindo…' : 'Concluir ficha'}
-                </Button>
-              )}
-            </div>
-          </div>
-          <div
-            id="ficha-resumo-mobile"
-            className={`${mostrarResumoMobile ? 'flex' : 'hidden sm:flex'} flex-wrap items-center gap-2 border-t border-border-muted px-4 py-2`}
+      <header className="ficha-sticky sticky top-0 z-30 rounded-card border border-border bg-surface/95 shadow-card backdrop-blur-md">
+        <div className="flex flex-wrap items-center gap-3 p-3 sm:px-4">
+          <Button
+            variant="ghost"
+            aria-label="Voltar"
+            onClick={() => {
+              const result = autosave.flush();
+              if (result instanceof Promise)
+                void result.then((success) => {
+                  if (success) onBack();
+                });
+              else if (result) onBack();
+            }}
+            disabled={validandoProcesso || salvandoImagem}
           >
-            <div
-              aria-label="Resumo da ficha"
-              role="group"
-              className="flex flex-wrap items-center gap-2 text-xs"
-            >
+            <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+          </Button>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-control bg-surface-muted sm:h-12 sm:w-12">
+            {variantePhoto(variantes[0] ?? VARIANTE_INICIAL, 0) ? (
+              <img
+                src={variantePhoto(variantes[0] ?? VARIANTE_INICIAL, 0)}
+                alt="Capa da peça"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <ImageIcon aria-hidden="true" className="h-6 w-6 text-muted" />
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs text-muted">
+              {marca.nome} › {colecao.nome} › {peca.tema || 'Base'}
+            </p>
+            <h1 className="font-editorial text-xl font-semibold tracking-tight sm:text-2xl">
+              {nomeProduto || peca.nome || peca.tipo}
+            </h1>
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
+              <span>{draft.codigo || 'Código do produto a definir'}</span>
+              <span>· Ficha técnica</span>
+              {linxVersaoImportada && <span>· Versão {linxVersaoImportada}</span>}
+              <StatusBadge status={fichaConcluida ? 'complete' : 'draft'} />
               <button
                 type="button"
-                aria-label="Entregar / alterar etapa"
-                aria-haspopup="dialog"
-                aria-expanded={movimentando}
-                disabled={
-                  !onUpdatePeca || loadingFichaLinx || copiandoVariante || validandoProcesso
-                }
-                onClick={() => {
-                  setEtapaDestino(undefined);
-                  setMovimentando(true);
-                }}
-                className="ficha-summary-chip text-left transition-colors hover:bg-surface focus-visible:outline-2 focus-visible:outline-accent-camel disabled:opacity-50"
-                title="Entregar ou alterar a etapa desta ficha"
+                aria-expanded={mostrarResumoMobile}
+                aria-controls="ficha-resumo-mobile"
+                onClick={() => setMostrarResumoMobile((value) => !value)}
+                className="min-h-8 text-xs font-semibold text-accent-camel underline sm:hidden"
               >
-                <span className="text-muted">Etapa</span>
-                <strong>
-                  {draft.etapaAtual && draft.etapaAtual !== '—' ? draft.etapaAtual : 'Definir'}
-                </strong>
-                <ChevronDown aria-hidden="true" className="h-4 w-4 text-muted" />
+                Detalhes da peça
               </button>
-              <div className="ficha-summary-chip">
-                <span className="text-muted">Custo</span>
-                <strong
-                  className={
-                    custosDoCabecalho.total === null
-                      ? 'text-status-pending'
-                      : 'font-mono tabular-nums'
-                  }
-                >
-                  {custosDoCabecalho.total === null
-                    ? 'Definir'
-                    : shared
-                      ? currency(custosDoCabecalho.total)
-                      : formatarCusto(custosDoCabecalho.total)}
-                </strong>
-              </div>
-              <div className="ficha-summary-chip">
-                <span className="text-muted">
-                  {shared
-                    ? precificacaoDoCabecalho.value.precoAprovado.trim()
-                      ? 'Preço aprovado'
-                      : 'Preço sugerido'
-                    : 'Preço'}
-                </span>
-                <strong
-                  className={
-                    precificacaoDoCabecalho.precoCabecalho === null
-                      ? 'text-status-pending'
-                      : 'font-mono tabular-nums'
-                  }
-                >
-                  {precificacaoDoCabecalho.precoCabecalho === null
-                    ? 'Definir'
-                    : shared
-                      ? currency(precificacaoDoCabecalho.precoCabecalho)
-                      : formatarCusto(precificacaoDoCabecalho.precoCabecalho)}
-                </strong>
-              </div>
-              {(['estilista', 'modelista'] as const).map((role) => (
-                <div key={role} className="ficha-summary-chip">
-                  <span className="capitalize text-muted">
-                    {role === 'estilista' ? 'Estilista' : 'Modelista'}
-                  </span>
-                  {peca[role] && (
-                    <span
-                      aria-hidden="true"
-                      className="flex h-6 w-6 items-center justify-center rounded-full bg-accent-camel/10 text-accent-camel"
-                    >
-                      {peca[role]
-                        ?.split(' ')
-                        .map((word) => word[0])
-                        .slice(0, 2)
-                        .join('')}
-                    </span>
-                  )}
-                  <strong className={peca[role] ? '' : 'text-status-pending'}>
-                    {peca[role] || 'Definir'}
-                  </strong>
-                </div>
-              ))}
-              {shared && (
-                <>
-                  <div className="ficha-summary-chip">
-                    <span className="text-muted">Status PLM</span>
-                    <strong>{peca.status}</strong>
-                  </div>
-                  <div className="ficha-summary-chip">
-                    <span className="text-muted">Responsável</span>
-                    <strong>{peca.responsavel || 'Definir'}</strong>
-                  </div>
-                  <div className="ficha-summary-chip">
-                    <span className="text-muted">Prazo</span>
-                    <strong>{displayDate(peca.previsaoEntrega)}</strong>
-                  </div>
-                </>
-              )}
             </div>
           </div>
-        </header>
-        <FichaNavigation
-          peca={draft}
-          active={activeFichaTab}
-          onChange={setActiveFichaTab}
-          shared={shared}
-        />
-      </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="ghost"
+              aria-label="Sinal da ficha"
+              title="Ver histórico da ficha"
+              onClick={() => setActiveFichaTab('historico')}
+            >
+              <Rss aria-hidden="true" className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="primary"
+              aria-label="Avançar"
+              disabled={
+                !proximaEtapa ||
+                !onUpdatePeca ||
+                loadingFichaLinx ||
+                copiandoVariante ||
+                validandoProcesso
+              }
+              title={
+                proximaEtapa
+                  ? 'Avançar para ' + proximaEtapa
+                  : 'Esta ficha já chegou à etapa Final.'
+              }
+              onClick={avancarEtapa}
+            >
+              Avançar etapa
+            </Button>
+            <Button
+              className="ficha-linx-sync"
+              data-pendente={alteracoesLinx.temAlteracoes}
+              aria-label={shared ? 'Situação da integração Linx' : 'Integrar no Linx'}
+              aria-describedby="ficha-linx-alteracoes-status"
+              disabled={
+                !alteracoesLinx.temAlteracoes ||
+                alteracoesLinx.carregando ||
+                copiandoVariante ||
+                validandoProcesso ||
+                !!anexosController.busy
+              }
+              title={
+                alteracoesLinx.carregando
+                  ? 'Conferindo alterações…'
+                  : alteracoesLinx.temAlteracoes
+                    ? 'Ver alterações pendentes de integração'
+                    : 'Sem alterações detectadas'
+              }
+              onClick={() => setMostrarIntegracaoLinx(true)}
+            >
+              <RefreshCw aria-hidden="true" className="h-4 w-4" />
+              {shared ? 'Integração Linx' : 'Integrar no Linx'}
+            </Button>
+            <details className="relative">
+              <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-control border border-border px-3 py-2 text-sm font-semibold">
+                Opções <ChevronDown aria-hidden="true" className="h-4 w-4" />
+              </summary>
+              <div className="absolute right-0 top-full z-40 mt-2 w-64 space-y-2 rounded-card border border-border bg-surface p-3 shadow-lg">
+                <Button
+                  className="w-full"
+                  aria-expanded={mostrarConferencia}
+                  onClick={() => setMostrarConferencia((previous) => !previous)}
+                >
+                  Conferir ficha
+                </Button>
+                <Button className="w-full" onClick={() => setMostrarAnexos(true)}>
+                  Gerenciar anexos
+                </Button>
+                <Button className="w-full" onClick={() => window.print()}>
+                  Exportar
+                </Button>
+                {fichaConcluida && (
+                  <Button
+                    className="w-full"
+                    disabled={validandoProcesso}
+                    onClick={prepararIntegracao}
+                  >
+                    Integrar no Linx — preparar
+                  </Button>
+                )}
+                {fichaConcluida && processo?.integracaoPreparada?.revisao === processo.revisao && (
+                  <Button className="w-full" onClick={baixarContrato}>
+                    Baixar contrato preparado
+                  </Button>
+                )}
+              </div>
+            </details>
+            {etapaFinal && (
+              <Button
+                disabled={loadingFichaLinx || copiandoVariante || validandoProcesso}
+                onClick={concluirFicha}
+              >
+                {validandoProcesso ? 'Conferindo…' : 'Concluir ficha'}
+              </Button>
+            )}
+          </div>
+        </div>
+        <div
+          id="ficha-resumo-mobile"
+          className={`${mostrarResumoMobile ? 'flex' : 'hidden sm:flex'} flex-wrap items-center gap-x-4 gap-y-1 border-t border-border-muted px-4 py-1.5`}
+        >
+          <div
+            aria-label="Resumo da ficha"
+            role="group"
+            className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs"
+          >
+            <button
+              type="button"
+              aria-label="Entregar / alterar etapa"
+              aria-haspopup="dialog"
+              aria-expanded={movimentando}
+              disabled={!onUpdatePeca || loadingFichaLinx || copiandoVariante || validandoProcesso}
+              onClick={() => {
+                setEtapaDestino(undefined);
+                setMovimentando(true);
+              }}
+              className="flex min-h-8 items-center gap-2 rounded-control px-2 text-left transition-colors hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-accent-camel disabled:opacity-50"
+              title="Entregar ou alterar a etapa desta ficha"
+            >
+              <span className="text-muted">Etapa</span>
+              <strong>
+                {draft.etapaAtual && draft.etapaAtual !== '—' ? draft.etapaAtual : 'Definir'}
+              </strong>
+              <ChevronDown aria-hidden="true" className="h-4 w-4 text-muted" />
+            </button>
+            <div className="flex min-h-8 items-center gap-2">
+              <span className="text-muted">Custo</span>
+              <strong className="text-accent-camel">
+                {custosDoCabecalho.total === null
+                  ? 'Definir'
+                  : shared
+                    ? currency(custosDoCabecalho.total)
+                    : formatarCusto(custosDoCabecalho.total)}
+              </strong>
+            </div>
+            <div className="flex min-h-8 items-center gap-2">
+              <span className="text-muted">
+                {shared
+                  ? precificacaoDoCabecalho.value.precoAprovado.trim()
+                    ? 'Preço aprovado'
+                    : 'Preço sugerido'
+                  : 'Preço'}
+              </span>
+              <strong>
+                {precificacaoDoCabecalho.precoCabecalho === null
+                  ? 'Definir'
+                  : shared
+                    ? currency(precificacaoDoCabecalho.precoCabecalho)
+                    : formatarCusto(precificacaoDoCabecalho.precoCabecalho)}
+              </strong>
+            </div>
+            {(['estilista', 'modelista'] as const).map((role) => (
+              <div key={role} className="flex min-h-8 items-center gap-2">
+                <span className="capitalize text-muted">
+                  {role === 'estilista' ? 'Estilista' : 'Modelista'}
+                </span>
+                {peca[role] && (
+                  <span
+                    aria-hidden="true"
+                    className="flex h-6 w-6 items-center justify-center rounded-full bg-accent-camel/10 text-accent-camel"
+                  >
+                    {peca[role]
+                      ?.split(' ')
+                      .map((word) => word[0])
+                      .slice(0, 2)
+                      .join('')}
+                  </span>
+                )}
+                <strong>{peca[role] || 'Definir'}</strong>
+              </div>
+            ))}
+            {shared && (
+              <>
+                <div className="flex min-h-8 items-center gap-2">
+                  <span className="text-muted">Status PLM</span>
+                  <strong>{peca.status}</strong>
+                </div>
+                <div className="flex min-h-8 items-center gap-2">
+                  <span className="text-muted">Responsável</span>
+                  <strong>{peca.responsavel || 'Definir'}</strong>
+                </div>
+                <div className="flex min-h-8 items-center gap-2">
+                  <span className="text-muted">Prazo</span>
+                  <strong>{displayDate(peca.previsaoEntrega)}</strong>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
       <p id="ficha-linx-alteracoes-status" className="sr-only">
         {alteracoesLinx.carregando
           ? 'Conferindo alterações para o Linx…'
@@ -1332,39 +1314,27 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
         </p>
       )}
       {mostrarIntegracaoLinx && (
-        <Dialog
-          title="Integração Linx"
-          closeLabel="Fechar integração Linx"
-          className="max-w-xl"
+        <LinxIntegrationDialog
+          peca={draft}
+          referencia={linxReferencia}
+          colecao={colecao}
+          marcaId={marca.id}
           onClose={() => setMostrarIntegracaoLinx(false)}
-        >
-          <div className="space-y-4 text-sm">
-            <p className="font-semibold text-status-pending">Alterações pendentes de integração</p>
-            <p>
-              O botão acompanha as mudanças em toda a ficha, incluindo etapa, informações,
-              variantes, insumos, medidas, preços, imagens e arquivos.
-            </p>
-            <p>
-              O salvamento automático mantém estas alterações pendentes. A pendência será limpa
-              quando o Linx confirmar o envio.
-            </p>
-            <div className="rounded-control border border-border bg-surface-muted p-4 space-y-2">
-              <h3 className="font-semibold">Próxima etapa da integração</h3>
-              <p>
-                {peca.linxOrigem || peca.historicoIntegracoes?.length
-                  ? 'Atualizar a Principal na mesma versão vinculada, preservando os dados não alterados, e receber a confirmação do Linx.'
-                  : 'Verificar o código digitado: criar cadastro somente se for novo, ou reutilizar o cadastro existente e vincular a ficha à coleção correta, sem alterar a ficha de origem.'}
-              </p>
-              <p>
-                O envio e a criação no Linx ainda não estão disponíveis. Nesta etapa, este botão
-                apenas identifica as alterações.
-              </p>
-            </div>
-            <div className="flex justify-end">
-              <Button onClick={() => setMostrarIntegracaoLinx(false)}>Entendi</Button>
-            </div>
-          </div>
-        </Dialog>
+          onConfirmada={async (recibo, preview) => {
+            const updated =
+              recibo.escopo === 'NOVA_VERSAO_COLECAO'
+                ? aplicarReciboNovaVersao(latestDraftRef.current, colecao, preview, recibo)
+                : aplicarReciboCamposMapeados(latestDraftRef.current, preview, recibo);
+            setVariantes(updated.fichaTecnica?.variantes ?? []);
+            setLinxVersaoImportada(updated.fichaTecnica?.linxVersaoImportada);
+            setLinxColecaoOrigem(updated.fichaTecnica?.linxColecaoOrigem);
+            await persistirFicha(updated, true);
+            setLinxReferencia(structuredClone(updated));
+            setSaveStatus(
+              'Gravação parcial confirmada no Linx. Campos sem destino confirmado continuam somente no portal.'
+            );
+          }}
+        />
       )}
       {processo?.concluida && !fichaConcluida && (
         <p role="status" className="text-xs">
@@ -1507,6 +1477,13 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
           {linxColecaoOrigem ?? 'não informada'}). Alterações locais não criam outra versão.
         </p>
       )}
+      <FichaNavigation
+        peca={draft}
+        active={activeFichaTab}
+        onChange={setActiveFichaTab}
+        shared={shared}
+      />
+
       {/* 4. CONTEÚDO DAS ABAS */}
       <div id="ficha-conteudo" className="ficha-submenus-compact space-y-5">
         {/* CONTEÚDO DAS ABAS */}
@@ -1560,28 +1537,84 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
                         ? 'Código do cadastro integrado. Editar a ficha não troca essa identificação.'
                         : shared
                           ? 'Código da ficha compartilhada no PLM. A reserva no ERP depende da integração.'
-                          : 'Código próprio desta peça. Salvo no navegador; a reserva no banco depende da futura integração.'}
+                          : 'Código digitado pelo usuário. Reutilizá-lo de outra coleção cria uma versão própria, sem alterar a referência.'}
                     </p>
+                    {!codigoIntegrado && (
+                      <LinxReferencePicker
+                        codigo={codigoProduto}
+                        griffe={resolveLinxGriffe(marca) ?? colecao.griffe}
+                        bloqueado={variantes.some(
+                          (item) => item.tecidos.length > 0 || item.aviamentos.length > 0
+                        )}
+                        onApply={async (source, ficha, importedGrade) => {
+                          const current = latestDraftRef.current;
+                          if (
+                            current.codigo.trim() !== source.produto ||
+                            current.linxOrigem ||
+                            current.fichaTecnica?.variantes?.some(
+                              (item) => item.tecidos.length || item.aviamentos.length
+                            )
+                          )
+                            throw new Error(
+                              'A ficha mudou durante a consulta. Nenhuma informação foi substituída.'
+                            );
+                          const insumos = getLinxFichaInsumos(ficha);
+                          const novosTamanhos = importedGrade.posicoes.flatMap((item) =>
+                            item.tamanho ? [item.tamanho] : []
+                          );
+                          const updated: PecaItem = {
+                            ...current,
+                            linxReferenciaCopia: source,
+                            fichaTecnica: {
+                              ...current.fichaTecnica,
+                              gradeLinx: importedGrade,
+                              tamanhos: novosTamanhos,
+                              integracao: {
+                                ...current.fichaTecnica?.integracao,
+                                grade: importedGrade.grade,
+                              },
+                              variantes: (
+                                current.fichaTecnica?.variantes ?? [VARIANTE_INICIAL]
+                              ).map((item, index) =>
+                                index === 0 ? { ...item, ...insumos } : item
+                              ),
+                            },
+                          };
+                          await persistirFicha(updated);
+                          setReferenciaCopia(source);
+                          setGrade(importedGrade.grade);
+                          setGradeLinx(importedGrade);
+                          setTamanhos(novosTamanhos);
+                          setVariantes(updated.fichaTecnica!.variantes!);
+                          insumosEditados.current = true;
+                          tamanhosEditados.current = true;
+                          setLinxReferencia(structuredClone(updated));
+                          setSaveStatus(
+                            'Referência copiada somente para esta peça. A ficha de origem não foi alterada.'
+                          );
+                        }}
+                      />
+                    )}
                   </div>
 
                   <div>
                     <label
-                      htmlFor="ficha-codigo-referencia"
+                      htmlFor="ficha-categoria"
                       className="block font-semibold mb-1 text-muted-foreground"
                     >
-                      Código de Referência
+                      Categoria
                     </label>
                     <input
-                      id="ficha-codigo-referencia"
+                      id="ficha-categoria"
                       type="text"
-                      value={codigoRef}
-                      onChange={(e) => setCodigoRef(e.target.value)}
-                      placeholder="Digite o código de referência..."
+                      value={categoria}
+                      onChange={(event) => setCategoria(event.target.value)}
+                      placeholder="Ex.: BERMUDA MOLETOM SLIM"
+                      aria-describedby="ficha-categoria-ajuda"
                       className="w-full px-3.5 py-2.5 rounded-lg bg-surface-muted border border-border text-primary font-medium focus:bg-surface focus:border-accent-camel focus:outline-none"
                     />
-                    <p className="mt-1 text-xs text-muted">
-                      Referência para reutilização. Não troca o código desta peça nem altera o
-                      produto referenciado.
+                    <p id="ficha-categoria-ajuda" className="mt-1 text-xs text-muted">
+                      Classificação da peça, separada do nome do produto e do subgrupo.
                     </p>
                   </div>
 
@@ -2002,7 +2035,6 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
           )}
 
           {/* OUTRAS ABAS */}
-          {activeFichaTab === 'anexos' && <FichaAnexosContent {...anexosController} />}
           {activeFichaTab === 'prova_roupa' && (
             <FichaProvaRoupaEditor value={provaRoupa} onChange={setProvaRoupa} />
           )}

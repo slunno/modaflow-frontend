@@ -7,7 +7,7 @@ import {
 } from '../../../services/insumoInformacoesCores';
 import { getLinxMaterialCadastro } from '../../../services/linxService';
 import type { LinxMaterialCadastro } from '../../../types/linx';
-import { ImageIcon, Pencil, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Pencil, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import type { FichaInsumo } from '../../../types/ficha';
 import { MaterialColorTile } from './MaterialColorTile';
 import { ProductUsoField } from './ProductUsoField';
@@ -116,41 +116,14 @@ export function FichaInsumoCard({
     <article
       data-insumo-id={item.id}
       data-consumo-base={base.campo}
-      className="ficha-insumo-card rounded-card border border-border bg-surface-muted/30 p-card space-y-3 transition-colors hover:border-accent-camel/40"
+      className="rounded-lg border border-border bg-surface-muted/30 p-3 space-y-3"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-control border border-border bg-surface">
-            {item.imagensList?.[0] || item.imagemUrl ? (
-              <img
-                src={item.imagensList?.[0] || item.imagemUrl}
-                alt=""
-                className="h-full w-full object-contain"
-              />
-            ) : (
-              <ImageIcon aria-hidden="true" className="h-4 w-4 text-muted" />
-            )}
-          </div>
-          <div className="min-w-0">
-            <h4 className="font-semibold text-lg text-primary break-words">{item.nome}</h4>
-            <p className="text-xs text-muted">{item.codigo || 'Sem código'}</p>
-            <p className="text-xs text-muted break-words">
-              {item.fornecedoresList
-                ?.filter((supplier) => supplier.fornecedor)
-                .map((supplier) => supplier.fornecedor)
-                .join(', ') ||
-                item.fornecedores ||
-                'Fornecedor a definir'}{' '}
-              · {base.campo === 'peso' ? 'Peso' : 'Consumo'}:{' '}
-              {base.campo === 'peso'
-                ? item.peso || 'Definir'
-                : tipo === 'aviamento'
-                  ? item.quantidade || 'Definir'
-                  : item.consumo || 'Definir'}
-            </p>
-          </div>
+        <div>
+          <h4 className="font-bold text-sm text-primary break-words">{item.nome}</h4>
+          <p className="text-xs text-muted">{item.codigo || 'Sem código'}</p>
         </div>
-        <div className="ficha-insumo-actions flex gap-2 shrink-0">
+        <div className="flex gap-2 shrink-0">
           {item.linxDados && (
             <button
               type="button"
@@ -171,7 +144,7 @@ export function FichaInsumoCard({
             type="button"
             aria-label={`Remover ${item.nome}`}
             onClick={onRemove}
-            className="min-w-hit rounded-control p-1 text-status-error hover:bg-surface-muted"
+            className="p-1 text-red-600 dark:text-red-400"
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -179,11 +152,6 @@ export function FichaInsumoCard({
       </div>
       {!!item.coresList?.length && (
         <>
-          <div className="flex flex-wrap gap-1.5" aria-label="Cores do insumo">
-            {item.coresList.map((color) => (
-              <MaterialColorTile key={color.id} color={color} />
-            ))}
-          </div>
           <button
             type="button"
             aria-expanded={infoCoresAberta}
@@ -427,6 +395,13 @@ export function FichaInsumoCard({
             </dd>
           </div>
         </dl>
+        {!!item.coresList?.length && (
+          <div className="flex flex-wrap gap-1.5" aria-label="Cores do insumo">
+            {item.coresList.map((color) => (
+              <MaterialColorTile key={color.id} color={color} />
+            ))}
+          </div>
+        )}
         {(item.imagensList?.length ? item.imagensList : item.imagemUrl ? [item.imagemUrl] : []).map(
           (image, index) => (
             <img

@@ -115,4 +115,97 @@ describe('Nova base somente para próximas coleções do portal', () => {
     expect(Number.isFinite(Date.parse(nova!.criadaEm!))).toBe(true);
     expect(stored.find((item) => item.id === anterior.id)).toEqual(anterior);
   });
+
+  it('cria com a data selecionada no calendário e sem referência de imagem', async () => {
+    render(<BrandCollectionsView marca={marca} onBack={() => {}} />);
+    await screen.findByRole('button', { name: 'Completas (1)' });
+    fireEvent.click(screen.getByRole('button', { name: 'Coleção +' }));
+    const dialog = within(screen.getByRole('dialog'));
+    expect(dialog.queryByText(/URL da Imagem/i)).toBeNull();
+    fireEvent.change(dialog.getByRole('textbox', { name: /Nome da coleção/i }), {
+      target: { value: 'Inverno de teste' },
+    });
+    fireEvent.change(dialog.getByRole('combobox', { name: 'Temporada' }), {
+      target: { value: 'Inverno' },
+    });
+    fireEvent.change(dialog.getByRole('textbox', { name: 'Ano' }), { target: { value: '2028' } });
+    fireEvent.change(dialog.getByRole('textbox', { name: /Descrição/ }), {
+      target: { value: 'Descrição de teste' },
+    });
+    fireEvent.click(dialog.getByRole('button', { name: /^Data de entrega/ }));
+    fireEvent.change(dialog.getByRole('combobox', { name: 'Ano da entrega' }), {
+      target: { value: '2028' },
+    });
+    fireEvent.change(dialog.getByRole('combobox', { name: 'Mês da entrega' }), {
+      target: { value: '1' },
+    });
+    fireEvent.click(dialog.getByRole('button', { name: 'terça-feira, 29 de fevereiro de 2028' }));
+    fireEvent.click(dialog.getByRole('button', { name: 'Criar Coleção' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    const stored: ColecaoItem[] = JSON.parse(localStorage.getItem('modaflow_user_colecoes')!);
+    expect(stored[0]).toMatchObject({
+      nome: 'Inverno de teste',
+      ano: '2028',
+      temporada: 'Inverno',
+      descricao: 'Descrição de teste',
+      dataEntrega: '29/02/2028',
+      status: 'Em andamento',
+    });
+    expect(stored[0]).not.toHaveProperty('imagemReferencia');
+    expect(stored[0]?.diasParaEntrega).toEqual(expect.any(Number));
+  });
+
+  it('fecha somente o calendário no primeiro Escape e restaura o foco ao fechar o modal', async () => {
+    render(<BrandCollectionsView marca={marca} onBack={() => {}} />);
+    await screen.findByRole('button', { name: 'Completas (1)' });
+    const open = screen.getByRole('button', { name: 'Coleção +' });
+    open.focus();
+    fireEvent.click(open);
+    const dialog = within(screen.getByRole('dialog'));
+    expect(document.activeElement).toBe(dialog.getByRole('textbox', { name: /Nome da coleção/i }));
+    fireEvent.click(dialog.getByRole('button', { name: /^Data de entrega/ }));
+    fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+    expect(screen.getByRole('dialog')).toBeDefined();
+    expect(screen.queryByRole('grid')).toBeNull();
+    fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(document.activeElement).toBe(open);
+    expect(localStorage.getItem('modaflow_user_colecoes')).toBeNull();
+  });
+
+  it('mantém o foco no modal e não altera coleções existentes ao cancelar', async () => {
+    const anterior: ColecaoItem = {
+      id: 'com-imagem',
+      marcaId: marca.id,
+      nome: 'Coleção anterior',
+      marcaNome: marca.nome,
+      status: 'Em andamento',
+      dataEntrega: '20/12/2026',
+      diasAtraso: 0,
+      imagemReferencia: 'https://example.com/imagem-existente.jpg',
+    };
+    localStorage.setItem('modaflow_user_colecoes', JSON.stringify([anterior]));
+    render(<BrandCollectionsView marca={marca} onBack={() => {}} />);
+    await screen.findByRole('button', { name: 'Completas (1)' });
+    fireEvent.click(screen.getByRole('button', { name: 'Coleção +' }));
+    const dialog = within(screen.getByRole('dialog'));
+    const close = dialog.getByRole('button', { name: 'Fechar modal' });
+    const submit = dialog.getByRole('button', { name: 'Criar Coleção' });
+    close.focus();
+    fireEvent.keyDown(close, { key: 'Tab', shiftKey: true });
+    expect(document.activeElement).toBe(submit);
+    fireEvent.keyDown(submit, { key: 'Tab' });
+    expect(document.activeElement).toBe(close);
+    fireEvent.change(dialog.getByRole('textbox', { name: /Nome da coleção/i }), {
+      target: { value: 'Rascunho não criado' },
+    });
+    fireEvent.click(dialog.getByRole('button', { name: 'Cancelar' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(JSON.parse(localStorage.getItem('modaflow_user_colecoes')!)).toEqual([anterior]);
+    expect(document.body.style.overflow).not.toBe('hidden');
+    fireEvent.click(screen.getByRole('button', { name: 'Coleção +' }));
+    expect(
+      (screen.getByRole('textbox', { name: /Nome da coleção/i }) as HTMLInputElement).value
+    ).toBe('Rascunho não criado');
+  });
 });

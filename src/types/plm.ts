@@ -20,6 +20,7 @@ import type { LinxFichaResumo, LinxGriffe } from './linx';
 import type { FichaHistoricoVersao, FichaAlteracaoEvento } from './fichaHistorico';
 import type { FichaConferencia, FichaProcesso } from './fichaProcesso';
 import type { LinxGradeDetalhe } from './fichaLinxMapeamento';
+import type { LinxWriteIdentity, LinxWriteReceipt } from './linxGravacao';
 
 export interface CollectionPrintItem {
   id: string;
@@ -52,9 +53,13 @@ export interface PecaItem {
   aviamentos?: string[];
   /** Identidade oficial preservada mesmo se o código do rascunho for editado. */
   linxOrigem?: { codigoProduto: string; colecaoCodigo: string; griffe: LinxGriffe };
+  /** Fonte de cópia, não propriedade da versão. Nunca autoriza atualizar a origem. */
+  linxReferenciaCopia?: LinxWriteIdentity;
   linxFichaResumo?: LinxFichaResumo;
   linxCadastro?: { linha: string | null; grade: string | null; subgrupo: string | null };
   historicoIntegracoes?: FichaHistoricoVersao[];
+  /** Confirmação parcial do gravador; não representa versão ou envio integral da ficha. */
+  linxUltimaGravacao?: LinxWriteReceipt;
   historicoAlteracoes?: FichaAlteracaoEvento[];
   imagemCroquiUrl?: string;
   custo?: number;

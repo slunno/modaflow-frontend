@@ -407,11 +407,21 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
       (peca) => peca.colecaoId === colecao.id && (!peca.marcaId || peca.marcaId === marca.id)
     );
     const idsLocais = new Set(pecasLocais.map((peca) => peca.id));
-    const pecasLinxSemEdicaoLocal = linxPecas.filter((peca) => !idsLocais.has(peca.id));
+    // Compatibilidade com rascunhos antigos, cujo ID ERP não incluía a coleção.
+    // Só um vínculo PRÓPRIO pode suprimir a linha ERP, nunca um código usado como referência.
+    const mesmaOrigem = (a: PecaItem, b: PecaItem) =>
+      !!a.linxOrigem &&
+      !!b.linxOrigem &&
+      a.linxOrigem.codigoProduto === b.linxOrigem.codigoProduto &&
+      a.linxOrigem.griffe === b.linxOrigem.griffe &&
+      a.linxOrigem.colecaoCodigo === b.linxOrigem.colecaoCodigo;
+    const pecasLinxSemEdicaoLocal = linxPecas.filter(
+      (peca) => !idsLocais.has(peca.id) && !pecasLocais.some((local) => mesmaOrigem(local, peca))
+    );
     const resumos = new Map(linxResumos.map((item) => [item.produto, item]));
     const originais = new Map(linxPecas.map((item) => [item.id, item]));
     return [...pecasLocais, ...pecasLinxSemEdicaoLocal].map((peca) => {
-      const original = originais.get(peca.id);
+      const original = originais.get(peca.id) ?? linxPecas.find((item) => mesmaOrigem(peca, item));
       const origem = peca.linxOrigem ?? original?.linxOrigem;
       const resumo = resumos.get(origem?.codigoProduto ?? peca.codigo);
       const updated = { ...peca, linxOrigem: origem, linxFichaResumo: resumo };

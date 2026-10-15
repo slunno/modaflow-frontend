@@ -90,7 +90,7 @@ export function WorkflowPage() {
         title="Kanban de produção"
         description="Movimente modelos e acompanhe as etapas com a mesma configuração da ficha técnica."
       >
-        <Link className="akr-button" to="/gestao/fluxos">
+        <Link className="akr-button" to="/workspace/gestao/fluxos">
           Configurar fluxos
         </Link>
         <button className="akr-button" onClick={source.reload} disabled={source.loading}>

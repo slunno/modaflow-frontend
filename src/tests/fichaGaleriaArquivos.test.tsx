@@ -82,6 +82,12 @@ async function open() {
 describe('Galeria da variante com desenho e projeto', () => {
   it('retira a coluna lateral e mantém as cinco categorias em Gerenciar anexos', async () => {
     await open();
+    const navigation = within(screen.getByRole('navigation', { name: 'Abas da ficha técnica' }));
+    expect(navigation.queryByRole('button', { name: 'Imagens e arquivos' })).toBeNull();
+    fireEvent.keyDown(navigation.getByRole('button', { name: 'Variantes' }), { key: 'ArrowRight' });
+    expect(navigation.getByRole('button', { name: 'Modelagem' }).getAttribute('aria-pressed')).toBe(
+      'true'
+    );
     fireEvent.click(screen.getByRole('button', { name: 'Geral' }));
     expect(screen.queryByLabelText('Anexos da ficha técnica')).toBeNull();
     expect(screen.queryByText('Galeria da peça')).toBeNull();

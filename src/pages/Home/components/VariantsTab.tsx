@@ -49,17 +49,17 @@ export function VariantGallery({
         )}
       </div>
       <div
-        className={`flex items-center justify-center overflow-hidden rounded-control bg-surface-muted ${!image ? (compact ? 'min-h-20' : 'min-h-gallery-empty') : 'min-h-gallery'}`}
+        className={`flex items-center justify-center overflow-hidden rounded-control bg-surface-muted ${compact && !image ? 'min-h-28' : 'min-h-80 sm:min-h-[32rem] xl:min-h-[38rem]'}`}
       >
         {image ? (
           <img
             src={image}
             alt={`Variante ${name}`}
-            className="max-h-gallery w-full object-contain"
+            className="max-h-[40rem] w-full object-contain"
           />
         ) : (
           <div className="flex flex-col items-center gap-3 p-6 text-muted">
-            <ImageIcon aria-hidden="true" className="h-4 w-4" />
+            <ImageIcon aria-hidden="true" className="h-12 w-12" />
             <p>{compact ? 'Nenhuma imagem da peça' : 'Esta variante ainda não tem imagem'}</p>
             <p className="text-xs">
               {compact
@@ -166,7 +166,7 @@ export function VariantThumbnailStrip({
               }}
               className={`w-32 shrink-0 rounded-control border p-2 text-left transition-colors ${selected === item.id ? 'border-accent-camel bg-accent-camel/10 ring-1 ring-accent-camel' : 'border-border hover:bg-surface-muted'}`}
             >
-              <div className="mb-2 flex h-16 items-center justify-center overflow-hidden rounded-control bg-surface-muted">
+              <div className="mb-2 flex h-24 items-center justify-center overflow-hidden rounded bg-surface-muted">
                 {getPhoto(item, index) ? (
                   <img src={getPhoto(item, index)} alt="" className="h-full w-full object-cover" />
                 ) : (

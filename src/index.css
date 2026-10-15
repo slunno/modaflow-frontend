@@ -6,19 +6,6 @@
   /* ── Tipografia ── */
   --font-serif: 'Fraunces', Georgia, serif;
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --text-xs: 0.75rem;
-  --text-xs--line-height: 1.45;
-  --text-sm: 0.8125rem;
-  --text-sm--line-height: 1.45;
-  --text-base: 0.8125rem;
-  --text-base--line-height: 1.45;
-  --text-lg: 0.9375rem;
-  --text-xl: 1.25rem;
-  --text-2xl: 1.375rem;
-  --text-3xl: 1.5rem;
-  --text-4xl: 1.5rem;
-  --text-5xl: 1.5rem;
-  --text-6xl: 1.5rem;
 
   /* ── Paleta de marca ── */
   --color-primary: #181818;
@@ -36,8 +23,8 @@
   --color-muted-foreground: #6b6762;
 
   /* Ações têm contraste próprio, independente da cor do texto principal. */
-  --color-action: #936238;
-  --color-action-hover: #7c502c;
+  --color-action: #181818;
+  --color-action-hover: #262626;
   --color-action-foreground: #ffffff;
   --color-on-camel: #ffffff;
   --color-selection: #936238;
@@ -49,24 +36,10 @@
   --color-status-late: #9b4838;
   --color-status-error: #ac333d;
   --color-status-neutral: #66625d;
-  --radius-card: 0.75rem;
-  --radius-control: 0.5rem;
-  --shadow-card: 0 2px 12px -8px rgb(58 38 22 / 18%);
-  --spacing-card: 1rem;
-  --spacing-section: 1.25rem;
-  --spacing-control: 2.25rem;
-  --spacing-control-compact: 2.125rem;
-  --spacing-hit: 2rem;
-  --spacing-app-header: 3.5rem;
-  --spacing-dialog-height: 85dvh;
-  --spacing-insumo-panel: 25rem;
-  --spacing-gallery: 24rem;
-  --spacing-gallery-empty: 12rem;
-  --container-app: 80rem;
-  --container-insumo: 50rem;
-  --container-insumo-pair: 75rem;
-  --transition-ui: 180ms;
-  --transition-panel: 250ms;
+  --radius-card: 1rem;
+  --radius-control: 0.625rem;
+  --shadow-card: 0 4px 24px -16px rgb(58 38 22 / 18%);
+  --spacing-section: 1.5rem;
 }
 
 :root {
@@ -90,9 +63,9 @@
   --color-accent-camel: #c99b70;
   --color-accent-bordo: #d88d8d;
   --color-accent-militar: #adb77b;
-  --color-action: #c99b70;
-  --color-action-hover: #dbb28b;
-  --color-action-foreground: #231a12;
+  --color-action: #e6d7c3;
+  --color-action-hover: #f0e5d6;
+  --color-action-foreground: #211b15;
   --color-on-camel: #231a12;
   --color-selection: #c99b70;
   --color-selection-foreground: #231a12;
@@ -110,8 +83,6 @@
     background-color: var(--color-bg);
     color: var(--color-primary);
     font-family: var(--font-sans);
-    font-size: var(--text-base);
-    line-height: 1.45;
     @apply antialiased min-h-screen;
   }
 
@@ -129,49 +100,11 @@
     outline: 2px solid var(--color-accent-camel);
     outline-offset: 3px;
   }
-  :where(input:not([type='checkbox']):not([type='radio']):not([type='file']), select) {
-    min-height: var(--spacing-control);
-    font-size: var(--text-base);
-  }
-  :where(button, summary) {
-    min-height: var(--spacing-hit);
-    transition-duration: var(--transition-ui);
-  }
-  :where(label) {
-    font-size: var(--text-xs);
-    font-weight: 500;
-  }
 }
 
 /* Fonte editorial serifada — titulos de marca, hero banners, nomes de coleção, cabeçalhos */
 .font-editorial {
-  font-family: var(--font-serif);
-}
-.ficha-completion-partial::before {
-  content: '';
-  position: absolute;
-  inset: 2px;
-  border-radius: 50%;
-  background: linear-gradient(to right, currentColor 50%, transparent 50%);
-}
-
-/* Alturas compactas também para controles antigos com utilitários de 40px. */
-:where(
-  button,
-  summary,
-  input:not([type='checkbox']):not([type='radio']):not([type='file']),
-  select
-).min-h-10 {
-  min-height: var(--spacing-control);
-}
-:where(button, summary).py-2 {
-  padding-block: 0.375rem;
-}
-.ficha-tecnica .lucide,
-.insumo-dialog .lucide {
-  stroke-width: 1.5;
-  max-width: 1rem;
-  max-height: 1rem;
+  font-family: 'Fraunces', Georgia, serif;
 }
 
 /* Textura sutil de tecido para placeholders de Gestão e Relatórios */
@@ -199,7 +132,6 @@
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }

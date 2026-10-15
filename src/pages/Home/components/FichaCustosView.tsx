@@ -10,7 +10,6 @@ import { LinxFichaCustosPanel } from './LinxFichaCustosPanel';
 import { calcularCustosFicha } from '../../../services/fichaCustos';
 import { decimalManual, formatarCusto } from '../../../services/fichaProcesso';
 import { chaveCustoLinx } from '../../../services/linxCustos';
-import { MetricCard } from '../../../components/ui/FichaPrimitives';
 
 interface Props {
   processos?: FichaTerceiro[];
@@ -105,28 +104,6 @@ export function FichaCustosView({
   };
   return (
     <div className="space-y-3 text-[11px]">
-      <section aria-label="Totais de custos" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MetricCard
-          label="Custo por peça"
-          value={formatarCusto(resumo.total)}
-          pending={resumo.total === null}
-        />
-        <MetricCard
-          label="Tecidos"
-          value={formatarCusto(resumo.subtotalTecidos)}
-          pending={resumo.subtotalTecidos === null}
-        />
-        <MetricCard
-          label="Aviamentos / embalagens"
-          value={formatarCusto(resumo.subtotalAviamentos)}
-          pending={resumo.subtotalAviamentos === null}
-        />
-        <MetricCard
-          label="Outros custos"
-          value={formatarCusto(resumo.totalOutros)}
-          pending={resumo.totalOutros === null}
-        />
-      </section>
       <section className="rounded-lg border border-border bg-surface p-4 space-y-3">
         <div className="flex items-center justify-between border-b border-border pb-2">
           <h3 className="text-xs font-semibold">Custo de produção</h3>

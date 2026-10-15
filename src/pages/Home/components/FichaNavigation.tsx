@@ -1,19 +1,4 @@
 import { useRef } from 'react';
-import {
-  Shirt,
-  Layers,
-  Ruler,
-  Scissors,
-  SwatchBook,
-  Paperclip,
-  Handshake,
-  Coins,
-  Calculator,
-  PersonStanding,
-  History,
-  ChartNoAxesCombined,
-  type LucideIcon,
-} from 'lucide-react';
 import type { PecaItem } from '../../../types/plm';
 import {
   conferirFicha,
@@ -28,7 +13,6 @@ const groups = [
     tabs: [
       ['geral', 'Geral'],
       ['variantes', 'Variantes'],
-      ['anexos', 'Imagens e arquivos'],
     ],
   },
   {
@@ -58,21 +42,6 @@ const groups = [
   },
 ] as const;
 export type FichaTabId = (typeof groups)[number]['tabs'][number][0];
-const icons: Record<FichaTabId, LucideIcon> = {
-  geral: Shirt,
-  variantes: Layers,
-  anexos: Paperclip,
-  modelagem: Ruler,
-  corte: Scissors,
-  tecidos: SwatchBook,
-  aviamentos: Paperclip,
-  terceiros: Handshake,
-  custos: Coins,
-  precificacao: Calculator,
-  prova_roupa: PersonStanding,
-  historico: History,
-  graficos: ChartNoAxesCombined,
-};
 
 export function FichaNavigation({
   peca,
@@ -125,13 +94,19 @@ export function FichaNavigation({
       aria-label="Abas da ficha técnica"
       className="ficha-navigation rounded-card border border-border bg-surface shadow-card"
     >
-      <div className="flex flex-nowrap gap-2 overflow-x-auto p-2">
+      <div className="flex flex-nowrap gap-x-3 gap-y-2 overflow-x-auto p-3 sm:flex-wrap sm:overflow-visible">
         {groups.map((group) => (
-          <div key={group.name} role="group" aria-label={group.name} className="shrink-0">
-            <p className="mb-1 px-2 text-xs font-medium text-muted">{group.name}</p>
-            <div className="flex flex-nowrap gap-0.5 rounded-control bg-surface-muted/70 p-0.5">
+          <div
+            key={group.name}
+            role="group"
+            aria-label={group.name}
+            className="min-w-0 shrink-0 sm:shrink"
+          >
+            <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
+              {group.name}
+            </p>
+            <div className="flex flex-nowrap gap-1 sm:flex-wrap">
               {group.tabs.map(([id, label]) => {
-                const Icon = icons[id];
                 const title = shared && id === 'graficos' ? 'Cronograma' : label;
                 return (
                   <button
@@ -163,9 +138,8 @@ export function FichaNavigation({
                         refs.current.get(target)?.focus();
                       }
                     }}
-                    className={`inline-flex min-h-control-compact items-center gap-1 whitespace-nowrap rounded-control px-1 py-1.5 text-xs font-semibold transition-colors ${active === id ? 'bg-accent-camel/10 text-accent-camel' : 'text-muted-foreground hover:bg-surface'}`}
+                    className={`inline-flex min-h-8 items-center gap-1.5 rounded-control px-2 py-1.5 text-xs font-semibold transition-colors ${active === id ? 'bg-accent-camel/10 text-accent-camel ring-1 ring-accent-camel/30' : 'text-muted-foreground hover:bg-surface-muted'}`}
                   >
-                    <Icon aria-hidden="true" strokeWidth={1.5} className="h-3.5 w-3.5" />
                     {title}
                     <StatusBadge compact status={status(id)} />
                   </button>

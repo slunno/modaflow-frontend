@@ -1,6 +1,7 @@
 import type { PecaItem, ColecaoItem } from '../types/plm';
 import type { LinxGradeDetalhe } from '../types/fichaLinxMapeamento';
 import { coresMostruarioLinx, variantePrincipalLinx } from './fichaPrincipalLinx';
+import { vinculosCamposParaPlanejamento } from './fichaCamposLinx';
 
 /** Não lê rede, não grava e não deduz uma posição pela ordem dos tamanhos do portal. */
 export function conferirGradeLinx(grade: string, tamanhos: string[], detalhe?: LinxGradeDetalhe) {
@@ -113,6 +114,7 @@ export function projetarMapeamentoLinx(peca: PecaItem, colecao: ColecaoItem) {
     somentePlanejamento: true,
     escopo: 'SOMENTE_PRINCIPAL' as const,
     exigeReleituraNoServidor: true,
+    vinculosCampos: vinculosCamposParaPlanejamento(),
     coresMostruario,
     grade,
     variantes,

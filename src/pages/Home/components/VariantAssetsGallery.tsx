@@ -133,7 +133,7 @@ export function VariantAssetsGallery({
                 }}
                 className={`relative w-full rounded-control border p-2 text-center transition-colors ${selected === slot.id ? 'border-accent-camel bg-accent-camel/10 ring-1 ring-accent-camel' : 'border-border hover:bg-surface-muted'}`}
               >
-                <span className="mb-2 flex h-16 items-center justify-center overflow-hidden rounded-control bg-surface-muted">
+                <span className="mb-2 flex h-16 items-center justify-center overflow-hidden rounded bg-surface-muted sm:h-24">
                   {preview ? (
                     <img src={preview} alt="" className="h-full w-full object-contain" />
                   ) : (
@@ -166,27 +166,25 @@ export function VariantAssetsGallery({
               disabled={imageDisabled}
             />
           ) : (
-            <div
-              className={`flex items-center justify-center overflow-hidden rounded-control bg-surface-muted ${image || (isPdf && url) ? 'min-h-gallery' : 'min-h-gallery-empty'}`}
-            >
+            <div className="flex min-h-80 items-center justify-center overflow-hidden rounded-control bg-surface-muted sm:min-h-[32rem] xl:min-h-[38rem]">
               {image ? (
                 <img
                   src={image}
                   alt={`Desenho técnico — ${file?.nome}`}
-                  className="max-h-gallery w-full object-contain"
+                  className="max-h-[40rem] w-full object-contain"
                 />
               ) : isPdf && url ? (
                 <iframe
                   src={url}
                   title={`Prévia do projeto — ${file.nome}`}
-                  className="h-gallery w-full border-0"
+                  className="h-80 w-full border-0 sm:h-[32rem] xl:h-[38rem]"
                 />
               ) : (
                 <div className="flex min-w-0 flex-col items-center gap-3 p-5 text-center text-muted">
                   {selected === 'project' ? (
-                    <FileText aria-hidden="true" className="h-4 w-4" />
+                    <FileText aria-hidden="true" className="h-10 w-10" />
                   ) : (
-                    <ImageIcon aria-hidden="true" className="h-4 w-4" />
+                    <ImageIcon aria-hidden="true" className="h-10 w-10" />
                   )}
                   <p className="max-w-full break-words text-sm font-semibold">
                     {file?.nome ??
@@ -219,7 +217,7 @@ export function VariantAssetsGallery({
                   event.preventDefault();
                   upload(Array.from(event.dataTransfer.files));
                 }}
-                className={`relative inline-flex min-h-control items-center gap-2 rounded-control border border-action bg-action px-3 py-1.5 text-xs font-semibold text-action-foreground focus-within:ring-2 focus-within:ring-accent-camel ${disabled ? 'cursor-wait opacity-50' : 'cursor-pointer hover:bg-action-hover'}`}
+                className={`relative inline-flex min-h-10 items-center gap-2 rounded-control border border-border bg-surface px-3 py-2 text-sm font-semibold focus-within:ring-2 focus-within:ring-accent-camel ${disabled ? 'cursor-wait opacity-50' : 'cursor-pointer hover:bg-surface-muted'}`}
               >
                 <Plus aria-hidden="true" className="h-4 w-4" /> {uploadLabel}
                 <input

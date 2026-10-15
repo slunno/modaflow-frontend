@@ -17,7 +17,6 @@ import {
   Navigate,
   useOutletContext,
   useParams,
-  useLocation,
 } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -29,6 +28,15 @@ import { ErrorBoundary } from './components/common/ErrorBoundary';
 const LoginPage = lazy(() => import('./pages/Login/LoginPage'));
 const HomePage = lazy(() => import('./pages/Home/HomePage'));
 const ProductsPage = lazy(() => import('./pages/Products/ProductsPage'));
+const DashboardPage = lazy(() => import('./pages/Dashboard/DashboardPage'));
+const BIPage = lazy(() => import('./pages/BI/BIPage'));
+const NotificationsPage = lazy(() => import('./pages/Notifications/NotificationsPage'));
+const GestaoPage = lazy(() => import('./pages/Gestao/GestaoPage'));
+const RelatoriosPage = lazy(() => import('./pages/Relatorios/RelatoriosPage'));
+const KanbanPage = lazy(() => import('./pages/Kanban/KanbanPage'));
+
+// A área compartilhada permanece disponível por suas rotas, sem substituir as telas anteriores.
+const WorkspaceShell = lazy(() => import('./pages/Workspace/WorkspaceShell'));
 const AnalyticsPage = lazy(() =>
   import('./pages/Workspace/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage }))
 );
@@ -48,7 +56,6 @@ const WorkflowPage = lazy(() =>
   import('./pages/Workspace/WorkflowPage').then((m) => ({ default: m.WorkflowPage }))
 );
 import type { RegistryKind } from './types/workspace';
-const GestaoPage = lazy(() => import('./pages/Gestao/GestaoPage'));
 
 const RouteLoadingFallback: React.FC = () => (
   <div
@@ -61,12 +68,8 @@ const RouteLoadingFallback: React.FC = () => (
   </div>
 );
 
-const GestaoRouteWrapper: React.FC = () => {
+const WorkspaceRegistryRoute: React.FC = () => {
   const { tab } = useParams();
-  const { handleOpenColecoesFromGestao } = useOutletContext<{
-    handleOpenColecoesFromGestao: (marca: MarcaSummary) => void;
-  }>();
-
   const kinds: Record<string, RegistryKind> = {
     custos_fixos: 'fixed-costs',
     precificacao: 'pricing',
@@ -80,14 +83,17 @@ const GestaoRouteWrapper: React.FC = () => {
   return tab && kinds[tab] ? (
     <RegistryPage key={kinds[tab]} kind={kinds[tab]} />
   ) : (
-    <GestaoPage onOpenColecoes={handleOpenColecoesFromGestao} />
+    <Navigate to="/gestao" replace />
   );
 };
 
-function StartRoute() {
-  const { search } = useLocation();
-  return <Navigate to={'/dashboard' + search} replace />;
-}
+const GestaoRouteWrapper: React.FC = () => {
+  const { handleOpenColecoesFromGestao } = useOutletContext<{
+    handleOpenColecoesFromGestao: (marca: MarcaSummary) => void;
+  }>();
+
+  return <GestaoPage onOpenColecoes={handleOpenColecoesFromGestao} />;
+};
 
 export default function App() {
   return (
@@ -106,19 +112,29 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 >
-                  <Route index element={<StartRoute />} />
-                  <Route path="catalogo-legado" element={<HomePage />} />
-                  <Route path="colecoes" element={<CollectionsPage />} />
-                  <Route path="pecas" element={<ModelsPage />} />
-                  <Route path="pecas/:id" element={<ProductRecordPage />} />
+                  <Route index element={<HomePage />} />
                   <Route path="products" element={<ProductsPage />} />
-                  <Route path="dashboard" element={<AnalyticsPage dashboard />} />
-                  <Route path="bi" element={<AnalyticsPage />} />
-                  <Route path="notifications" element={<AnalyticsPage notifications />} />
+                  <Route path="dashboard" element={<DashboardPage />} />
+                  <Route path="bi" element={<BIPage />} />
+                  <Route path="notifications" element={<NotificationsPage />} />
                   <Route path="gestao" element={<GestaoRouteWrapper />} />
                   <Route path="gestao/:tab" element={<GestaoRouteWrapper />} />
-                  <Route path="relatorios" element={<AnalyticsPage />} />
-                  <Route path="kanban" element={<WorkflowPage />} />
+                  <Route path="relatorios" element={<RelatoriosPage />} />
+                  <Route path="kanban" element={<KanbanPage />} />
+                  <Route path="catalogo-legado" element={<HomePage />} />
+                  <Route element={<WorkspaceShell />}>
+                    <Route path="colecoes" element={<CollectionsPage />} />
+                    <Route path="pecas" element={<ModelsPage />} />
+                    <Route path="pecas/:id" element={<ProductRecordPage />} />
+                    <Route path="workspace/dashboard" element={<AnalyticsPage dashboard />} />
+                    <Route path="workspace/bi" element={<AnalyticsPage />} />
+                    <Route
+                      path="workspace/notifications"
+                      element={<AnalyticsPage notifications />}
+                    />
+                    <Route path="workspace/kanban" element={<WorkflowPage />} />
+                    <Route path="workspace/gestao/:tab" element={<WorkspaceRegistryRoute />} />
+                  </Route>
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

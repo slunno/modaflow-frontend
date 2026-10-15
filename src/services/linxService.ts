@@ -54,7 +54,7 @@ function withQuery(
   return suffix ? `${path}?${suffix}` : path;
 }
 
-/** Confirma que o backend está conectado ao HOMOLOGACAO_COBRANCA. */
+/** Confirma o banco efetivo e o banco esperado configurado no backend. */
 export function getLinxConnectionInfo(): Promise<LinxConnectionInfo> {
   return api.get<LinxConnectionInfo>('/linx/conexao');
 }
@@ -64,8 +64,12 @@ export function getLinxSubgrupos(): Promise<string[]> {
   return api.get<string[]>('/linx/subgrupos');
 }
 
-export function getLinxCoresMostruario(): Promise<string[]> {
-  return api.get<string[]>('/linx/cores-mostruario');
+export function getLinxCoresMostruario(): Promise<
+  import('../types/fichaLinxMapeamento').LinxCorCodigo[]
+> {
+  return api.get<import('../types/fichaLinxMapeamento').LinxCorCodigo[]>(
+    '/linx/cores-mostruario/codigos'
+  );
 }
 
 export function getLinxModelagens(): Promise<string[]> {
@@ -171,6 +175,11 @@ export function getLinxFichaVersoes(
       colecao,
       descColecao,
     })
+  );
+}
+export function getLinxFichaReferencias(produto: string, griffe: LinxGriffe) {
+  return api.get<Array<{ versao: LinxFichaVersao; grade: string | null }>>(
+    withQuery(`/linx/produtos/${encodeURIComponent(produto)}/referencias`, { griffe })
   );
 }
 export function getLinxFichaDetalhe(

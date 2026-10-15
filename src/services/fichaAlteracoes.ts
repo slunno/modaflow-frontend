@@ -170,7 +170,7 @@ function camposDaFicha(peca: PecaItem, anexos: FichaAnexo[]): Map<string, Campo>
   Object.entries(integrationLabels).forEach(([key, label]) =>
     add(
       `integracao.${key}`,
-      'Integração Linx',
+      key === 'categoria' ? 'Geral' : 'Integração Linx',
       label,
       ficha?.integracao?.[key as keyof typeof integrationLabels]
     )
