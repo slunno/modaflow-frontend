@@ -195,7 +195,8 @@ interface Props {
   getPhoto: (item: FichaVariante, index: number) => string | undefined;
   isPending: (id: string) => boolean;
   onNameChange: (name: string) => void;
-  onImageChange: (url: string | null, fileName?: string) => void;
+  onImageChange: (url: string | null, fileName?: string) => void | Promise<void>;
+  onImageFile?: (file: File) => Promise<void>;
   onAdd: () => void;
   onDuplicate: () => void;
   onRemove: () => void;
@@ -220,6 +221,7 @@ export function VariantsTab({
   isPending,
   onNameChange,
   onImageChange,
+  onImageFile,
   onAdd,
   onDuplicate,
   onRemove,
@@ -278,6 +280,8 @@ export function VariantsTab({
               photo={photo}
               inherited={inheritedImage}
               onImageChange={onImageChange}
+              onImageFile={onImageFile}
+              imageDisabled={disabled}
               controller={assets.controller}
               urls={assets.urls}
             />
@@ -292,6 +296,8 @@ export function VariantsTab({
                   label={`Imagem da peça — ${selected.nome}`}
                   value={photo}
                   onChange={onImageChange}
+                  onFileChange={onImageFile}
+                  disabled={disabled}
                 />
               }
             />

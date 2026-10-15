@@ -25,6 +25,7 @@ import { CollectionDialog, CollectionNotice, CollectionColorChips } from './Coll
 import { CollectionReservationCard } from './CollectionReservationCard';
 import { collectionDate, collectionFooter } from './collectionFormatting';
 import { CollectionPrintImageUpload } from './CollectionPrintImageUpload';
+import { PecaImagem } from './PecaImagem';
 
 type MaterialType = 'TECIDO' | 'AVIAMENTO';
 type Material = TecidoInsumoItem;
@@ -448,15 +449,13 @@ export function CollectionThemesTab({
                     className="flex h-20 w-16 shrink-0 items-center justify-center overflow-hidden rounded-control border border-border bg-surface"
                     title={piece.nome}
                   >
-                    {piece.imagemCroquiUrl ? (
-                      <img
-                        src={piece.imagemCroquiUrl}
-                        alt={piece.nome}
-                        className="h-full w-full object-contain"
-                      />
-                    ) : (
-                      <ImagePlus aria-label={piece.nome} className="h-5 w-5 text-muted" />
-                    )}
+                    <PecaImagem
+                      peca={piece}
+                      className="h-full w-full object-contain"
+                      fallback={
+                        <ImagePlus aria-label={piece.nome} className="h-5 w-5 text-muted" />
+                      }
+                    />
                   </div>
                 ))}
                 {!matched.length && (

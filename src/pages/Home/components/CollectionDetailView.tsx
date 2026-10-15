@@ -50,6 +50,7 @@ import { CollectionSchedule } from './CollectionSchedule';
 import { CollectionOverview } from './CollectionOverview';
 import { MiniaturaModal } from './MiniaturaModal';
 import { PecaMiniaturaFields } from './PecaMiniaturaFields';
+import { PecaImagem } from './PecaImagem';
 import { PecaFichaTecnicaView } from './PecaFichaTecnicaView';
 import { PecaFluxoEtapasModal } from './PecaFluxoEtapasModal';
 import {
@@ -990,15 +991,12 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
 
                   {/* Área Central: Cabide Desenhado (Print 5) */}
                   <div className="w-full h-56 bg-surface-muted rounded-control flex items-center justify-center overflow-hidden border border-border-muted group-hover:border-accent-camel/40 transition">
-                    {peca.imagemCroquiUrl ? (
-                      <img
-                        src={peca.imagemCroquiUrl}
-                        alt={peca.nome}
-                        className="h-full w-full object-contain p-2"
-                      />
-                    ) : (
-                      <CabideIcon />
-                    )}
+                    <PecaImagem
+                      peca={peca}
+                      marcaId={marca.id}
+                      className="h-full w-full object-contain p-2"
+                      fallback={<CabideIcon />}
+                    />
                   </div>
 
                   <PecaMiniaturaFields

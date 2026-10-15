@@ -81,6 +81,61 @@ export async function listFichaAnexos(pieceKey: string): Promise<FichaAnexo[]> {
   });
 }
 
+/** Lê somente a foto necessária ao card, sem baixar desenhos e projetos da ficha. */
+export async function getFichaImagem(
+  pieceKey: string,
+  anexoId?: string,
+  excludedIds: string[] = []
+): Promise<Blob | null> {
+  const excluded = new Set(excludedIds);
+  const scope = sharedAttachmentScope(pieceKey);
+  if (scope) {
+    let id = anexoId;
+    if (!id) {
+      const records = await api.get<Omit<FichaAnexo, 'arquivo' | 'pieceKey'>[]>(
+        scope.path,
+        scope.brand
+      );
+      id = records.find((item) => item.categoria === 'variantes' && !excluded.has(item.id))?.id;
+    }
+    return id ? api.download(`${scope.path}/${id}`, scope.brand) : null;
+  }
+  const db = await openDatabase();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE, 'readonly');
+    const store = transaction.objectStore(STORE);
+    let image: Blob | null = null;
+    if (anexoId) {
+      const request = store.get(anexoId);
+      request.onsuccess = () => {
+        const item = request.result as FichaAnexo | undefined;
+        if (item?.pieceKey === pieceKey && item.categoria === 'variantes') image = item.arquivo;
+      };
+    } else {
+      const request = store.index('pieceKey').openCursor(pieceKey);
+      let createdAt = Infinity;
+      request.onsuccess = () => {
+        const cursor = request.result;
+        if (!cursor) return;
+        const item = cursor.value as FichaAnexo;
+        if (item.categoria === 'variantes' && !excluded.has(item.id) && item.criadoEm < createdAt) {
+          image = item.arquivo;
+          createdAt = item.criadoEm;
+        }
+        cursor.continue();
+      };
+    }
+    transaction.oncomplete = () => {
+      db.close();
+      resolve(image);
+    };
+    transaction.onabort = () => {
+      db.close();
+      reject(transaction.error ?? new Error('Não foi possível carregar a foto da peça.'));
+    };
+  });
+}
+
 export async function addFichaAnexos(
   pieceKey: string,
   categoria: FichaAnexoCategoria,

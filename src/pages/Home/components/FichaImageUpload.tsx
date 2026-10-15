@@ -4,24 +4,49 @@ import { Upload, Trash2 } from 'lucide-react';
 interface FichaImageUploadProps {
   label: string;
   value?: string | null;
-  onChange: (value: string | null, fileName?: string) => void;
+  onChange: (value: string | null, fileName?: string) => void | Promise<void>;
+  onFileChange?: (file: File) => Promise<void>;
+  disabled?: boolean;
 }
 
-export const FichaImageUpload: React.FC<FichaImageUploadProps> = ({ label, value, onChange }) => {
+export const FichaImageUpload: React.FC<FichaImageUploadProps> = ({
+  label,
+  value,
+  onChange,
+  onFileChange,
+  disabled = false,
+}) => {
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState('');
+  const busy = disabled || saving;
 
-  const loadFile = (file?: File) => {
-    if (!file) return;
+  const loadFile = async (file?: File) => {
+    if (!file || busy) return;
+    setStatus('');
     if (!file.type.startsWith('image/')) {
       setError('Selecione um arquivo de imagem.');
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      setError('A imagem deve ter no máximo 2 MB.');
+    const limitMb = onFileChange ? 10 : 2;
+    if (file.size > limitMb * 1024 * 1024) {
+      setError(`A imagem deve ter no máximo ${limitMb} MB.`);
       return;
     }
     setError('');
+    if (onFileChange) {
+      setSaving(true);
+      try {
+        await onFileChange(file);
+        setStatus('Imagem salva.');
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : 'Não foi possível salvar a imagem.');
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () =>
       onChange(typeof reader.result === 'string' ? reader.result : null, file.name);
@@ -35,13 +60,13 @@ export const FichaImageUpload: React.FC<FichaImageUploadProps> = ({ label, value
       <label
         onDragOver={(event) => {
           event.preventDefault();
-          setDragging(true);
+          if (!busy) setDragging(true);
         }}
         onDragLeave={() => setDragging(false)}
         onDrop={(event) => {
           event.preventDefault();
           setDragging(false);
-          loadFile(event.dataTransfer.files?.[0]);
+          void loadFile(event.dataTransfer.files?.[0]);
         }}
         className={`flex min-h-20 cursor-pointer flex-col items-center justify-center rounded-card border border-dashed p-card text-center transition-colors focus-within:ring-2 focus-within:ring-accent-camel ${dragging ? 'border-accent-camel bg-accent-camel/10' : 'border-border bg-surface-muted/50 hover:border-accent-camel'}`}
       >
@@ -59,9 +84,10 @@ export const FichaImageUpload: React.FC<FichaImageUploadProps> = ({ label, value
           type="file"
           accept="image/*"
           aria-label={label}
+          disabled={busy}
           className="sr-only"
           onChange={(event) => {
-            loadFile(event.target.files?.[0]);
+            void loadFile(event.target.files?.[0]);
             event.target.value = '';
           }}
         />
@@ -69,11 +95,30 @@ export const FichaImageUpload: React.FC<FichaImageUploadProps> = ({ label, value
       {value && (
         <button
           type="button"
-          onClick={() => onChange(null)}
+          disabled={busy}
+          onClick={async () => {
+            setError('');
+            setStatus('');
+            setSaving(true);
+            try {
+              await onChange(null);
+            } catch (cause) {
+              setError(
+                cause instanceof Error ? cause.message : 'Não foi possível remover a imagem.'
+              );
+            } finally {
+              setSaving(false);
+            }
+          }}
           className="inline-flex items-center gap-1 text-xs text-red-600 dark:text-red-400 hover:underline"
         >
           <Trash2 className="h-3.5 w-3.5" /> Remover imagem
         </button>
+      )}
+      {(saving || status) && (
+        <p role="status" className="text-xs text-muted">
+          {saving ? 'Salvando imagem…' : status}
+        </p>
       )}
       {error && (
         <p role="alert" className="text-xs text-red-600 dark:text-red-400">

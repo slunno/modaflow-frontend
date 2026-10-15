@@ -17,6 +17,8 @@ import {
   registrarAlteracoesAnexos,
 } from '../../../services/fichaAlteracoes';
 import {
+  addFichaAnexos,
+  removeFichaAnexo,
   copiarImagemVariante,
   listFichaAnexos,
   type FichaAnexo,
@@ -272,6 +274,8 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
   const [anexosRevision, setAnexosRevision] = useState(0);
   const [anexoUrls, setAnexoUrls] = useState<Record<string, string>>({});
   const [copiandoVariante, setCopiandoVariante] = useState(false);
+  const [salvandoImagem, setSalvandoImagem] = useState(false);
+  const imagemEmGravacao = useRef(false);
   const [varianteError, setVarianteError] = useState('');
   const pieceKey = sharedDocumentId
     ? `shared:${marca.id}:${sharedDocumentId}`
@@ -624,11 +628,18 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
     item.imagemRemovida
       ? undefined
       : (item.imagemUrl ??
-        anexoUrls[item.imagemAnexoId ?? ''] ??
-        (index === 0
-          ? (peca.imagemCroquiUrl ??
-            anexoUrls[anexos.find((anexo) => anexo.categoria === 'variantes')?.id ?? ''])
-          : undefined));
+        (item.imagemAnexoId
+          ? anexoUrls[item.imagemAnexoId]
+          : index === 0
+            ? (peca.imagemCroquiUrl ??
+              anexoUrls[
+                anexos.find(
+                  (anexo) =>
+                    anexo.categoria === 'variantes' &&
+                    !variantes.some((variant) => variant.imagemAnexoId === anexo.id)
+                )?.id ?? ''
+              ])
+            : undefined));
 
   // Handlers para Seleção de Tamanhos
   const atualizarTamanhos = (proximos: string[]) => {
@@ -951,7 +962,7 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
     pieceKey,
     onItemsChange: setAnexos,
     onMutation: handleAnexosMutation,
-    disabled: validandoProcesso,
+    disabled: validandoProcesso || salvandoImagem,
     revision: anexosRevision,
   });
   const alteracoesLinx = useFichaLinxAlteracoes({
@@ -964,9 +975,67 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
   const autosave = useFichaAutosave({
     conteudo: conteudoFicha(draft),
     salvo: conteudoSalvo,
-    bloqueado: loadingFichaLinx || copiandoVariante || validandoProcesso || !onUpdatePeca,
+    bloqueado:
+      loadingFichaLinx || copiandoVariante || validandoProcesso || salvandoImagem || !onUpdatePeca,
     onSave: handleSave,
   });
+
+  const salvarImagemVariante = async (varianteId: string, file: File | null) => {
+    if (!onUpdatePeca) throw new Error('Salvamento indisponível nesta tela.');
+    if (imagemEmGravacao.current) throw new Error('Aguarde o salvamento da imagem anterior.');
+    imagemEmGravacao.current = true;
+    let created: FichaAnexo | undefined;
+    let linked = false;
+    try {
+      if (!(await autosave.flush()))
+        throw new Error('Salve as alterações pendentes antes de trocar a imagem.');
+      setSalvandoImagem(true);
+      const records = file ? await addFichaAnexos(pieceKey, 'variantes', [file]) : [];
+      created = records[0];
+      const anterior = latestDraftRef.current;
+      if (!anterior.fichaTecnica?.variantes?.some((item) => item.id === varianteId))
+        throw new Error('A variante não está mais disponível.');
+      const change = {
+        imagemUrl: undefined,
+        imagemAnexoId: records[0]?.id,
+        imagemNome: records[0]?.nome,
+        imagemRemovida: !file,
+      };
+      const updated = {
+        ...anterior,
+        fichaTecnica: {
+          ...anterior.fichaTecnica,
+          variantes: anterior.fichaTecnica.variantes.map((item) =>
+            item.id === varianteId ? { ...item, ...change } : item
+          ),
+        },
+      };
+      // Só confirma a prévia depois de persistir o arquivo e seu vínculo com a variante.
+      await persistirFicha(updated);
+      linked = true;
+      setVariantes((previous) =>
+        previous.map((item) => (item.id === varianteId ? { ...item, ...change } : item))
+      );
+      setAnexos((previous) => [...previous, ...records]);
+      setAnexosRevision((previous) => previous + 1);
+      setSaveStatus(shared ? 'Imagem salva no servidor.' : 'Imagem salva neste navegador.');
+    } catch (cause) {
+      // A gravação local falhou antes do vínculo: não deixa uma foto solta virar capa.
+      if (created && !linked && !shared)
+        await removeFichaAnexo(created.id, pieceKey).catch(() => {});
+      const message =
+        cause instanceof DOMException
+          ? 'Não foi possível salvar a imagem. Verifique o espaço disponível e tente novamente.'
+          : cause instanceof Error
+            ? cause.message
+            : 'Não foi possível salvar a imagem.';
+      setSaveStatus(message, true);
+      throw new Error(message, { cause });
+    } finally {
+      imagemEmGravacao.current = false;
+      setSalvandoImagem(false);
+    }
+  };
 
   return (
     <div
@@ -989,7 +1058,7 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
                   });
                 else if (result) onBack();
               }}
-              disabled={validandoProcesso}
+              disabled={validandoProcesso || salvandoImagem}
             >
               <ArrowLeft aria-hidden="true" className="h-4 w-4" />
             </Button>
@@ -1841,25 +1910,18 @@ export const PecaFichaTecnicaView: React.FC<PecaFichaTecnicaViewProps> = ({
                   previous.map((item) => (item.id === variante.id ? { ...item, nome } : item))
                 )
               }
-              onImageChange={(url, fileName) =>
-                setVariantes((previous) =>
-                  previous.map((item) =>
-                    item.id === variante.id
-                      ? {
-                          ...item,
-                          imagemUrl: url ?? undefined,
-                          imagemNome: fileName,
-                          imagemAnexoId: undefined,
-                          imagemRemovida: !url,
-                        }
-                      : item
-                  )
-                )
-              }
+              onImageChange={() => salvarImagemVariante(variante.id, null)}
+              onImageFile={(file) => salvarImagemVariante(variante.id, file)}
               onAdd={() => void addVariante()}
               onDuplicate={() => void addVariante(variante)}
               onRemove={() => removeVariante(variante.id)}
-              disabled={copiandoVariante || loadingFichaLinx || validandoProcesso}
+              disabled={
+                copiandoVariante ||
+                loadingFichaLinx ||
+                validandoProcesso ||
+                salvandoImagem ||
+                !onUpdatePeca
+              }
               loading={loadingFichaLinx}
               error={varianteError}
               unsaved={conteudoSalvo !== conteudoFicha(draft)}

@@ -233,8 +233,13 @@ describe('Salvar alterações, prova de roupa e cópia da Principal', () => {
       peca.fichaTecnica!.variantes![0]!.imagemUrl
     );
     fireEvent.click(screen.getAllByRole('button', { name: 'Remover imagem' }).at(-1)!);
-    fireEvent.blur(screen.getByRole('group', { name: 'Ficha técnica' }));
-    const variants = (save.mock.calls[0]![0] as PecaItem).fichaTecnica!.variantes!;
+    await waitFor(() =>
+      expect(
+        (save.mock.lastCall?.[0] as PecaItem | undefined)?.fichaTecnica?.variantes?.[2]
+          ?.imagemRemovida
+      ).toBe(true)
+    );
+    const variants = (save.mock.lastCall![0] as PecaItem).fichaTecnica!.variantes!;
     expect(variants[0]!.imagemUrl).toBe(peca.fichaTecnica!.variantes![0]!.imagemUrl);
     expect(variants[2]!.imagemRemovida).toBe(true);
     expect(variants[2]!.tecidos[0]!.id).not.toBe(variants[0]!.tecidos[0]!.id);

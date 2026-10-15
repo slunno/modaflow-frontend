@@ -16,13 +16,17 @@ export function VariantAssetsGallery({
   photo,
   inherited,
   onImageChange,
+  onImageFile,
+  imageDisabled = false,
   controller,
   urls,
 }: {
   name: string;
   photo?: string;
   inherited: boolean;
-  onImageChange: (url: string | null, fileName?: string) => void;
+  onImageChange: (url: string | null, fileName?: string) => void | Promise<void>;
+  onImageFile?: (file: File) => Promise<void>;
+  imageDisabled?: boolean;
   controller: FichaAnexosController;
   urls: Record<string, string>;
 }) {
@@ -201,6 +205,8 @@ export function VariantAssetsGallery({
                 label={`Imagem da peça — ${name}`}
                 value={photo}
                 onChange={onImageChange}
+                onFileChange={onImageFile}
+                disabled={imageDisabled}
               />
             </details>
           ) : (
