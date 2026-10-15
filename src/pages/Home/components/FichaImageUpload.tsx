@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Upload, Trash2 } from 'lucide-react';
 
 interface FichaImageUploadProps {
@@ -7,6 +7,9 @@ interface FichaImageUploadProps {
   onChange: (value: string | null, fileName?: string) => void | Promise<void>;
   onFileChange?: (file: File) => Promise<void>;
   disabled?: boolean;
+  gallery?: boolean;
+  imageAlt?: string;
+  emptyMessage?: string;
 }
 
 export const FichaImageUpload: React.FC<FichaImageUploadProps> = ({
@@ -15,7 +18,13 @@ export const FichaImageUpload: React.FC<FichaImageUploadProps> = ({
   onChange,
   onFileChange,
   disabled = false,
+  gallery = false,
+  imageAlt = label,
+  emptyMessage,
 }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dragDepth = useRef(0);
+  const savingRef = useRef(false);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -23,7 +32,7 @@ export const FichaImageUpload: React.FC<FichaImageUploadProps> = ({
   const busy = disabled || saving;
 
   const loadFile = async (file?: File) => {
-    if (!file || busy) return;
+    if (!file || disabled || savingRef.current) return;
     setStatus('');
     if (!file.type.startsWith('image/')) {
       setError('Selecione um arquivo de imagem.');
@@ -35,52 +44,115 @@ export const FichaImageUpload: React.FC<FichaImageUploadProps> = ({
       return;
     }
     setError('');
-    if (onFileChange) {
-      setSaving(true);
-      try {
+    savingRef.current = true;
+    setSaving(true);
+    try {
+      if (onFileChange) {
         await onFileChange(file);
         setStatus('Imagem salva.');
-      } catch (cause) {
-        setError(cause instanceof Error ? cause.message : 'Não foi possível salvar a imagem.');
-      } finally {
-        setSaving(false);
+      } else {
+        const result = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () =>
+            typeof reader.result === 'string'
+              ? resolve(reader.result)
+              : reject(new Error('Não foi possível ler a imagem.'));
+          reader.onerror = () => reject(new Error('Não foi possível ler a imagem.'));
+          reader.readAsDataURL(file);
+        });
+        await onChange(result, file.name);
       }
-      return;
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível salvar a imagem.');
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
     }
-    const reader = new FileReader();
-    reader.onload = () =>
-      onChange(typeof reader.result === 'string' ? reader.result : null, file.name);
-    reader.onerror = () => setError('Não foi possível ler a imagem.');
-    reader.readAsDataURL(file);
   };
 
   return (
     <div className="space-y-2">
-      <span className="block text-xs font-semibold text-muted-foreground">{label}</span>
+      <span className={gallery ? 'sr-only' : 'block text-xs font-semibold text-muted-foreground'}>
+        {label}
+      </span>
       <label
+        onDragEnter={(event) => {
+          event.preventDefault();
+          if (busy || !Array.from(event.dataTransfer.types).includes('Files')) return;
+          dragDepth.current += 1;
+          setDragging(true);
+        }}
         onDragOver={(event) => {
           event.preventDefault();
-          if (!busy) setDragging(true);
+          event.dataTransfer.dropEffect = busy ? 'none' : 'copy';
+          if (!busy && Array.from(event.dataTransfer.types).includes('Files')) setDragging(true);
         }}
-        onDragLeave={() => setDragging(false)}
+        onDragLeave={() => {
+          dragDepth.current = Math.max(0, dragDepth.current - 1);
+          if (!dragDepth.current) setDragging(false);
+        }}
         onDrop={(event) => {
           event.preventDefault();
+          event.stopPropagation();
+          dragDepth.current = 0;
           setDragging(false);
+          if (busy || savingRef.current) return;
+          if (event.dataTransfer.files.length > 1) {
+            setStatus('');
+            setError('Adicione uma imagem por vez.');
+            return;
+          }
           void loadFile(event.dataTransfer.files?.[0]);
         }}
-        className={`flex min-h-20 cursor-pointer flex-col items-center justify-center rounded-card border border-dashed p-card text-center transition-colors focus-within:ring-2 focus-within:ring-accent-camel ${dragging ? 'border-accent-camel bg-accent-camel/10' : 'border-border bg-surface-muted/50 hover:border-accent-camel'}`}
+        className={`relative flex w-full flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed text-center transition-colors focus-within:ring-2 focus-within:ring-accent-camel ${gallery ? 'min-h-80 gap-3 bg-surface-muted sm:min-h-[32rem] xl:min-h-[38rem]' : 'min-h-28 p-4'} ${busy ? 'cursor-wait opacity-70' : 'cursor-pointer'} ${dragging ? 'border-accent-camel bg-accent-camel/10 ring-2 ring-accent-camel' : 'border-border bg-surface-muted/50 hover:border-accent-camel'}`}
       >
         {value ? (
-          <img src={value} alt={label} className="max-h-40 max-w-full rounded object-contain" />
+          <img
+            src={value}
+            alt={imageAlt}
+            draggable={false}
+            className={
+              gallery
+                ? 'max-h-[40rem] w-full object-contain'
+                : 'max-h-40 max-w-full rounded object-contain'
+            }
+          />
         ) : (
           <>
-            <Upload aria-hidden="true" strokeWidth={1.5} className="mb-2 h-4 w-4 text-muted" />
+            <Upload
+              aria-hidden="true"
+              className={gallery ? 'h-10 w-10 text-muted' : 'mb-2 h-6 w-6 text-muted'}
+            />
+            {emptyMessage && <span className="px-4 text-sm text-muted">{emptyMessage}</span>}
             <span className="text-xs font-medium text-primary">
               Arraste uma imagem ou clique para selecionar
             </span>
           </>
         )}
+        {gallery && (
+          <span
+            className={
+              value
+                ? 'absolute inset-x-3 bottom-3 rounded-lg bg-surface/95 p-2 text-xs text-muted'
+                : 'text-xs text-muted'
+            }
+          >
+            {value
+              ? 'Arraste outra imagem aqui para substituir'
+              : `Até ${onFileChange ? 10 : 2} MB`}
+            {onFileChange ? ' · salvamento automático' : ''}
+          </span>
+        )}
+        {dragging && !busy && (
+          <span
+            className="pointer-events-none absolute inset-0 flex items-center justify-center bg-surface/95 p-5 text-sm font-semibold text-accent-camel"
+            role="status"
+          >
+            Solte a imagem para salvar
+          </span>
+        )}
         <input
+          ref={inputRef}
           type="file"
           accept="image/*"
           aria-label={label}
@@ -92,11 +164,23 @@ export const FichaImageUpload: React.FC<FichaImageUploadProps> = ({
           }}
         />
       </label>
+      {gallery && (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => inputRef.current?.click()}
+          className="mr-4 min-h-9 text-sm font-semibold text-accent-camel hover:underline"
+        >
+          Trocar imagem
+        </button>
+      )}
       {value && (
         <button
           type="button"
           disabled={busy}
           onClick={async () => {
+            if (savingRef.current) return;
+            savingRef.current = true;
             setError('');
             setStatus('');
             setSaving(true);
@@ -107,6 +191,7 @@ export const FichaImageUpload: React.FC<FichaImageUploadProps> = ({
                 cause instanceof Error ? cause.message : 'Não foi possível remover a imagem.'
               );
             } finally {
+              savingRef.current = false;
               setSaving(false);
             }
           }}

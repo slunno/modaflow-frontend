@@ -92,6 +92,19 @@ async function upload(name: string, file: File) {
   );
 }
 
+async function dropPhoto(name: string, file: File) {
+  const zone = screen
+    .getByLabelText(`Imagem da peça — ${name}`, { selector: 'input' })
+    .closest('label')!;
+  fireEvent.dragEnter(zone, { dataTransfer: { types: ['Files'], files: [file] } });
+  expect(screen.getByText('Solte a imagem para salvar')).toBeDefined();
+  fireEvent.drop(zone, { dataTransfer: { types: ['Files'], files: [file] } });
+  await screen.findByText('Imagem salva.', { exact: true });
+  await waitFor(() =>
+    expect(screen.getByAltText(`Variante ${name}`).getAttribute('src')).toBe(`blob:${file.name}`)
+  );
+}
+
 describe('Fotos persistidas da peça e das variantes', () => {
   it('salva arquivos sem base64, reabre as duas fotos e usa só a Principal na coleção', async () => {
     savePecaLocal(structuredClone(peca));
@@ -101,13 +114,13 @@ describe('Fotos persistidas da peça e das variantes', () => {
     const largePhoto = new File([new Uint8Array(3 * 1024 * 1024)], 'principal.png', {
       type: 'image/png',
     });
-    await upload('Principal', largePhoto);
+    await dropPhoto('Principal', largePhoto);
     const firstId = stored().fichaTecnica!.variantes![0]!.imagemAnexoId;
     expect(firstId).toBeTruthy();
     expect(stored().fichaTecnica!.variantes![0]!.imagemUrl).toBeUndefined();
     expect(localStorage.getItem(LOCAL_PECAS_KEY)!.length).toBeLessThan(20000);
     fireEvent.click(screen.getByRole('tab', { name: 'Selecionar variante Outra' }));
-    await upload('Outra', photo('outra.png'));
+    await dropPhoto('Outra', photo('outra.png'));
     const variants = stored().fichaTecnica!.variantes!;
     expect(variants[0]!.imagemAnexoId).toBe(firstId);
     expect(variants[1]!.imagemAnexoId).not.toBe(firstId);

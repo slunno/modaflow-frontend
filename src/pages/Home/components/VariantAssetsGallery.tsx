@@ -154,62 +154,58 @@ export function VariantAssetsGallery({
           aria-label={`${label} — ${name}`}
           className="min-w-0"
         >
-          <div
-            className={`flex items-center justify-center overflow-hidden rounded-control bg-surface-muted ${image || (isPdf && url) ? 'min-h-gallery' : 'min-h-gallery-empty'}`}
-          >
-            {image ? (
-              <img
-                src={image}
-                alt={selected === 'piece' ? `Variante ${name}` : `Desenho técnico — ${file?.nome}`}
-                className="max-h-gallery w-full object-contain"
-              />
-            ) : isPdf && url ? (
-              <iframe
-                src={url}
-                title={`Prévia do projeto — ${file.nome}`}
-                className="h-gallery w-full border-0"
-              />
-            ) : (
-              <div className="flex min-w-0 flex-col items-center gap-3 p-5 text-center text-muted">
-                {selected === 'project' ? (
-                  <FileText aria-hidden="true" className="h-4 w-4" />
-                ) : (
-                  <ImageIcon aria-hidden="true" className="h-4 w-4" />
-                )}
-                <p className="max-w-full break-words text-sm font-semibold">
-                  {file?.nome ??
-                    (selected === 'piece'
-                      ? 'Esta variante ainda não tem imagem'
-                      : selected === 'drawing'
+          {selected === 'piece' ? (
+            <FichaImageUpload
+              gallery
+              label={`Imagem da peça — ${name}`}
+              imageAlt={`Variante ${name}`}
+              emptyMessage="Esta variante ainda não tem imagem"
+              value={photo}
+              onChange={onImageChange}
+              onFileChange={onImageFile}
+              disabled={imageDisabled}
+            />
+          ) : (
+            <div
+              className={`flex items-center justify-center overflow-hidden rounded-control bg-surface-muted ${image || (isPdf && url) ? 'min-h-gallery' : 'min-h-gallery-empty'}`}
+            >
+              {image ? (
+                <img
+                  src={image}
+                  alt={`Desenho técnico — ${file?.nome}`}
+                  className="max-h-gallery w-full object-contain"
+                />
+              ) : isPdf && url ? (
+                <iframe
+                  src={url}
+                  title={`Prévia do projeto — ${file.nome}`}
+                  className="h-gallery w-full border-0"
+                />
+              ) : (
+                <div className="flex min-w-0 flex-col items-center gap-3 p-5 text-center text-muted">
+                  {selected === 'project' ? (
+                    <FileText aria-hidden="true" className="h-4 w-4" />
+                  ) : (
+                    <ImageIcon aria-hidden="true" className="h-4 w-4" />
+                  )}
+                  <p className="max-w-full break-words text-sm font-semibold">
+                    {file?.nome ??
+                      (selected === 'drawing'
                         ? 'Nenhum desenho técnico adicionado'
                         : 'Nenhum arquivo de projeto adicionado')}
-                </p>
-                <p className="text-xs">
-                  {file
-                    ? 'Este formato pode ser aberto ou baixado. A prévia não está disponível no navegador.'
-                    : selected === 'piece'
-                      ? 'Use Trocar imagem para adicionar uma referência.'
+                  </p>
+                  <p className="text-xs">
+                    {file
+                      ? 'Este formato pode ser aberto ou baixado. A prévia não está disponível no navegador.'
                       : selected === 'drawing'
                         ? 'Adicione uma imagem de até 10 MB.'
                         : 'Adicione um arquivo de projeto ou PDF de até 100 MB.'}
-                </p>
-              </div>
-            )}
-          </div>
-          {selected === 'piece' ? (
-            <details className="mt-3" open={!photo}>
-              <summary className="min-h-control-compact cursor-pointer text-xs font-semibold text-accent-camel">
-                Trocar imagem
-              </summary>
-              <FichaImageUpload
-                label={`Imagem da peça — ${name}`}
-                value={photo}
-                onChange={onImageChange}
-                onFileChange={onImageFile}
-                disabled={imageDisabled}
-              />
-            </details>
-          ) : (
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+          {selected !== 'piece' && (
             <div className="mt-4 space-y-3">
               {isPdf && (
                 <p className="text-xs text-muted">

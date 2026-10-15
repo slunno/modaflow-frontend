@@ -229,7 +229,7 @@ describe('Salvar alterações, prova de roupa e cópia da Principal', () => {
     expect(screen.getByRole('region', { name: 'Aviamentos — Variante 3' }).textContent).toContain(
       'Aviamento Principal'
     );
-    expect(screen.getByAltText('Imagem da peça — Variante 3').getAttribute('src')).toBe(
+    expect(screen.getByAltText('Variante Variante 3').getAttribute('src')).toBe(
       peca.fichaTecnica!.variantes![0]!.imagemUrl
     );
     fireEvent.click(screen.getAllByRole('button', { name: 'Remover imagem' }).at(-1)!);
