@@ -1,5 +1,22 @@
 /* Um diálogo, duas superfícies vinculadas. Os campos continuam montados entre etapas. */
 .insumo-dialog {
+  /* Tokens locais: esta tela mantém a versão atualizada sem alterar o tema do portal. */
+  --spacing: 0.25rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.8125rem;
+  --text-lg: 0.9375rem;
+  --radius-card: 0.75rem;
+  --radius-control: 0.5rem;
+  --spacing-card: 1rem;
+  --spacing-control: 2.25rem;
+  --spacing-control-compact: 2.125rem;
+  --spacing-hit: 2rem;
+  --spacing-dialog-height: 85dvh;
+  --spacing-insumo-panel: 25rem;
+  --container-insumo: 50rem;
+  --container-insumo-pair: 75rem;
+  --transition-panel: 250ms;
   --insumo-stage-width: min(var(--container-insumo-pair), calc(100vw - 2 * var(--spacing-card)));
   display: grid;
   grid-template-columns: minmax(0, var(--container-insumo));
@@ -68,6 +85,9 @@
 .insumo-dialog :is(p, label, details) {
   overflow-wrap: anywhere;
 }
+.insumo-dialog .p-card {
+  padding: var(--spacing-card);
+}
 .insumo-dialog :is(.text-\[9px\], .text-\[10px\], .text-\[11px\]) {
   font-size: var(--text-xs);
   line-height: 1.45;
@@ -87,7 +107,7 @@
 }
 .material-color-chip {
   display: inline-flex;
-  min-height: var(--spacing-control-compact);
+  min-height: var(--spacing-control-compact, 2.125rem);
   max-width: 100%;
   align-items: center;
   border: 1px solid var(--color-border);
